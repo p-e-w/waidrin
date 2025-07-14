@@ -145,10 +145,17 @@ async function getResponseAsObject<Schema extends z.ZodType, Type extends z.infe
   const response = await getResponse(
     prompt,
     {
-      ...getState().generationParams,
-      json_schema: z.toJSONSchema(schema),
-    },
-    onToken,
+      ...getState().generationParams,		 
+          response_format: { 
+			type: "json_schema", 
+			json_schema: {
+                name: "FooBar",
+				strict: true,
+				schema: z.toJSONSchema(schema)			
+			}
+          }
+		},
+		onToken,
   );
 
   return schema.parse(JSON.parse(response)) as Type;
