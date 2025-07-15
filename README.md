@@ -55,20 +55,18 @@ npm run build
 
 ## Running
 
-To use Waidrin, you need a running
-[llama.cpp server](https://github.com/ggml-org/llama.cpp/tree/master/tools/server)
-with the model of your choice
-([Mistral Small 2506](https://huggingface.co/bartowski/mistralai_Mistral-Small-3.2-24B-Instruct-2506-GGUF)
-is recommended). Once you have that set up, run
+Waidrin now uses [Pollinations AI](https://pollinations.ai) for free access to various AI models through their OpenAI-compatible API. No local setup or API keys are required!
+
+Simply run:
 
 ```
 npm run start
 ```
 
 from Waidrin's installation directory, open the displayed URL in the browser,
-and follow the instructions.
+and follow the instructions. The application will connect to Pollinations AI automatically.
 
-You can also use
+You can also use:
 
 ```
 npm run dev
@@ -77,6 +75,16 @@ npm run dev
 to run in development mode, which gives you features like hot reload and
 React Strict Mode, and is probably what you want if you plan to work on
 Waidrin's code (which you are very welcome to do!).
+
+### Model Selection
+
+The application supports multiple AI models through Pollinations AI:
+- **Mistral Small 3.1 24B** (recommended for RPG storytelling)
+- **DeepSeek V3** (advanced reasoning capabilities)
+- **OpenAI GPT-4o Mini** (balanced performance)
+- **Qwen 2.5 Coder 32B** (code-focused model)
+
+You can select your preferred model during the initial setup or change it later in the connection settings.
 
 
 ## License

@@ -26,7 +26,8 @@ export type Event = z.infer<typeof schemas.Event>;
 export type State = z.infer<typeof schemas.State>;
 
 export const initialState: State = schemas.State.parse({
-  apiUrl: "http://localhost:8080",
+  apiUrl: process.env.NEXT_PUBLIC_POLLINATIONS_API_URL || "https://text.pollinations.ai/openai",
+  model: process.env.NEXT_PUBLIC_DEFAULT_MODEL || "mistral",
   generationParams: {
     temperature: 0.5,
   },

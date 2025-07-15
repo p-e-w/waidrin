@@ -47,16 +47,17 @@ export function isAbortError(error: unknown): boolean {
 
 async function* getResponseStream(prompt: Prompt, params: Record<string, unknown> = {}): AsyncGenerator<string> {
   try {
+    const state = getState();
     const client = new OpenAI({
-      baseURL: `${getState().apiUrl}/v1/`,
-      apiKey: "",
+      baseURL: state.apiUrl,
+      apiKey: "dummy", // Pollinations doesn't require a real API key
       dangerouslyAllowBrowser: true,
     });
 
     const stream = await client.chat.completions.create(
       {
         stream: true,
-        model: "",
+        model: state.model,
         messages: [
           { role: "system", content: prompt.system },
           { role: "user", content: prompt.user },
