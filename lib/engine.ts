@@ -57,7 +57,7 @@ async function* getResponseStream(prompt: Prompt, params: Record<string, unknown
     const stream = await client.chat.completions.create(
       {
         stream: true,
-        model: state.model,
+        model: "mistral", // Default to Mistral for Pollinations AI
         messages: [
           { role: "system", content: prompt.system },
           { role: "user", content: prompt.user },
