@@ -93,7 +93,7 @@ export interface Actions {
 }
 
 // Migration function to handle existing llama.cpp configurations
-const migrateState = (persistedState: any): State => {
+const migrateState = (persistedState: unknown): State => {
   // If the persisted state doesn't have providerConfigs, migrate from old structure
   if (!persistedState.providerConfigs) {
     const migratedState = {
@@ -108,7 +108,7 @@ const migrateState = (persistedState: any): State => {
         },
       },
     };
-    
+
     // Validate the migrated state against the schema
     try {
       return schemas.State.parse(migratedState);
@@ -117,7 +117,7 @@ const migrateState = (persistedState: any): State => {
       return initialState;
     }
   }
-  
+
   // Validate existing state structure
   try {
     return schemas.State.parse(persistedState);

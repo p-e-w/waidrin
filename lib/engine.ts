@@ -5,6 +5,8 @@ import { current, isDraft } from "immer";
 import { throttle } from "lodash";
 import OpenAI from "openai";
 import * as z from "zod/v4";
+import { openRouterProvider } from "./openrouter-provider";
+import type { OpenRouterConfigType } from "./openrouter-types";
 import {
   checkConnectionPrompt,
   checkIfSameLocationPrompt,
@@ -27,8 +29,6 @@ import {
   type State,
   useStateStore,
 } from "./state";
-import { openRouterProvider } from "./openrouter-provider";
-import type { OpenRouterConfigType } from "./openrouter-types";
 
 // When generating a character, the location isn't determined yet.
 const RawCharacter = schemas.Character.omit({ locationIndex: true });
@@ -49,13 +49,13 @@ export function isAbortError(error: unknown): boolean {
 
 export async function testConnection(): Promise<void> {
   const state = getState();
-  
-  if (state.connectionType === 'openrouter') {
+
+  if (state.connectionType === "openrouter") {
     // Use OpenRouter provider for connection testing
     const config: OpenRouterConfigType = {
-      apiKey: state.openRouterConfig.apiKey || '',
+      apiKey: state.openRouterConfig.apiKey || "",
       selectedModel: state.openRouterConfig.selectedModel,
-      baseUrl: 'https://openrouter.ai/api/v1',
+      baseUrl: "https://openrouter.ai/api/v1",
     };
     await openRouterProvider.testConnection(config);
   } else {
@@ -66,13 +66,13 @@ export async function testConnection(): Promise<void> {
 
 function createClient(): OpenAI {
   const state = getState();
-  
-  if (state.connectionType === 'openrouter') {
+
+  if (state.connectionType === "openrouter") {
     // Create OpenRouter client using provider
     const config: OpenRouterConfigType = {
-      apiKey: state.openRouterConfig.apiKey || '',
+      apiKey: state.openRouterConfig.apiKey || "",
       selectedModel: state.openRouterConfig.selectedModel,
-      baseUrl: 'https://openrouter.ai/api/v1',
+      baseUrl: "https://openrouter.ai/api/v1",
     };
     return openRouterProvider.createClient(config);
   } else {
@@ -87,12 +87,12 @@ function createClient(): OpenAI {
 
 function getModelForRequest(): string {
   const state = getState();
-  
-  if (state.connectionType === 'openrouter') {
-    return state.openRouterConfig.selectedModel || '';
+
+  if (state.connectionType === "openrouter") {
+    return state.openRouterConfig.selectedModel || "";
   } else {
     // For llama.cpp, model is empty string (existing behavior)
-    return '';
+    return "";
   }
 }
 
@@ -315,13 +315,13 @@ export async function next(
         state.view = "connection";
       } else if (state.view === "connection") {
         step = ["Checking connection", "If this takes longer than a few seconds, there is probably something wrong"];
-        
-        if (state.connectionType === 'openrouter') {
+
+        if (state.connectionType === "openrouter") {
           // Use OpenRouter provider for connection testing
           const config: OpenRouterConfigType = {
-            apiKey: state.openRouterConfig.apiKey || '',
+            apiKey: state.openRouterConfig.apiKey || "",
             selectedModel: state.openRouterConfig.selectedModel,
-            baseUrl: 'https://openrouter.ai/api/v1',
+            baseUrl: "https://openrouter.ai/api/v1",
           };
           await openRouterProvider.testConnection(config);
         } else {

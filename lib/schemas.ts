@@ -25,10 +25,12 @@ export const Model = z.object({
   description: z.string().optional(),
   provider: z.string(),
   contextLength: z.number().optional(),
-  pricing: z.object({
-    input: z.number(),
-    output: z.number(),
-  }).optional(),
+  pricing: z
+    .object({
+      input: z.number(),
+      output: z.number(),
+    })
+    .optional(),
   supportsStructuredOutputs: z.boolean().default(false),
 });
 

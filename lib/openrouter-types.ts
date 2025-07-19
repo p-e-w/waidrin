@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
 
-import * as z from "zod/v4";
 import type { OpenAI } from "openai";
+import * as z from "zod/v4";
 
 // OpenRouter API Response Types
 export const OpenRouterModel = z.object({
@@ -13,12 +13,14 @@ export const OpenRouterModel = z.object({
   output_modalities: z.array(z.string()).optional(),
   context_length: z.number().optional(),
   max_output_length: z.number().optional(),
-  pricing: z.object({
-    prompt: z.string(),
-    completion: z.string(),
-    image: z.string().optional(),
-    request: z.string().optional(),
-  }).optional(),
+  pricing: z
+    .object({
+      prompt: z.string(),
+      completion: z.string(),
+      image: z.string().optional(),
+      request: z.string().optional(),
+    })
+    .optional(),
   supported_sampling_parameters: z.array(z.string()).optional(),
   supported_features: z.array(z.string()).optional(),
   description: z.string().optional(),
@@ -42,16 +44,18 @@ export const StandardizedModel = z.object({
   description: z.string().optional(),
   provider: z.string(),
   contextLength: z.number().optional(),
-  pricing: z.object({
-    input: z.number(),
-    output: z.number(),
-  }).optional(),
+  pricing: z
+    .object({
+      input: z.number(),
+      output: z.number(),
+    })
+    .optional(),
   supportsStructuredOutputs: z.boolean().default(false),
 });
 
 // Provider Interface
 export interface AIProvider {
-  type: 'llamacpp' | 'openrouter';
+  type: "llamacpp" | "openrouter";
   validateConfig(config: unknown): boolean;
   fetchModels(config: OpenRouterConfigType): Promise<StandardizedModelType[]>;
   testConnection(config: OpenRouterConfigType): Promise<void>;
@@ -91,16 +95,13 @@ export class OpenRouterApiClient {
     this.baseUrl = config.baseUrl;
   }
 
-  private async makeRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const headers = {
-      'Authorization': `Bearer ${this.apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': window.location.origin,
-      'X-Title': 'AI Adventure Game',
+      Authorization: `Bearer ${this.apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": window.location.origin,
+      "X-Title": "AI Adventure Game",
       ...options.headers,
     };
 
@@ -112,7 +113,7 @@ export class OpenRouterApiClient {
     if (!response.ok) {
       const errorText = await response.text();
       let errorData: OpenRouterApiErrorType;
-      
+
       try {
         const parsedError = JSON.parse(errorText);
         errorData = {
@@ -135,7 +136,7 @@ export class OpenRouterApiClient {
   }
 
   async fetchModels(): Promise<OpenRouterModelsResponseType> {
-    return this.makeRequest<OpenRouterModelsResponseType>('/models');
+    return this.makeRequest<OpenRouterModelsResponseType>("/models");
   }
 
   async testConnection(): Promise<void> {
@@ -151,7 +152,7 @@ export class OpenRouterApiException extends Error {
 
   constructor(error: OpenRouterApiErrorType) {
     super(error.message);
-    this.name = 'OpenRouterApiException';
+    this.name = "OpenRouterApiException";
     this.status = error.status;
     this.code = error.code;
   }
@@ -174,61 +175,62 @@ export class OpenRouterApiException extends Error {
 }
 
 // Utility Functions
-export function convertOpenRouterModelToStandardized(
-  model: OpenRouterModelType
-): StandardizedModelType {
+export function convertOpenRouterModelToStandardized(model: OpenRouterModelType): StandardizedModelType {
   const inputPrice = model.pricing ? parseFloat(model.pricing.prompt) : 0;
   const outputPrice = model.pricing ? parseFloat(model.pricing.completion) : 0;
-  
+
   // Debug: Log supported features for popular models
-  if (model.id.includes('gpt-4') || model.id.includes('claude') || model.id.includes('mistral') || model.id.includes('deepseek')) {
+  if (
+    model.id.includes("gpt-4") ||
+    model.id.includes("claude") ||
+    model.id.includes("mistral") ||
+    model.id.includes("deepseek")
+  ) {
     console.log(`Model ${model.id} supported_features:`, model.supported_features);
   }
-  
+
   // Check for structured outputs support - check both supported_features and supported_sampling_parameters
   // Based on OpenRouter API, structured outputs can be indicated by:
-  // - 'structured_outputs' in supported_sampling_parameters 
+  // - 'structured_outputs' in supported_sampling_parameters
   // - 'response_format' in supported_sampling_parameters
   // - 'json_schema' in supported_features
-  const supportsStructuredOutputs = 
-    model.supported_sampling_parameters?.includes('structured_outputs') ||
-    model.supported_sampling_parameters?.includes('response_format') ||
-    model.supported_features?.includes('json_schema') ||
+  const supportsStructuredOutputs =
+    model.supported_sampling_parameters?.includes("structured_outputs") ||
+    model.supported_sampling_parameters?.includes("response_format") ||
+    model.supported_features?.includes("json_schema") ||
     false;
-  
+
   return {
     id: model.id,
     name: model.name,
     description: model.description,
-    provider: 'openrouter',
+    provider: "openrouter",
     contextLength: model.context_length,
-    pricing: model.pricing ? {
-      input: inputPrice,
-      output: outputPrice,
-    } : undefined,
+    pricing: model.pricing
+      ? {
+          input: inputPrice,
+          output: outputPrice,
+        }
+      : undefined,
     supportsStructuredOutputs,
   };
 }
 
-export function filterModelsWithStructuredOutputs(
-  models: StandardizedModelType[]
-): StandardizedModelType[] {
-  return models.filter(model => model.supportsStructuredOutputs);
+export function filterModelsWithStructuredOutputs(models: StandardizedModelType[]): StandardizedModelType[] {
+  return models.filter((model) => model.supportsStructuredOutputs);
 }
 
-export function searchModels(
-  models: StandardizedModelType[],
-  query: string
-): StandardizedModelType[] {
+export function searchModels(models: StandardizedModelType[], query: string): StandardizedModelType[] {
   if (!query.trim()) {
     return models;
   }
 
   const searchTerm = query.toLowerCase();
-  return models.filter(model => 
-    model.name.toLowerCase().includes(searchTerm) ||
-    model.id.toLowerCase().includes(searchTerm) ||
-    (model.description && model.description.toLowerCase().includes(searchTerm))
+  return models.filter(
+    (model) =>
+      model.name.toLowerCase().includes(searchTerm) ||
+      model.id.toLowerCase().includes(searchTerm) ||
+      model.description?.toLowerCase().includes(searchTerm),
   );
 }
 
