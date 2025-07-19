@@ -27,6 +27,8 @@ import {
   type State,
   useStateStore,
 } from "./state";
+import { openRouterProvider } from "./openrouter-provider";
+import type { OpenRouterConfigType } from "./openrouter-types";
 
 // When generating a character, the location isn't determined yet.
 const RawCharacter = schemas.Character.omit({ locationIndex: true });
@@ -45,18 +47,64 @@ export function isAbortError(error: unknown): boolean {
   return error instanceof OpenAI.APIUserAbortError;
 }
 
-async function* getResponseStream(prompt: Prompt, params: Record<string, unknown> = {}): AsyncGenerator<string> {
-  try {
-    const client = new OpenAI({
-      baseURL: `${getState().apiUrl}/v1/`,
+export async function testConnection(): Promise<void> {
+  const state = getState();
+  
+  if (state.connectionType === 'openrouter') {
+    // Use OpenRouter provider for connection testing
+    const config: OpenRouterConfigType = {
+      apiKey: state.openRouterConfig.apiKey || '',
+      selectedModel: state.openRouterConfig.selectedModel,
+      baseUrl: 'https://openrouter.ai/api/v1',
+    };
+    await openRouterProvider.testConnection(config);
+  } else {
+    // Use existing llama.cpp connection test
+    await getResponse(checkConnectionPrompt, {}, () => {});
+  }
+}
+
+function createClient(): OpenAI {
+  const state = getState();
+  
+  if (state.connectionType === 'openrouter') {
+    // Create OpenRouter client using provider
+    const config: OpenRouterConfigType = {
+      apiKey: state.openRouterConfig.apiKey || '',
+      selectedModel: state.openRouterConfig.selectedModel,
+      baseUrl: 'https://openrouter.ai/api/v1',
+    };
+    return openRouterProvider.createClient(config);
+  } else {
+    // Default to llama.cpp client (maintain existing behavior)
+    return new OpenAI({
+      baseURL: `${state.apiUrl}/v1/`,
       apiKey: "",
       dangerouslyAllowBrowser: true,
     });
+  }
+}
+
+function getModelForRequest(): string {
+  const state = getState();
+  
+  if (state.connectionType === 'openrouter') {
+    return state.openRouterConfig.selectedModel || '';
+  } else {
+    // For llama.cpp, model is empty string (existing behavior)
+    return '';
+  }
+}
+
+async function* getResponseStream(prompt: Prompt, params: Record<string, unknown> = {}): AsyncGenerator<string> {
+  try {
+    const client = createClient();
+    const model = getModelForRequest();
 
     const stream = await client.chat.completions.create(
       {
         stream: true,
-        model: "",
+        model,
         messages: [
           { role: "system", content: prompt.system },
           { role: "user", content: prompt.user },
@@ -267,7 +315,19 @@ export async function next(
         state.view = "connection";
       } else if (state.view === "connection") {
         step = ["Checking connection", "If this takes longer than a few seconds, there is probably something wrong"];
-        await getResponse(checkConnectionPrompt, {}, onToken);
+        
+        if (state.connectionType === 'openrouter') {
+          // Use OpenRouter provider for connection testing
+          const config: OpenRouterConfigType = {
+            apiKey: state.openRouterConfig.apiKey || '',
+            selectedModel: state.openRouterConfig.selectedModel,
+            baseUrl: 'https://openrouter.ai/api/v1',
+          };
+          await openRouterProvider.testConnection(config);
+        } else {
+          // Use existing llama.cpp connection test
+          await getResponse(checkConnectionPrompt, {}, onToken);
+        }
 
         state.view = "genre";
       } else if (state.view === "genre") {

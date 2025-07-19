@@ -10,6 +10,10 @@ import { immer } from "zustand/middleware/immer";
 import * as schemas from "./schemas";
 
 export type View = z.infer<typeof schemas.View>;
+export type ConnectionType = z.infer<typeof schemas.ConnectionType>;
+export type Model = z.infer<typeof schemas.Model>;
+export type OpenRouterConfig = z.infer<typeof schemas.OpenRouterConfig>;
+export type ProviderConfigs = z.infer<typeof schemas.ProviderConfigs>;
 export type World = z.infer<typeof schemas.World>;
 export type Gender = z.infer<typeof schemas.Gender>;
 export type Race = z.infer<typeof schemas.Race>;
@@ -27,6 +31,21 @@ export type State = z.infer<typeof schemas.State>;
 
 export const initialState: State = schemas.State.parse({
   apiUrl: "http://localhost:8080",
+  connectionType: "llamacpp",
+  openRouterConfig: {
+    apiKey: undefined,
+    selectedModel: undefined,
+  },
+  providerConfigs: {
+    llamacpp: {
+      apiUrl: "http://localhost:8080",
+    },
+    openrouter: {
+      apiKey: undefined,
+      selectedModel: undefined,
+    },
+  },
+  availableModels: [],
   generationParams: {
     temperature: 0.5,
   },
@@ -73,6 +92,41 @@ export interface Actions {
   setAsync: (updater: (state: WritableDraft<State>) => Promise<void>) => Promise<void>;
 }
 
+// Migration function to handle existing llama.cpp configurations
+const migrateState = (persistedState: any): State => {
+  // If the persisted state doesn't have providerConfigs, migrate from old structure
+  if (!persistedState.providerConfigs) {
+    const migratedState = {
+      ...persistedState,
+      providerConfigs: {
+        llamacpp: {
+          apiUrl: persistedState.apiUrl || "http://localhost:8080",
+        },
+        openrouter: {
+          apiKey: persistedState.openRouterConfig?.apiKey,
+          selectedModel: persistedState.openRouterConfig?.selectedModel,
+        },
+      },
+    };
+    
+    // Validate the migrated state against the schema
+    try {
+      return schemas.State.parse(migratedState);
+    } catch (error) {
+      console.warn("Failed to migrate persisted state, using initial state:", error);
+      return initialState;
+    }
+  }
+  
+  // Validate existing state structure
+  try {
+    return schemas.State.parse(persistedState);
+  } catch (error) {
+    console.warn("Invalid persisted state, using initial state:", error);
+    return initialState;
+  }
+};
+
 export const useStateStore = create<State & Actions>()(
   persist(
     immer((set, get) => ({
@@ -103,6 +157,8 @@ export const useStateStore = create<State & Actions>()(
     })),
     {
       name: "state",
+      migrate: migrateState,
+      version: 1,
     },
   ),
 );

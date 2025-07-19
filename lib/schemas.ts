@@ -17,6 +17,36 @@ const RequestParams = z.record(z.string(), z.unknown());
 
 export const View = z.enum(["welcome", "connection", "genre", "character", "scenario", "chat"]);
 
+export const ConnectionType = z.enum(["llamacpp", "openrouter"]);
+
+export const Model = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  provider: z.string(),
+  contextLength: z.number().optional(),
+  pricing: z.object({
+    input: z.number(),
+    output: z.number(),
+  }).optional(),
+  supportsStructuredOutputs: z.boolean().default(false),
+});
+
+export const OpenRouterConfig = z.object({
+  apiKey: z.string().optional(),
+  selectedModel: z.string().optional(),
+});
+
+export const ProviderConfigs = z.object({
+  llamacpp: z.object({
+    apiUrl: z.string().url(),
+  }),
+  openrouter: z.object({
+    apiKey: z.string().optional(),
+    selectedModel: z.string().optional(),
+  }),
+});
+
 export const World = z.object({
   name: Name,
   description: Description,
@@ -78,6 +108,10 @@ export const Event = z.discriminatedUnion("type", [
 
 export const State = z.object({
   apiUrl: z.url(),
+  connectionType: ConnectionType,
+  openRouterConfig: OpenRouterConfig,
+  providerConfigs: ProviderConfigs,
+  availableModels: Model.array(),
   generationParams: RequestParams,
   narrationParams: RequestParams,
   updateInterval: z.int(),
