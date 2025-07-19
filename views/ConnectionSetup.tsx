@@ -264,6 +264,22 @@ export default function ConnectionSetup({ onNext, onBack }: { onNext?: () => voi
                         size="3"
                         className="mb-3"
                       />
+                      <Text
+                        size="4"
+                        color="red"
+                        style={{
+                          display: "block",
+                          marginBottom: "12px",
+                          padding: "8px",
+                          backgroundColor: "var(--red-2)",
+                          border: "1px solid var(--red-6)",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        <strong>⚠️ IMPORTANT:</strong> For Waidrin to work as intended, please select a model that
+                        supports <code>structured_outputs</code>. Models without this feature may not work properly with
+                        Waidrin.
+                      </Text>
                     </Box>
                   )}
 
