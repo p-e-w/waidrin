@@ -30,7 +30,7 @@ export class OpenRouterProvider implements AIProvider {
       const response = await client.fetchModels();
       const standardizedModels = response.data.map(convertOpenRouterModelToStandardized);
 
-      // Return all models - let the UI handle filtering for structured outputs
+      // Return all models
       return standardizedModels;
     } catch (error) {
       if (error instanceof OpenRouterApiException) {
@@ -89,7 +89,7 @@ export class OpenRouterProvider implements AIProvider {
       apiKey: config.apiKey,
       defaultHeaders: {
         "HTTP-Referer": typeof window !== "undefined" ? window.location.origin : "http://localhost:3000",
-        "X-Title": "AI Adventure Game",
+        "X-Title": "Waidrin",
       },
       dangerouslyAllowBrowser: true,
     });
@@ -157,14 +157,6 @@ export class OpenRouterProvider implements AIProvider {
   async getModelInfo(config: OpenRouterConfigType, modelId: string): Promise<StandardizedModelType | null> {
     const models = await this.fetchModels(config);
     return models.find((model) => model.id === modelId) || null;
-  }
-
-  /**
-   * Check if a model supports structured outputs (json_schema)
-   */
-  async supportsStructuredOutputs(config: OpenRouterConfigType, modelId: string): Promise<boolean> {
-    const modelInfo = await this.getModelInfo(config, modelId);
-    return modelInfo?.supportsStructuredOutputs ?? false;
   }
 }
 

@@ -14,13 +14,6 @@ import {
  */
 
 /**
- * Filter models to only include those with structured outputs support
- */
-export function filterModelsWithStructuredOutputs(models: StandardizedModelType[]): StandardizedModelType[] {
-  return models.filter((model) => model.supportsStructuredOutputs);
-}
-
-/**
  * Search models by name, ID, or description
  */
 export function searchModels(models: StandardizedModelType[], query: string): StandardizedModelType[] {
@@ -34,103 +27,6 @@ export function searchModels(models: StandardizedModelType[], query: string): St
       model.name.toLowerCase().includes(searchTerm) ||
       model.id.toLowerCase().includes(searchTerm) ||
       model.description?.toLowerCase().includes(searchTerm),
-  );
-}
-
-/**
- * Sort models by various criteria
- */
-export function sortModels(
-  models: StandardizedModelType[],
-  sortBy: "name" | "contextLength" | "inputPrice" | "outputPrice" = "name",
-  order: "asc" | "desc" = "asc",
-): StandardizedModelType[] {
-  const sorted = [...models].sort((a, b) => {
-    let comparison = 0;
-
-    switch (sortBy) {
-      case "name":
-        comparison = a.name.localeCompare(b.name);
-        break;
-      case "contextLength":
-        comparison = (a.contextLength || 0) - (b.contextLength || 0);
-        break;
-      case "inputPrice":
-        comparison = (a.pricing?.input || 0) - (b.pricing?.input || 0);
-        break;
-      case "outputPrice":
-        comparison = (a.pricing?.output || 0) - (b.pricing?.output || 0);
-        break;
-    }
-
-    return order === "desc" ? -comparison : comparison;
-  });
-
-  return sorted;
-}
-
-/**
- * Filter models by context length range
- */
-export function filterModelsByContextLength(
-  models: StandardizedModelType[],
-  minLength?: number,
-  maxLength?: number,
-): StandardizedModelType[] {
-  return models.filter((model) => {
-    const contextLength = model.contextLength || 0;
-
-    if (minLength !== undefined && contextLength < minLength) {
-      return false;
-    }
-
-    if (maxLength !== undefined && contextLength > maxLength) {
-      return false;
-    }
-
-    return true;
-  });
-}
-
-/**
- * Filter models by pricing range
- */
-export function filterModelsByPricing(
-  models: StandardizedModelType[],
-  maxInputPrice?: number,
-  maxOutputPrice?: number,
-): StandardizedModelType[] {
-  return models.filter((model) => {
-    if (!model.pricing) {
-      return true; // Include models without pricing info
-    }
-
-    if (maxInputPrice !== undefined && model.pricing.input > maxInputPrice) {
-      return false;
-    }
-
-    if (maxOutputPrice !== undefined && model.pricing.output > maxOutputPrice) {
-      return false;
-    }
-
-    return true;
-  });
-}
-
-/**
- * Get models grouped by provider or category
- */
-export function groupModelsByProvider(models: StandardizedModelType[]): Record<string, StandardizedModelType[]> {
-  return models.reduce(
-    (groups, model) => {
-      const provider = model.provider;
-      if (!groups[provider]) {
-        groups[provider] = [];
-      }
-      groups[provider].push(model);
-      return groups;
-    },
-    {} as Record<string, StandardizedModelType[]>,
   );
 }
 
@@ -202,7 +98,7 @@ export function createOpenRouterClient(config: OpenRouterConfigType): OpenAI {
     apiKey: config.apiKey,
     defaultHeaders: {
       "HTTP-Referer": typeof window !== "undefined" ? window.location.origin : "http://localhost:3000",
-      "X-Title": "AI Adventure Game",
+      "X-Title": "Waidrin",
     },
     dangerouslyAllowBrowser: true,
   });
@@ -243,7 +139,6 @@ export function convertOpenRouterModelToStandardized(model: OpenRouterModelType)
           output: outputPrice,
         }
       : undefined,
-    supportsStructuredOutputs: model.supported_features?.includes("structured_outputs") ?? false,
   };
 }
 

@@ -50,7 +50,6 @@ export const StandardizedModel = z.object({
       output: z.number(),
     })
     .optional(),
-  supportsStructuredOutputs: z.boolean().default(false),
 });
 
 // Provider Interface
@@ -179,27 +178,6 @@ export function convertOpenRouterModelToStandardized(model: OpenRouterModelType)
   const inputPrice = model.pricing ? parseFloat(model.pricing.prompt) : 0;
   const outputPrice = model.pricing ? parseFloat(model.pricing.completion) : 0;
 
-  // Debug: Log supported features for popular models
-  if (
-    model.id.includes("gpt-4") ||
-    model.id.includes("claude") ||
-    model.id.includes("mistral") ||
-    model.id.includes("deepseek")
-  ) {
-    console.log(`Model ${model.id} supported_features:`, model.supported_features);
-  }
-
-  // Check for structured outputs support - check both supported_features and supported_sampling_parameters
-  // Based on OpenRouter API, structured outputs can be indicated by:
-  // - 'structured_outputs' in supported_sampling_parameters
-  // - 'response_format' in supported_sampling_parameters
-  // - 'json_schema' in supported_features
-  const supportsStructuredOutputs =
-    model.supported_sampling_parameters?.includes("structured_outputs") ||
-    model.supported_sampling_parameters?.includes("response_format") ||
-    model.supported_features?.includes("json_schema") ||
-    false;
-
   return {
     id: model.id,
     name: model.name,
@@ -212,12 +190,7 @@ export function convertOpenRouterModelToStandardized(model: OpenRouterModelType)
           output: outputPrice,
         }
       : undefined,
-    supportsStructuredOutputs,
   };
-}
-
-export function filterModelsWithStructuredOutputs(models: StandardizedModelType[]): StandardizedModelType[] {
-  return models.filter((model) => model.supportsStructuredOutputs);
 }
 
 export function searchModels(models: StandardizedModelType[], query: string): StandardizedModelType[] {

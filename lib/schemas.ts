@@ -31,7 +31,6 @@ export const Model = z.object({
       output: z.number(),
     })
     .optional(),
-  supportsStructuredOutputs: z.boolean().default(false),
 });
 
 export const OpenRouterConfig = z.object({
