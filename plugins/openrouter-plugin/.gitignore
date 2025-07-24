@@ -17,6 +17,7 @@
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -40,9 +41,3 @@ next-env.d.ts
 
 # editors
 /.vscode/
-
-# plugins
-/plugins/*
-!/plugins/demo-plugin/
-!plugins/openrouter-plugin/
- plugins/openrouter-plugin/dist/

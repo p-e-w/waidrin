@@ -1,0 +1,9 @@
+{
+  "name": "OpenRouter Backend",
+  "main": "dist/main.js",
+  "settings": {
+    "apiKey": "",
+    "baseUrl": "https://openrouter.ai/api/v1",
+    "defaultModel": "deepseek/deepseek-chat-v3-0324"
+  }
+}
