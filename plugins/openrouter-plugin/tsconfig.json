@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "outDir": "./.ts-temp", 
+    "outDir": "./.ts-temp",
     "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true,

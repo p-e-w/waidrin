@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import * as z from "zod/v4";
 import {
   OpenRouterConfig,
   type OpenRouterConfigType,
@@ -101,8 +100,6 @@ export function createOpenRouterClient(config: OpenRouterConfigType): OpenAI {
     dangerouslyAllowBrowser: true,
   });
 }
-
-
 
 /**
  * Model conversion utilities
