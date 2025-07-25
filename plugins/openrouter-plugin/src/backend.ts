@@ -23,12 +23,12 @@ export class OpenRouterBackend implements Backend {
 
   /**
    * Custom serialization method for Zustand's persist middleware.
-   * 
+   *
    * The main app uses Zustand with persist middleware to save state to localStorage,
-   * which includes the backends object containing this class instance. The OpenAI 
+   * which includes the backends object containing this class instance. The OpenAI
    * client has circular references that would cause JSON.stringify() to throw:
    * "TypeError: Converting circular structure to JSON"
-   * 
+   *
    * This toJSON() method is automatically called during serialization and returns
    * only the safe, serializable parts of the backend state. The OpenAI client
    * gets recreated when the plugin reinitializes on app startup.
@@ -138,9 +138,9 @@ export class OpenRouterBackend implements Backend {
 
     try {
       const response = await this.client.models.list();
-      return response.data.map(model => ({
+      return response.data.map((model) => ({
         id: model.id,
-        name: model.id
+        name: model.id,
       }));
     } catch (error) {
       throw new Error(`Failed to fetch models: ${error instanceof Error ? error.message : "Unknown error"}`);

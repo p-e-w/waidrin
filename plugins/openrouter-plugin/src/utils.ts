@@ -1,8 +1,5 @@
 import OpenAI from "openai";
-import {
-  OpenRouterConfig,
-  type OpenRouterConfigType,
-} from "./types";
+import { OpenRouterConfig, type OpenRouterConfigType } from "./types";
 
 /**
  * Configuration validation utilities
@@ -77,7 +74,6 @@ export function createOpenRouterClient(config: OpenRouterConfigType): OpenAI {
     dangerouslyAllowBrowser: true,
   });
 }
-
 
 /**
  * Error handling utilities
