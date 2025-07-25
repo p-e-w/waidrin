@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import * as z from "zod/v4";
 import type { Backend, TokenCallback } from "../../../lib/backend";
 import type { Prompt } from "../../../lib/prompts";
+import { getState } from "../../../lib/state";
 import type { OpenRouterConfigType } from "./types";
 import { createOpenRouterClient } from "./utils";
 
@@ -20,14 +21,25 @@ export class OpenRouterBackend implements Backend {
     this.client = createOpenRouterClient(this.config);
   }
 
-  // Prevent serialization of the OpenAI client (which has circular references)
+  /**
+   * Custom serialization method for Zustand's persist middleware.
+   * 
+   * The main app uses Zustand with persist middleware to save state to localStorage,
+   * which includes the backends object containing this class instance. The OpenAI 
+   * client has circular references that would cause JSON.stringify() to throw:
+   * "TypeError: Converting circular structure to JSON"
+   * 
+   * This toJSON() method is automatically called during serialization and returns
+   * only the safe, serializable parts of the backend state. The OpenAI client
+   * gets recreated when the plugin reinitializes on app startup.
+   */
   public toJSON() {
     return {
       type: "OpenRouterBackend",
       config: {
         baseUrl: this.config.baseUrl,
         selectedModel: this.config.selectedModel,
-        // Don't serialize the API key for security
+        // Don't serialize the API key for security reasons
         hasApiKey: !!this.config.apiKey,
       },
     };
@@ -41,7 +53,7 @@ export class OpenRouterBackend implements Backend {
     return error instanceof OpenAI.APIUserAbortError;
   }
 
-  private async getResponse(prompt: Prompt, params: Record<string, unknown>, onToken?: TokenCallback): Promise<string> {
+  async *getResponseStream(prompt: Prompt, params: Record<string, unknown> = {}): AsyncGenerator<string> {
     if (!this.client) {
       throw new Error("OpenRouter client not initialized. Please check your configuration.");
     }
@@ -51,104 +63,6 @@ export class OpenRouterBackend implements Backend {
     }
 
     try {
-      // Check if this is a JSON schema request
-      const hasJsonSchema =
-        params.response_format &&
-        typeof params.response_format === "object" &&
-        "type" in params.response_format &&
-        params.response_format.type === "json_schema";
-
-      if (hasJsonSchema) {
-        // Try streaming first for JSON schema requests to show progress
-        try {
-          const stream = await this.client.chat.completions.create(
-            {
-              stream: true,
-              model: this.config.selectedModel,
-              messages: [
-                { role: "system", content: prompt.system },
-                { role: "user", content: prompt.user },
-              ],
-              max_tokens: 4096,
-              ...params,
-            },
-            { signal: this.controller.signal },
-          );
-
-          let response = "";
-          let count = 0;
-          if (onToken) onToken("", 0);
-
-          for await (const chunk of stream) {
-            if (this.controller.signal.aborted) throw new OpenAI.APIUserAbortError();
-            if (chunk.choices[0]?.delta?.content) {
-              const token = chunk.choices[0].delta.content;
-              response += token;
-              count++;
-              if (onToken) onToken(token, count);
-            }
-            if (chunk.choices[0]?.finish_reason) break;
-          }
-
-          if (this.controller.signal.aborted) throw new OpenAI.APIUserAbortError();
-          return response;
-        } catch (_streamError) {
-          if (this.controller.signal.aborted) throw new OpenAI.APIUserAbortError();
-          // Fallback to non-streaming if streaming fails
-          if (onToken) {
-            onToken("", 0);
-            // Show some progress indication
-            const progressInterval = setInterval(() => {
-              if (this.controller.signal.aborted) {
-                clearInterval(progressInterval);
-                throw new OpenAI.APIUserAbortError();
-              }
-              if (onToken) onToken("", Math.floor(Math.random() * 10) + 1);
-            }, 500);
-
-            try {
-              const response = await this.client.chat.completions.create(
-                {
-                  stream: false,
-                  model: this.config.selectedModel,
-                  messages: [
-                    { role: "system", content: prompt.system },
-                    { role: "user", content: prompt.user },
-                  ],
-                  max_tokens: 4096,
-                  ...params,
-                },
-                { signal: this.controller.signal },
-              );
-
-              clearInterval(progressInterval);
-              if (this.controller.signal.aborted) throw new OpenAI.APIUserAbortError();
-              return response.choices[0]?.message?.content || "";
-            } finally {
-              clearInterval(progressInterval);
-            }
-          } else {
-            const response = await this.client.chat.completions.create(
-              {
-                stream: false,
-                model: this.config.selectedModel,
-                messages: [
-                  { role: "system", content: prompt.system },
-                  { role: "user", content: prompt.user },
-                ],
-                max_tokens: 4096,
-                ...params,
-              },
-              { signal: this.controller.signal },
-            );
-
-            if (this.controller.signal.aborted) throw new OpenAI.APIUserAbortError();
-            return response.choices[0]?.message?.content || "";
-          }
-        }
-      }
-
-      // Regular streaming for non-JSON schema requests
       const stream = await this.client.chat.completions.create(
         {
           stream: true,
@@ -157,40 +71,80 @@ export class OpenRouterBackend implements Backend {
             { role: "system", content: prompt.system },
             { role: "user", content: prompt.user },
           ],
-          max_tokens: 4096,
+          max_tokens: 4096, // Legacy parameter for older models
+          max_completion_tokens: 4096, // Newer parameter for token limits
           ...params,
         },
         { signal: this.controller.signal },
       );
 
-      let response = "";
-      let count = 0;
-      if (onToken) onToken("", 0);
-
       for await (const chunk of stream) {
-        if (this.controller.signal.aborted) throw new OpenAI.APIUserAbortError();
-        if (chunk.choices[0]?.delta?.content) {
-          const token = chunk.choices[0].delta.content;
-          response += token;
-          count++;
-          if (onToken) onToken(token, count);
+        if (chunk.choices.length === 0) {
+          // No choices in this chunk, end stream
+          return;
         }
-        if (chunk.choices[0]?.finish_reason) break;
+
+        const choice = chunk.choices[0];
+
+        if (choice.delta.content) {
+          yield choice.delta.content;
+        }
+
+        if (choice.finish_reason) {
+          // Model finished generating (stop, length, etc.)
+          return;
+        }
       }
 
-      if (this.controller.signal.aborted) throw new OpenAI.APIUserAbortError();
-      return response;
+      if (stream.controller.signal.aborted) {
+        // Stream was cancelled by user
+        throw new OpenAI.APIUserAbortError();
+      }
     } finally {
-      // An AbortController cannot be reused after calling abort().
-      // Reset the controller so a new one is available for the next operation
-      // in case this operation was aborted.
+      // Reset abort controller for next request
       this.controller = new AbortController();
     }
   }
 
+  async getResponse(prompt: Prompt, params: Record<string, unknown> = {}, onToken?: TokenCallback): Promise<string> {
+    let response = "";
+    let count = 0;
+
+    if (onToken) {
+      // Initialize token callback with empty string and zero count
+      onToken("", 0);
+    }
+
+    for await (const token of this.getResponseStream(prompt, params)) {
+      response += token;
+      count++;
+
+      if (onToken) {
+        onToken(token, count);
+      }
+    }
+
+    return response;
+  }
+
   async getNarration(prompt: Prompt, onToken?: TokenCallback): Promise<string> {
-    const narrationParams = { temperature: 0.6 };
-    return this.getResponse(prompt, narrationParams, onToken);
+    return this.getResponse(prompt, getState().narrationParams, onToken);
+  }
+
+  async listModels(): Promise<Array<{ id: string; name: string }>> {
+    if (!this.client) {
+      throw new Error("OpenRouter client not initialized. Please check your configuration.");
+    }
+
+    try {
+      const response = await this.client.models.list();
+      return response.data.map(model => ({
+        id: model.id,
+        name: model.id
+      }));
+    } catch (error) {
+      throw new Error(`Failed to fetch models: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
   }
 
   async getObject<Schema extends z.ZodType, Type extends z.infer<Schema>>(
@@ -198,61 +152,22 @@ export class OpenRouterBackend implements Backend {
     schema: Schema,
     onToken?: TokenCallback,
   ): Promise<Type> {
-    const generatedSchema = z.toJSONSchema(schema);
-
-    // Try with JSON schema first
-    let response: string;
-    try {
-      response = await this.getResponse(
-        prompt,
-        {
-          temperature: 0.1, // Lower temperature for better schema adherence
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "schema",
-              strict: false,
-              schema: generatedSchema,
-            },
+    const response = await this.getResponse(
+      prompt,
+      {
+        ...getState().generationParams,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "schema",
+            strict: true, // Enforce strict JSON schema compliance
+            schema: z.toJSONSchema(schema),
           },
         },
-        onToken,
-      );
-    } catch (_error) {
-      // Fallback: Add schema instructions to the prompt
-      const enhancedPrompt: Prompt = {
-        system: `${prompt.system}\n\nIMPORTANT: You must respond with valid JSON that exactly matches this schema: ${JSON.stringify(generatedSchema, null, 2)}`,
-        user: `${prompt.user}\n\nRespond with valid JSON only, no other text.`,
-      };
+      },
+      onToken,
+    );
 
-      response = await this.getResponse(
-        enhancedPrompt,
-        {
-          temperature: 0.1,
-        },
-        onToken,
-      );
-    }
-
-    try {
-      const parsed = JSON.parse(response);
-
-      // Check if the response is a validation error array instead of the expected data
-      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].code) {
-        throw new Error(`Model returned validation errors instead of conforming to schema: ${JSON.stringify(parsed)}`);
-      }
-
-      const result = schema.parse(parsed) as Type;
-      return result;
-    } catch (error) {
-      // If it's a validation error from the model, try to provide a more helpful message
-      if (error instanceof Error && error.message.includes("validation errors")) {
-        throw new Error(
-          `OpenRouter model doesn't properly support JSON schema constraints. Try a different model or contact support. Original error: ${error.message}`,
-        );
-      }
-
-      throw error;
-    }
+    return schema.parse(JSON.parse(response)) as Type;
   }
 }

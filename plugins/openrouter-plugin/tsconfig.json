@@ -1,15 +1,10 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
     "outDir": "./.ts-temp",
     "jsx": "react-jsx",
-    "strict": true,
-    "skipLibCheck": true,
     "declaration": true,
-    "types": ["node", "react"],
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "types": ["node", "react"]
   },
   "include": ["src/**/*"]
 }

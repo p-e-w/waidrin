@@ -3,22 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@radix-ui/themes": "^3",
-    "async-mutex": "^0.5",
-    "immer": "^10",
-    "zustand": "^5",
     "openai": "^4",
-    "react": "^19.0.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "tsup": "^8",
     "typescript": "^5"
   },
   "scripts": {
-    "build": "tsup && copy dist\\main.mjs dist\\main.js",
+    "build": "tsup && cp dist/main.mjs dist/main.js",
     "dev": "npm run build -- --watch"
   }
 }
