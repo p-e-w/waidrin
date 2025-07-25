@@ -1,0 +1,34 @@
+Init: perform each of the following tasks and commit the summary info and project background to context: 
+Write a summary (200 words) of all files in @.agent-os/standards/ and and set this to highest priority to follow when coding
+Write a summary (200 words) of all files in @.agent-os/product/
+Write a summary (200 words) of all files in @.agent-os/instructions/
+Analyzed @.Requirements/Current State/ for how this plugin interface work and what files are required for a new plugin, you must use @Application Design Spec.md as guideline when coding plugin, don't change the application's core files or hard code the plugin's function without getting decision record approved by HUMAN.
+refer to Source folder for game rules reference in user story
+read through the package.json if it is not in your training data go get latest documentation and code example, use context7.
+Always use sequential-thinking to plan and execute for coding tasks
+Always use playwright to verify browser in runtime
+Always npm run build (for plugin, then main app) to make sure compile works before asking Human to start the server for browser verification, if you can't build, just use the following shell command: cd plugins/game-rule-dnd5e && npm run build 
+Always reread a file once you get replace/edit error
+You are a program working on source code so only give informational feedback with out any emotion.
+Stand by for work when finished with above tasks
+
+Step 1: 
+###For new project
+@Requirements\instructions\plan-product.md  [My project idea]
+###For existing project
+@Requirements\instructions\analyze-product.md  Review the project and execute the tasks
+
+Step 2: Repeat until all features have been defined
+@Requirements/instructions/create-spec.md I want to add Add Game time tracking mechanics, see @Requirements\User\ story\R002.txt for requirements 
+
+Step 3: Build and test
+@Requirements/instructions/execute-tasks.md Work on the next task in add-game-time-tracking-mechanics (all tests will be manually done by human)
+You need to test building the app, use seq-thinking to triage any issues, and use playwright to test runtime. you can not start a server so always ask a Human to start the web server once you have confirmed all compile time and code error have been addressed  
+
+Step 4: Testing and triage
+Before testing, create a test triage log (using markdown) in the plugin directory, and update this file with 1. your Approach, 2. change summary, 3. result (put a stub in it first, then once you test the change update it to actual result) EVERYTIME you try to resolve an issue, and you will review it from the top to ensure you are not going in a loop as LLM can only focus on current task you will go in loops so you must check this log to have a full history of the triage, you will find a different way to resolve an issue if a loop is detected 
+
+then check the solution with:
+now read though the defect log and tell me if you current plan will not cause any of the preious error or is a repeat of a preious failed attempt
+
+if you can't build, just use the following shell command: cd plugins/game-rule-dnd5e && npm run build 

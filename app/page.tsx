@@ -5,7 +5,7 @@
 
 import { Text } from "@radix-ui/themes";
 import { current } from "immer";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import ErrorPopup from "@/components/ErrorPopup";
 import MainMenu from "@/components/MainMenu";
@@ -19,7 +19,15 @@ import ConnectionSetup from "@/views/ConnectionSetup";
 import GenreSelect from "@/views/GenreSelect";
 import ScenarioSetup from "@/views/ScenarioSetup";
 import Welcome from "@/views/Welcome";
+import { Context } from "./plugins";
 import type { Manifest } from "./plugins/route";
+
+
+import * as Immer from 'immer';
+import * as Lodash from 'lodash';
+import * as RadixThemes from '@radix-ui/themes';
+import * as ReactIconsGi from 'react-icons/gi';
+import * as rpgDiceRoller from '@dice-roller/rpg-dice-roller';
 
 export default function Home() {
   const [stateLoaded, setStateLoaded] = useState(false);
@@ -78,7 +86,8 @@ export default function Home() {
           const plugin: Plugin = new pluginClass();
 
           if (plugin.init) {
-            await plugin.init(pluginWrapper ? current(pluginWrapper.settings) : manifest.settings, undefined);
+            const context = new Context(manifest.name, React, useStateStore.getState().setAsync, useStateStore.getState, Immer, RadixThemes, ReactIconsGi, useShallow, rpgDiceRoller);
+            await plugin.init(pluginWrapper ? current(pluginWrapper.settings) : manifest.settings, context);
           }
 
           if (plugin.getBackends) {

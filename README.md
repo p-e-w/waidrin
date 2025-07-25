@@ -18,6 +18,10 @@ but they can also provide a different action as freeform text. This blends a cla
 CYOA experience with the limitless freedom of generative AI. It's an RPG unlike
 any other.
 
+## NOTE: This version is a fork of the original project and is purely a personal experiment. 
+All modifications are done using Gemini CLI Gemini-2.5-flash model in VS code, so coding standards and method will
+very likely be suboptimal. This is just a proof of concept to adopt AI tools for my BA workflow
+in a development project to quickly prototype with just very basic knowledge of the stack.
 
 ## Main story interface
 

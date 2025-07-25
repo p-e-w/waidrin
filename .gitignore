@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -42,5 +42,4 @@ next-env.d.ts
 /.vscode/
 
 # plugins
-/plugins/*
 !/plugins/demo-plugin/

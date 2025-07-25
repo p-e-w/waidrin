@@ -1,0 +1,15 @@
+{
+  "name": "game-rule-dnd5e",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8"
+  },
+  "scripts": {
+    "build": "tsup && copy dist\\main.mjs dist\\main.js",
+    "dev": "npm run build -- --watch"
+  }
+}

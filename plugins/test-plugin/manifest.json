@@ -1,0 +1,8 @@
+{
+  "name": "test-plugin",
+  "main": "main.js",
+  "enabled": false,
+  "settings": {
+    "tstCount": 0
+  }
+}

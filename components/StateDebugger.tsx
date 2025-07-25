@@ -28,7 +28,7 @@ export default function StateDebugger() {
   // Remove properties containing functions to avoid corrupting them,
   // as functions cannot be edited and would be overwritten by garbage.
   const filteredState: Partial<StoredState> = { ...state };
-  delete filteredState.plugins;
+  // delete filteredState.plugins;
   delete filteredState.backends;
   delete filteredState.set;
   delete filteredState.setAsync;

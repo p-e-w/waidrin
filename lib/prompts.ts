@@ -4,19 +4,35 @@
 import * as schemas from "./schemas";
 import type { State } from "./state";
 
+/**
+ * @interface Prompt
+ * @description Defines the structure of a prompt for the language model.
+ * @property {string} system - The system message for the prompt.
+ * @property {string} user - The user message for the prompt.
+ */
 export interface Prompt {
   system: string;
   user: string;
 }
 
+/**
+ * @function normalize
+ * @description Normalizes prompt text by collapsing single newlines into spaces.
+ * This helps in creating cleaner-looking prompt strings in code.
+ * @param {string} text - The input text to normalize.
+ * @returns {string} The normalized text.
+ */
 function normalize(text: string): string {
-  // Normalize prompt text by collapsing single newlines.
-  // This allows for cleaner-looking strings in code,
-  // while still producing regular single-line prompts.
   const singleNewline = /(?<!\n)\n(?!\n)/g;
   return text.replaceAll(singleNewline, " ").trim();
 }
 
+/**
+ * @function makePrompt
+ * @description Creates a Prompt object with a default system message.
+ * @param {string} userPrompt - The user-specific part of the prompt.
+ * @returns {Prompt} A Prompt object.
+ */
 function makePrompt(userPrompt: string): Prompt {
   return {
     system: "You are the game master of a text-based fantasy role-playing game.",
@@ -24,6 +40,12 @@ function makePrompt(userPrompt: string): Prompt {
   };
 }
 
+/**
+ * @constant generateWorldPrompt
+ * @description Prompt to generate a fictional world for the RPG.
+ * The prompt asks for the world's name and a short description (max 100 words) in JSON format.
+ * It specifies that the name should not be cliched and the world should be populated by humans, elves, and dwarves.
+ */
 export const generateWorldPrompt = makePrompt(`
 Create a fictional world for a fantasy adventure RPG and return its name
 and a short description (100 words maximum) as a JSON object.
@@ -31,6 +53,14 @@ Do not use a cliched name like 'Eldoria'.
 The world is populated by humans, elves, and dwarves.
 `);
 
+/**
+ * @function generateProtagonistPrompt
+ * @description Generates a prompt for creating the protagonist character.
+ * The prompt includes the protagonist's gender and race, and the world's name and description.
+ * It asks for the character description as a JSON object, including a short biography (max 100 words).
+ * @param {State} state - The current game state, containing world and protagonist gender/race.
+ * @returns {Prompt} A Prompt object for protagonist generation.
+ */
 export function generateProtagonistPrompt(state: State): Prompt {
   return makePrompt(`
 Create a ${state.protagonist.gender} ${state.protagonist.race} protagonist
@@ -42,6 +72,15 @@ Return the character description as a JSON object. Include a short biography (10
 `);
 }
 
+/**
+ * @function generateStartingLocationPrompt
+ * @description Generates a prompt for creating the initial game location.
+ * The prompt includes the world's name and description.
+ * It asks for the name, type, and a short description (max 100 words) of the location in JSON format.
+ * It also specifies a list of allowed location types.
+ * @param {State} state - The current game state, containing world information.
+ * @returns {Prompt} A Prompt object for starting location generation.
+ */
 export function generateStartingLocationPrompt(state: State): Prompt {
   return makePrompt(`
 Create a starting location for a fantasy adventure set in the world of ${state.world.name}.
@@ -53,6 +92,14 @@ Choose from the following location types: ${Object.values(schemas.LocationType.e
 `);
 }
 
+/**
+ * @function generateStartingCharactersPrompt
+ * @description Generates a prompt for creating initial characters at the starting location.
+ * The prompt provides context about the world, protagonist, and the starting location.
+ * It asks for 5 character descriptions as an array of JSON objects, each with a short biography (max 100 words).
+ * @param {State} state - The current game state, including protagonist and location details.
+ * @returns {Prompt} A Prompt object for starting characters generation.
+ */
 export function generateStartingCharactersPrompt(state: State): Prompt {
   const location = state.locations[state.protagonist.locationIndex];
 
@@ -69,6 +116,15 @@ Include a short biography (100 words maximum) for each character.
 `);
 }
 
+/**
+ * @function makeMainPrompt
+ * @description Constructs a main prompt by combining a user-provided prompt with the current game context.
+ * The context includes narration, character introductions, and location changes.
+ * It formats the context to be easily digestible by the language model.
+ * @param {string} prompt - The specific user prompt to include.
+ * @param {State} state - The current game state.
+ * @returns {Prompt} A complete Prompt object with system and user messages.
+ */
 function makeMainPrompt(prompt: string, state: State): Prompt {
   const context = state.events
     .map((event) => {
@@ -107,7 +163,7 @@ ${event.presentCharacterIndices
 This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
 
 The protagonist (who you should refer to as "you" in your narration, as the adventure happens from their perspective)
-is ${state.protagonist.name}. ${state.protagonist.biography}
+ is ${state.protagonist.name}. ${state.protagonist.biography}
 
 Here is what has happened so far:
 
@@ -119,6 +175,16 @@ ${normalize(prompt)}
 `);
 }
 
+/**
+ * @function narratePrompt
+ * @description Generates a prompt for narrating the next part of the story.
+ * The prompt instructs the LLM to use novel-style prose, present tense, prioritize dialogue,
+ * limit character mentions, bold character names, and write 2-3 paragraphs (max 200 words).
+ * It also specifies to stop when it's the protagonist's turn to speak or act and to refer to the protagonist as "you".
+ * @param {State} state - The current game state.
+ * @param {string} [action] - The action the protagonist has just taken, if any.
+ * @returns {Prompt} A prompt for the LLM to generate narration.
+ */
 export function narratePrompt(state: State, action?: string): Prompt {
   return makeMainPrompt(
     `
@@ -137,6 +203,14 @@ Do not explicitly ask the protagonist for a response at the end; they already kn
   );
 }
 
+/**
+ * @function generateActionsPrompt
+ * @description Generates a prompt for suggesting possible actions the protagonist can take.
+ * The prompt asks for 3 options, each a single, short sentence starting with a verb,
+ * returned as a JSON array of strings.
+ * @param {State} state - The current game state.
+ * @returns {Prompt} A prompt for the LLM to generate action options.
+ */
 export function generateActionsPrompt(state: State): Prompt {
   return makeMainPrompt(
     `
@@ -148,6 +222,13 @@ Return the options as a JSON array of strings.
   );
 }
 
+/**
+ * @function checkIfSameLocationPrompt
+ * @description Generates a prompt to check if the protagonist is still in the same location.
+ * The prompt asks for a "yes" or "no" answer.
+ * @param {State} state - The current game state.
+ * @returns {Prompt} A prompt for the LLM to answer "yes" or "no".
+ */
 export function checkIfSameLocationPrompt(state: State): Prompt {
   return makeMainPrompt(
     `
@@ -158,6 +239,14 @@ Answer with "yes" or "no".
   );
 }
 
+/**
+ * @function generateNewLocationPrompt
+ * @description Generates a prompt for creating a new location after the protagonist leaves the current one.
+ * The prompt asks for the new location's name, type, and a short description (max 100 words) in JSON format.
+ * It also asks for the names of any accompanying characters.
+ * @param {State} state - The current game state.
+ * @returns {Prompt} A prompt for the LLM to generate new location details.
+ */
 export function generateNewLocationPrompt(state: State): Prompt {
   return makeMainPrompt(
     `
@@ -169,7 +258,17 @@ Also include the names of the characters that are going to accompany ${state.pro
   );
 }
 
-// Must be called *before* adding the location change event to the state!
+/**
+ * @function generateNewCharactersPrompt
+ * @description Generates a prompt for creating new characters at a new location.
+ * This function should be called *before* adding the location change event to the state.
+ * The prompt provides context about the new location and any accompanying characters.
+ * It asks for 5 additional, new character descriptions as an array of JSON objects,
+ * each with a short biography (max 100 words), ensuring no reuse of existing characters.
+ * @param {State} state - The current game state.
+ * @param {string[]} accompanyingCharacters - An array of names of characters accompanying the protagonist.
+ * @returns {Prompt} A prompt for the LLM to generate new character descriptions.
+ */
 export function generateNewCharactersPrompt(state: State, accompanyingCharacters: string[]): Prompt {
   const location = state.locations[state.protagonist.locationIndex];
 
