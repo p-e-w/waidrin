@@ -45,4 +45,4 @@ next-env.d.ts
 /plugins/*
 !/plugins/demo-plugin/
 !plugins/openrouter-plugin/
- plugins/openrouter-plugin/dist/
+ 
