@@ -1,0 +1,17 @@
+{
+  "name": "waidrin-openrouter-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "openai": "^4",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "tsup": "^8",
+    "typescript": "^5"
+  },
+  "scripts": {
+    "build": "tsup && cp dist/main.mjs dist/main.js",
+    "dev": "npm run build -- --watch"
+  }
+}

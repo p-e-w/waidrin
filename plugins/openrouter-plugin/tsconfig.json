@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./.ts-temp",
+    "jsx": "react-jsx",
+    "declaration": true,
+    "types": ["node", "react"]
+  },
+  "include": ["src/**/*"]
+}
