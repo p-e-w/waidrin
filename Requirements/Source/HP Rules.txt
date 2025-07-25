@@ -1,0 +1,44 @@
+In Dungeons & Dragons 5th Edition, a character's Hit Points (HP) represent their durability and ability to withstand damage. HP is tied directly to your class and your Constitution score.
+
+
+Here's a breakdown of the rules for HP and leveling up, class by class:
+
+Core Concepts
+Hit Dice: Each class has a specific type of Hit Die (e.g., a d6 for a Wizard, a d12 for a Barbarian). This die determines how many hit points you gain as you level up and how many hit points you can recover during short rests.
+
+
+Constitution Modifier: Your Constitution ability score represents your character's health and stamina. Your Constitution modifier is always added to your hit points. A higher Constitution score means more HP.
+
+HP at 1st Level: When you create a 1st-level character, you start with the maximum possible roll of your class's Hit Die, plus your Constitution modifier. This ensures all new characters have a reasonable starting HP total.
+
+HP at Higher Levels: Each time you gain a level after 1st, you gain 1 additional Hit Die. You have two options for determining your HP increase:
+
+Roll the Hit Die: You roll your class's Hit Die and add your Constitution modifier to the result. This total is added to your hit point maximum.
+
+Take the Average: You can choose to take the average result of your class's Hit Die (rounded up) and add your Constitution modifier. Many DMs and players prefer this for consistency. The average (rounded up) for each common Hit Die is:
+
+d6: 4
+d8: 5
+d10: 6
+d12: 7
+
+Constitution Modifier Changes: If your Constitution modifier increases (e.g., from an Ability Score Improvement or a magic item), your hit point maximum increases by 1 for each level you have attained. This is retroactive. Similarly, if it decreases, your HP decreases.
+
+Hit Dice Pool: As you level up, you accumulate a pool of Hit Dice equal to your character level. These Hit Dice can be spent during a Short Rest to regain HP. You regain half your total spent Hit Dice (minimum of one) after a Long Rest.
+
+HP & Hit Dice by Class
+Here's the Hit Die for each class, along with the standard calculation:
+
+Class	Hit Die	HP at 1st Level	HP at Higher Levels (per level after 1st)
+Barbarian	d12	12 + your Constitution modifier	1d12 (or 7) + your Constitution modifier
+Bard	d8	8 + your Constitution modifier	1d8 (or 5) + your Constitution modifier
+Cleric	d8	8 + your Constitution modifier	1d8 (or 5) + your Constitution modifier
+Druid	d8	8 + your Constitution modifier	1d8 (or 5) + your Constitution modifier
+Fighter	d10	10 + your Constitution modifier	1d10 (or 6) + your Constitution modifier
+Monk	d8	8 + your Constitution modifier	1d8 (or 5) + your Constitution modifier
+Paladin	d10	10 + your Constitution modifier	1d10 (or 6) + your Constitution modifier
+Ranger	d10	10 + your Constitution modifier	1d10 (or 6) + your Constitution modifier
+Rogue	d8	8 + your Constitution modifier	1d8 (or 5) + your Constitution modifier
+Sorcerer	d6	6 + your Constitution modifier	1d6 (or 4) + your Constitution modifier
+Warlock	d8	8 + your Constitution modifier	1d8 (or 5) + your Constitution modifier
+Wizard	d6	6 + your Constitution modifier	1d6 (or 4) + your Constitution modifier

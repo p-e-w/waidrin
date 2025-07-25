@@ -1,0 +1,43 @@
+Time tracking in Dungeons & Dragons 5th Edition is handled at different levels of granularity, depending on the situation. The Dungeon Master (DM) has a lot of flexibility in how strictly they track time, but the core rules provide frameworks for common scenarios:
+
+1. Combat Time: Rounds (6 seconds)
+	Most Granular: Combat is the most precise measurement of time in D&D 5e. It's broken down into rounds.
+	One Round = 6 Seconds: Each round represents about 6 seconds of in-game time.
+	Turns within a Round: During a round, each creature in the initiative order takes one turn.
+	Purpose: This granular tracking is essential for combat mechanics, as many spells, abilities, and effects have durations measured in rounds. For example, "lasts for 10 rounds" means it lasts for 60 seconds (1 minute).
+
+2. Exploration and Dungeon Time: Minutes (typically 10-minute increments)
+	Less Granular: Outside of combat, time is usually tracked in larger increments. The most common unit for dungeon exploration and similar detailed activities is minutes, often in blocks of 10 minutes.
+	Activities that take 10 minutes (or similar increments):
+		Searching a Room: A thorough search of a room or area might take 10 minutes.
+		Picking a Lock/Disarming a Trap: These often imply a brief period of focused effort, which can be rounded to 10 minutes.
+		Short Rests: A short rest is explicitly defined as lasting at least 1 hour (60 minutes).
+		Casting Ritual Spells: Spells cast as rituals take 10 minutes longer than normal.
+		Foraging/Hunting: Small periods of these activities might be tracked in minutes.
+	Purpose: This level of tracking helps the DM manage resources with time limits (e.g., torch duration, spell durations like detect magic or locate object), trigger random encounters, and create a sense of urgency.
+
+3. Overland Travel and Downtime: Hours, Days, Weeks, Months
+	Least Granular: For long-distance travel, downtime activities (like crafting, training, research), or simply "fast-forwarding" through uneventful periods, time is tracked in hours, days, weeks, or even months.
+	Travel Pace: The Player's Handbook provides guidelines for travel pace (slow, normal, fast) in miles per hour or miles per day.
+	Long Rests: A long rest is explicitly defined as lasting at least 8 hours.
+	Downtime Activities: The Player's Handbook and Xanathar's Guide to Everything provide rules for various downtime activities, which can take days or weeks.
+	Purpose: This broad tracking helps the DM manage long-term plotlines, track the passage of seasons, trigger events that happen over longer durations, and provide a sense of the world continuing even when the players aren't actively roleplaying every minute.
+
+The DM's Discretion: "Loose" vs. "Tight" Time Tracking
+One of the most important aspects of time tracking in D&D 5e is that the DM ultimately decides the level of detail.
+	"Loose" Tracking: Many DMs prefer a loose approach, only tracking time when it becomes mechanically or narratively relevant.
+		"You spend the afternoon researching in the library." (No precise minute count needed.)
+		"You travel for three days through the forest." (No need to track every hour.)
+		"A week passes as you recover from your wounds." (A simple narrative skip.)
+	"Tight" Tracking: In certain scenarios (e.g., a time-sensitive dungeon, a race against a ticking clock, managing dwindling resources like torches), a DM might track time much more closely.
+		"That door takes 10 minutes to pick. What are the rest of you doing?"
+		"Your detect magic spell lasts for 10 minutes. You've now searched two rooms. How many more do you want to check before it fades?"
+		Using real-world timers or a simple "time tracker" (like a series of boxes representing 10-minute "turns" or hours) can help with this.
+Why is Time Tracking Important?
+	Resource Management: Spells with durations, torch/lantern oil, food, water, healing potions, special abilities that refresh on rests – all depend on knowing how much time has passed.
+	Random Encounters: In dungeons or wilderness, the passage of time often dictates when a DM might roll for a random encounter.
+	Sense of Urgency/Pacing: Strict time tracking can create tension. If players know a ritual will finish in 1 hour or the monster will awaken in 20 minutes, their choices become more meaningful.
+	Long-Term Consequences: Crops ripening, diseases spreading, political events unfolding, villains executing their plans – all depend on the passage of in-game time.
+	Rest Mechanics: Short and long rests are fundamental to character power management, and they have strict time requirements.
+
+In essence, D&D 5e provides the tools for precise time tracking but encourages the DM to use them as needed to enhance the narrative and gameplay, rather than for rigid simulation.

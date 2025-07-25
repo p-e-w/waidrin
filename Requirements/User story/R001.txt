@@ -1,0 +1,24 @@
+###Story No###
+R001
+
+##Business requirements##
+###1-line summary###
+Add Character Class selection drop down to character selection screen
+###Description###
+Currently the application does not support character class
+###Business Value###
+Having this allows the players to further immerse in the game environment.
+Allow for variation of text generation for the story as a whole.
+
+###User story###
+As a player
+When I selected my Race at the the character screen
+I want to select a D&D 5e class in a dropdown control
+so that the text generation of the character and the adventure can be written for the class selected
+
+###Acceptance criteria###
+Scenario 1: Successfully adding a class to the character
+Given a race is selected 
+	and the class is available to my race
+When I select the class
+Then the class is added to the character object

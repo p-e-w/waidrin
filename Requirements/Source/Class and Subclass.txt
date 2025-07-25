@@ -1,0 +1,920 @@
+A detailed breakdown of D&D 5e classes and their subclasses, limited to the *Player's Handbook (PHB)*, *Dungeon Master's Guide (DMG)*, and *Xanathar's Guide to Everything (XGtE)*. We'll go through each class, listing their available subclasses from these sources and discussing their specific benefits and drawbacks.
+
+**Key:**
+* **PHB:** Player's Handbook
+* **DMG:** Dungeon Master's Guide (contains a few subclasses, often villainous or for specific themes, requiring DM approval for player use)
+* **XGtE:** Xanathar's Guide to Everything
+
+---
+
+## Dungeons & Dragons 5th Edition: Classes and Subclasses (PHB, DMG, XGtE)
+
+### 1. Barbarian
+
+**Class Overview:** Primal warriors fueled by rage. They have the highest hit die (d12), making them incredibly durable. Their Rage feature grants damage resistance and bonus damage, making them excellent front-line tanks and damage dealers.
+
+* **General Benefits:** High HP, resistance to bludgeoning, piercing, and slashing damage while raging (most common damage types), advantage on Strength checks and saving throws while raging, Reckless Attack for consistent damage, extra movement speed.
+* **General Drawbacks:** Cannot cast or concentrate on spells while raging, limited utility outside of combat (especially with mental stats often being a dump stat), typically reliant on melee attacks.
+
+**Subclasses (Primal Path):**
+
+* **Path of the Berserker (PHB):** Embraces pure, unadulterated fury.
+    * **Specific Benefits:**
+        * **Frenzy (3rd level):** While raging, you can make one additional melee weapon attack as a bonus action each turn. This provides excellent sustained damage.
+        * **Mindless Rage (6th level):** Immunity to being charmed and frightened while raging, making you incredibly resilient to common crowd control.
+        * **Intimidating Presence (10th level):** Use an action to frighten a creature with your menacing aura.
+        * **Retaliation (14th level):** When you take damage from a creature within 5 feet, you can use your reaction to make a melee weapon attack against that creature.
+    * **Specific Drawbacks:**
+        * **Frenzy's Exhaustion:** The significant drawback is that when your Frenzy rage ends, you suffer one level of exhaustion. Exhaustion is harsh (disadvantage on ability checks, half speed, disadvantage on attack rolls and saving throws, etc.), making sustained Frenzy difficult without ample short/long rests.
+        * Less utility than other subclasses; very combat-focused.
+
+* **Path of the Totem Warrior (PHB):** Channels the spirits of animals to gain varied resistances and abilities.
+    * **Specific Benefits:**
+        * **Spirit Seeker (3rd level):** Cast *beast sense* and *speak with animals* as rituals.
+        * **Totem Spirit (3rd level):** Choose a totem (Bear, Eagle, Wolf) for unique rage benefits. Bear is iconic: resistance to all damage types except psychic while raging (making you incredibly tanky). Eagle provides enhanced sight and disadvantage on opportunity attacks. Wolf provides advantage on melee attack rolls for allies within 5 feet.
+        * **Aspect of the Beast (6th level):** Choose another animal (Bear for carrying capacity, Eagle for vision, Wolf for tracking/stealth).
+        * **Spirit Walker (10th level):** Cast *commune with nature* as a ritual.
+        * **Totemic Attunement (14th level):** Choose another animal (Bear for damaging targets that hit you, Eagle for flight, Wolf for knocking prone).
+    * **Specific Drawbacks:**
+        * Requires careful selection of totems to maximize synergy.
+        * Bear Totem can be so strong it overshadows other choices for raw tankiness.
+        * Less direct damage than Berserker, but superior defense and utility.
+
+* **Path of the Ancestral Guardian (XGtE):** Summons spectral ancestors to protect allies and hinder enemies.
+    * **Specific Benefits:**
+        * **Ancestral Protectors (3rd level):** When you hit a creature while raging, spectral ancestors distract it. Its next attack roll against anyone but you has disadvantage, and if it damages anyone else, that creature has resistance to the damage. Excellent for protecting squishier allies.
+        * **Spirit Shield (6th level):** Use your reaction to reduce damage an ally takes.
+        * **Consult the Spirits (10th level):** Cast *augury* or *clairvoyance* without components, once per long rest.
+        * **Vengeful Ancestors (14th level):** When Ancestral Protectors is active, the marked enemy takes force damage if it tries to hurt someone else.
+    * **Specific Drawbacks:**
+        * Less personal damage output, focused more on support and tanking for the party.
+        * Requires your bonus action on the turn you hit for Ancestral Protectors.
+
+* **Path of the Storm Herald (XGtE):** Embodies the power of a storm, radiating an elemental aura while raging.
+    * **Specific Benefits:**
+        * **Storm Aura (3rd level):** Choose Desert (fire damage), Sea (lightning damage/forced movement), or Tundra (temporary HP for allies). Changes each rage.
+        * **Storm Soul (6th level):** Gain resistance to the chosen element and minor utility (control weather phenomenon).
+        * **Shielding Storm (10th level):** Extend your aura's benefit to allies.
+        * **Raging Storm (14th level):** Additional combat effects related to your chosen storm aura.
+    * **Specific Drawbacks:**
+        * Aura effects are generally less impactful than Ancestral Guardian's protection or Zealot's damage.
+        * Relies on consistently using your aura (bonus action each turn).
+        * Elemental damage can be resisted.
+
+* **Path of the Zealot (XGtE):** Infuses rage with divine power, making them a holy terror.
+    * **Specific Benefits:**
+        * **Divine Fury (3rd level):** Add extra radiant or necrotic damage to your first hit each turn while raging.
+        * **Warrior of the Gods (3rd level):** If you die while raging, you can be resurrected without material components (excellent for high-risk campaigns).
+        * **Fanatical Focus (6th level):** Reroll a failed saving throw once per rage.
+        * **Zealous Presence (10th level):** Inspire allies (advantage on attack rolls and saves) as a Channel Divinity-like action.
+        * **Rage Beyond Death (14th level):** You remain conscious at 0 hit points while raging and automatically succeed on death saves.
+    * **Specific Drawbacks:**
+        * "Warrior of the Gods" relies on your party having access to resurrection spells.
+        * Less utility than other subclasses, very focused on offensive output and personal resilience.
+
+### 2. Bard
+
+**Class Overview:** Charismatic performers and masters of magic, weaving spells through music, poetry, and orator. Bards are full spellcasters who excel in support, social interaction, and skill versatility.
+
+* **General Benefits:** Full spellcasting (Charisma), Bardic Inspiration (bonus dice for allies), Jack of All Trades (half proficiency to all unproficient skills), Expertise (double proficiency in chosen skills), Song of Rest (extra healing during short rests), Countercharm (end charm/frighten conditions).
+* **General Drawbacks:** D8 hit die (moderate durability), spell list can feel less directly damaging than Wizard/Sorcerer, limited armor/weapon proficiencies without subclass.
+
+**Subclasses (Bard College):**
+
+* **College of Lore (PHB):** The classic academic bard, broadening their knowledge and magical repertoire.
+    * **Specific Benefits:**
+        * **Bonus Proficiencies (3rd level):** Three additional skill proficiencies of your choice. Incredible for making a true "skill monkey."
+        * **Cutting Words (3rd level):** Use Bardic Inspiration to subtract from an enemy's attack roll, ability check, or damage roll. Excellent reactive debuff.
+        * **Additional Magical Secrets (6th level):** Learn two spells from *any* class's spell list. This significantly broadens your spellcasting utility and power.
+        * **Peerless Skill (14th level):** Use Bardic Inspiration on your own ability checks.
+    * **Specific Drawbacks:**
+        * Less focused on direct combat than Valor or Swords.
+        * Relies heavily on spell selection for personal combat impact.
+
+* **College of Valor (PHB):** A more martially inclined bard, combining music with battle prowess.
+    * **Specific Benefits:**
+        * **Bonus Proficiencies (3rd level):** Medium armor, shields, and martial weapons proficiency. Improves durability and melee options.
+        * **Combat Inspiration (3rd level):** Allies can add Bardic Inspiration to weapon attack rolls or to their AC against one attack. Offers offensive and defensive boosts.
+        * **Extra Attack (6th level):** Make two attacks instead of one when taking the Attack action.
+        * **Battle Magic (14th level):** Use your bonus action to make one weapon attack after casting a bard spell.
+    * **Specific Drawbacks:**
+        * Still primarily a support character; won't out-damage a dedicated martial class.
+        * Often compared to College of Swords (XGtE) which gains similar benefits earlier or more efficiently for melee.
+
+* **College of Glamour (XGtE):** Weaves enchanting fey magic into their performances.
+    * **Specific Benefits:**
+        * **Mantle of Inspiration (3rd level):** As a bonus action, grant temporary HP and movement to allies in an aura. Excellent for repositioning and minor healing.
+        * **Enthralling Performance (3rd level):** Use a Charisma (Performance) check to charm humanoids, imposing disadvantage on Wisdom (Perception) checks to notice others.
+        * **Mantle of Majesty (6th level):** As a bonus action, cast *command* without expending a spell slot, targeting charmed creatures.
+        * **Unbreakable Majesty (14th level):** Use a bonus action to become supernaturally beautiful, causing disadvantage on attack rolls and inability to target you for enemies, and charming.
+    * **Specific Drawbacks:**
+        * Relies heavily on charming effects, which many creatures are immune to.
+        * Less direct combat features, more focused on social and crowd control.
+
+* **College of Whispers (XGtE):** A shadowy bard who uses fear and psychic power.
+    * **Specific Benefits:**
+        * **Psychic Blades (3rd level):** Expend a Bardic Inspiration die to deal extra psychic damage on a weapon attack. Allows a damage boost.
+        * **Words of Terror (3rd level):** Use an action to speak to a humanoid and frighten them into becoming a spy.
+        * **Mantle of Whispers (6th level):** Create a perfect disguise of a recently deceased humanoid.
+        * **Shadow Lore (14th level):** Frighten creatures using your psychic influence.
+    * **Specific Drawbacks:**
+        * Less overt support than other bards.
+        * Psychic Blades use a limited resource (Bardic Inspiration) for damage, making it less consistent than a Fighter's Extra Attack.
+        * More sinister/deceptive theme that might not fit all campaigns or parties.
+
+### 3. Cleric
+
+**Class Overview:** Divine agents of a deity, wielding holy power to heal, protect, and smite foes. Clerics are full spellcasters with good armor and shield proficiencies, making them durable support casters.
+
+* **General Benefits:** Full spellcasting (Wisdom), prepared spells (flexible spell list), Channel Divinity (powerful, short-rest recharging abilities), proficiency with medium armor and shields (some domains grant heavy armor/martial weapons).
+* **General Drawbacks:** Less direct damage output than dedicated damage dealers, "healbot" stereotype (though untrue, some players expect it), rely on Wisdom as primary stat.
+
+**Subclasses (Divine Domain):**
+
+* **Life Domain (PHB):** The quintessential healer, dedicated to preserving life.
+    * **Specific Benefits:**
+        * **Bonus Proficiencies (1st level):** Heavy armor proficiency.
+        * **Disciple of Life (1st level):** When you cast a healing spell, the target regains additional hit points equal to 2 + the spell's level. This makes your healing spells significantly more effective.
+        * **Channel Divinity: Preserve Life (2nd level):** Restore hit points to creatures within 30 feet, up to a pool of 5 times your cleric level. Can't bring creatures above half HP.
+        * **Blessed Healer (6th level):** When you cast a healing spell of 1st level or higher on a creature other than yourself, you regain hit points equal to 2 + the spell’s level.
+        * **Divine Strike (8th level):** Once per turn, when you hit a creature with a weapon attack, you can deal extra radiant damage.
+        * **Supreme Healing (17th level):** When you would normally roll dice to restore hit points with a spell, you instead use the highest number possible for each die.
+    * **Specific Drawbacks:**
+        * Very focused on healing; less offensive or utility features than other domains.
+        * Divine Strike feature encourages weapon attacks, but Clerics often prioritize spellcasting.
+
+* **Light Domain (PHB):** Wields the power of light and fire, offering protection and destructive bursts.
+    * **Specific Benefits:**
+        * **Warding Flare (1st level):** As a reaction, impose disadvantage on an attack roll against yourself or an ally. Excellent defensive tool.
+        * **Channel Divinity: Radiance of the Dawn (2nd level):** Release a burst of sunlight, dealing radiant damage to enemies and dispelling magical darkness.
+        * **Improved Flare (6th level):** Use Warding Flare a number of times equal to your Wisdom modifier.
+        * **Potent Spellcasting (8th level):** Add your Wisdom modifier to the damage of your cleric cantrips.
+        * **Corona of Light (17th level):** Create an aura of sunlight that harms enemies and sheds bright light.
+    * **Specific Drawbacks:**
+        * Less direct healing than Life Domain.
+        * Offensive spells are primarily fire/radiant, which some creatures resist.
+
+* **Trickery Domain (PHB):** Dedicated to deception, illusion, and subversion.
+    * **Specific Benefits:**
+        * **Blessing of the Trickster (1st level):** Give an ally advantage on a Dexterity (Stealth) check.
+        * **Channel Divinity: Invoke Duplicity (2nd level):** Create an illusory duplicate of yourself that you can move and cast spells through. Excellent for distraction and flanking.
+        * **Cloak of Shadows (6th level):** Turn invisible as an action.
+        * **Divine Strike (8th level):** Once per turn, when you hit a creature with a weapon attack, you can deal extra poison damage.
+        * **Improved Duplicity (17th level):** Create up to four duplicates.
+    * **Specific Drawbacks:**
+        * Less effective in direct combat than other domains.
+        * Features are more subtle and require creative use.
+        * Poison damage is commonly resisted.
+
+* **Knowledge Domain (PHB):** Seeks understanding, ancient lore, and mental prowess.
+    * **Specific Benefits:**
+        * **Blessing of Knowledge (1st level):** Two additional skill proficiencies (from Arcana, History, Nature, Religion), and Expertise with them.
+        * **Channel Divinity: Read Thoughts (2nd level):** Read a creature's surface thoughts, and gain advantage on Charisma (Persuasion) checks against them.
+        * **Channel Divinity: Turn Undead (2nd level):** Frighten undead.
+        * **Potent Spellcasting (8th level):** Add your Wisdom modifier to the damage of your cleric cantrips.
+        * **Visions of the Past (17th level):** Gain flashes of information about an object or location.
+    * **Specific Drawbacks:**
+        * Less combat-focused, more utility and knowledge-oriented.
+        * Turn Undead is situational against specific enemy types.
+
+* **Nature Domain (PHB):** Connects with the wild and commands primal forces.
+    * **Specific Benefits:**
+        * **Acolyte of Nature (1st level):** Bonus skill proficiency (Animal Handling, Nature, or Survival) and a druid cantrip.
+        * **Heavy Armor Proficiency (1st level):**
+        * **Channel Divinity: Charm Animals and Plants (2nd level):** Charm beasts and plants.
+        * **Dampen Elements (6th level):** As a reaction, give resistance to elemental damage (acid, cold, fire, lightning, or thunder) taken by yourself or an ally.
+        * **Divine Strike (8th level):** Once per turn, when you hit a creature with a weapon attack, you can deal extra cold, fire, or lightning damage.
+        * **Master of Nature (17th level):** Charm animals or plants within range.
+    * **Specific Drawbacks:**
+        * Some overlap with Druid themes.
+        * Divine Strike encourages weapon attacks over spellcasting.
+
+* **Tempest Domain (PHB):** Masters storms and destructive weather.
+    * **Specific Benefits:**
+        * **Bonus Proficiencies (1st level):** Heavy armor and martial weapon proficiency.
+        * **Wrath of the Storm (1st level):** When hit by a creature within 5 feet, use a reaction to deal lightning or thunder damage.
+        * **Channel Divinity: Destructive Wrath (2nd level):** When you roll lightning or thunder damage, you can use Channel Divinity to maximize the damage. Excellent for burst damage spells.
+        * **Thunderous Strike (6th level):** When you deal lightning or thunder damage, you can push the creature 10 feet away.
+        * **Divine Strike (8th level):** Once per turn, when you hit a creature with a weapon attack, you can deal extra thunder damage.
+        * **Stormborn (17th level):** Gain a flying speed in heavy precipitation.
+    * **Specific Drawbacks:**
+        * Relies on specific damage types (lightning/thunder) which can be resisted.
+        * Less general utility compared to other domains.
+
+* **War Domain (PHB):** Dedicated to battle and martial prowess.
+    * **Specific Benefits:**
+        * **Bonus Proficiencies (1st level):** Heavy armor and martial weapon proficiency.
+        * **War Priest (1st level):** Make an extra weapon attack as a bonus action (Wisdom modifier uses per long rest).
+        * **Channel Divinity: Guided Strike (2nd level):** Add +10 to an attack roll. Excellent for ensuring a hit on a crucial strike.
+        * **Channel Divinity: Turn Undead (2nd level):** Frighten undead.
+        * **Avenger Strike (6th level):** When you deal damage to a creature with a weapon attack, you can move up to your speed.
+        * **Divine Strike (8th level):** Once per turn, when you hit a creature with a weapon attack, you can deal extra weapon damage.
+        * **Avatar of Battle (17th level):** Gain resistance to bludgeoning, piercing, and slashing damage from nonmagical attacks.
+    * **Specific Drawbacks:**
+        * War Priest uses are limited, and less effective than a Fighter's Extra Attack.
+        * Less spellcasting emphasis than other clerics, making it somewhat of a "half-caster" in practice.
+
+* **Death Domain (DMG):** (Requires DM approval for players) Focuses on necrotic energy and commanding undead.
+    * **Specific Benefits:**
+        * **Bonus Proficiency (1st level):** Martial weapon proficiency.
+        * **Reaper (1st level):** Necromancy cantrips target two creatures.
+        * **Channel Divinity: Touch of Death (2nd level):** When you hit a creature, deal extra necrotic damage (5 + twice your cleric level).
+        * **Inescapable Destruction (6th level):** Necrotic damage dealt by you ignores resistance.
+        * **Divine Strike (8th level):** Once per turn, when you hit a creature with a weapon attack, you can deal extra necrotic damage.
+        * **Improved Reaper (17th level):** Gain the ability to cast certain necromancy spells without expending spell slots.
+    * **Specific Drawbacks:**
+        * Often an evil-aligned option, which might not fit all parties or campaigns.
+        * Niche focus on necrotic damage and undead control.
+
+* **Forge Domain (XGtE):** Masters the art of creation, smithing, and protecting with divine fire.
+    * **Specific Benefits:**
+        * **Bonus Proficiencies (1st level):** Heavy armor proficiency.
+        * **Blessing of the Forge (1st level):** Imbue a weapon or piece of armor with a +1 bonus. Excellent for early-game magic item access.
+        * **Channel Divinity: Artisan's Blessing (2nd level):** Create nonmagical items quickly.
+        * **Soul of the Forge (6th level):** Gain a +1 bonus to AC.
+        * **Divine Strike (8th level):** Once per turn, when you hit a creature with a weapon attack, you can deal extra fire damage.
+        * **Saint of Forge and Fire (17th level):** Resistance to fire damage and immunity to nonmagical bludgeoning, piercing, and slashing damage while wearing heavy armor.
+    * **Specific Drawbacks:**
+        * Utility is very specific to crafting and equipment.
+        * Less direct healing or offensive spellcasting power.
+
+* **Grave Domain (XGtE):** Guards the line between life and death, preventing creatures from cheating either.
+    * **Specific Benefits:**
+        * **Circle of Mortality (1st level):** When you use a spell to restore hit points to a creature at 0 HP, you maximize the healing dice.
+        * **Sense Undead (1st level):** Learn the location of undead within 60 feet.
+        * **Channel Divinity: Path to the Grave (2nd level):** Choose a creature, and the next time it takes damage, it takes vulnerability to that damage type. Powerful for burst damage combos.
+        * **Sentinel at Death's Door (6th level):** As a reaction, prevent a critical hit against yourself or an ally.
+        * **Potent Spellcasting (8th level):** Add your Wisdom modifier to the damage of your cleric cantrips.
+        * **Keeper of Souls (17th level):** When a creature dies near you, you can regain hit points or deal necrotic damage.
+    * **Specific Drawbacks:**
+        * Many features are reactive or specific to combat scenarios involving death or healing from 0 HP.
+        * Less direct offense from the domain features themselves.
+
+### 4. Druid
+
+**Class Overview:** Channel the raw power of nature, transforming into beasts (Wild Shape) and wielding elemental magic. Druids are full spellcasters who can adapt to various roles, from healing to damage to crowd control.
+
+* **General Benefits:** Full spellcasting (Wisdom), Wild Shape for combat or utility, good healing and crowd control spells, access to powerful summoned creatures, proficiency with medium armor and shields (cannot wear metal armor).
+* **General Drawbacks:** Can't wear metal armor (unless specific DM ruling), Wild Shape forms have limitations at lower levels, reliance on Wisdom, can be bogged down by managing Wild Shape stats and summoning spells.
+
+**Subclasses (Druid Circle):**
+
+* **Circle of the Moon (PHB):** Focuses heavily on Wild Shape, becoming a potent frontline combatant.
+    * **Specific Benefits:**
+        * **Combat Wild Shape (2nd level):** Use a bonus action instead of an action to Wild Shape, and you can expend spell slots to heal while in beast form.
+        * **Circle Forms (2nd level):** Can Wild Shape into much higher Challenge Rating beasts earlier than other druids.
+        * **Primal Strike (6th level):** Your attacks in beast form count as magical for overcoming resistance/immunity.
+        * **Elemental Wild Shape (10th level):** Transform into an Air, Earth, Fire, or Water Elemental.
+        * **Thousand Forms (14th level):** Cast Alter Self at will.
+    * **Specific Drawbacks:**
+        * Relies heavily on effective beast forms (requires knowing their stat blocks).
+        * Less focus on spellcasting in combat while in beast form.
+        * Can feel repetitive if you always use the same optimal forms.
+
+* **Circle of the Land (PHB):** Gains power from specific terrain, enhancing their spellcasting.
+    * **Specific Benefits:**
+        * **Bonus Cantrip (2nd level):** Learn an additional druid cantrip.
+        * **Natural Recovery (2nd level):** Regain expended spell slots during a short rest. Excellent for spell longevity.
+        * **Circle Spells (3rd, 5th, 7th, 9th level):** Gain an expanded spell list based on your chosen land type (Arctic, Coast, Desert, Forest, Grassland, Mountain, Swamp, Underdark). These are always prepared and don't count against your known spells.
+        * **Land's Stride (6th level):** Difficult terrain doesn't slow you down, and you have advantage on saves vs. magical plants.
+        * **Nature's Ward (10th level):** Immunity to poison/disease, and cannot be charmed/frightened by elementals/fey.
+        * **Nature's Sanctuary (14th level):** Beasts and plants have disadvantage on attack rolls against you.
+    * **Specific Drawbacks:**
+        * Less focus on Wild Shape for combat (though it's still available for utility).
+        * Bonus spells can be niche depending on the chosen terrain.
+
+* **Circle of Dreams (XGtE):** Channels the benign magic of the Feywild to heal and aid allies.
+    * **Specific Benefits:**
+        * **Balm of the Summer Court (2nd level):** Use a bonus action to expend dice from a pool (equal to your druid level) to heal a creature. Excellent flexible healing.
+        * **Hearth of Moonlight and Shadow (6th level):** Create a safe resting place that grants temporary hit points to creatures resting within it.
+        * **Hidden Paths (10th level):** Teleport yourself or an ally a short distance as a bonus action.
+        * **Fey Replenishment (14th level):** Regain uses of Balm of the Summer Court on a short rest.
+    * **Specific Drawbacks:**
+        * Healing is limited by a pool, and is reactive.
+        * Less direct combat features, more focused on support and utility.
+
+* **Circle of the Shepherd (XGtE):** Masters summoning spirits and empowering beasts and fey.
+    * **Specific Benefits:**
+        * **Speech of the Woods (2nd level):** Speak with beasts and plants.
+        * **Spirit Totem (2nd level):** Summon a Unicorn, Bear, or Hawk Spirit (aura effects: healing/advantage on saves, temporary HP/advantage on Strength, advantage on attack rolls for allies).
+        * **Mighty Summons (6th level):** Beasts and fey you summon gain bonus HP and their attacks count as magical.
+        * **Guardian Spirit (10th level):** When a summoned creature ends its turn in your totem's aura, it regains hit points.
+        * **Faithful Summons (14th level):** When you are reduced to 0 hit points or incapacitated, summon a powerful Unicorn Spirit.
+    * **Specific Drawbacks:**
+        * Relies heavily on summoning spells, which can be resource-intensive and bog down combat if not managed well.
+        * Less personal combat utility compared to Moon Druid.
+
+### 5. Fighter
+
+**Class Overview:** Masters of weaponry and combat, adapting to almost any fighting style. Fighters are proficient with all armor and weapons, gaining numerous attacks and combat maneuvers.
+
+* **General Benefits:** Proficiency with all armor and weapons, Action Surge (extra action per rest), Second Wind (self-healing bonus action), multiple Ability Score Improvements (more than any other class), Extra Attack (multiple attacks per action).
+* **General Drawbacks:** Limited out-of-combat utility without specific subclass/feats, often relies heavily on weapon choice and magical items, less magical options (unless Eldritch Knight).
+
+**Subclasses (Martial Archetype):**
+
+* **Champion (PHB):** The epitome of raw physical prowess, focusing on simple, effective combat.
+    * **Specific Benefits:**
+        * **Improved Critical (3rd level):** Your weapon attacks score a critical hit on a roll of 19 or 20.
+        * **Remarkable Athlete (7th level):** Add half your proficiency bonus to any Strength, Dexterity, or Constitution check you make that doesn't already use your proficiency bonus. Also, increase your long jump and high jump distance.
+        * **Additional Fighting Style (10th level):** Choose a second Fighting Style.
+        * **Superior Critical (15th level):** Your weapon attacks score a critical hit on a roll of 18-20.
+        * **Survivor (18th level):** At the start of each of your turns, if you have fewer than half your hit points, you regain 5 + your Constitution modifier hit points (if you're not at 0 HP).
+    * **Specific Drawbacks:**
+        * Very simple and often considered "boring" by some players due to its lack of complex tactical options.
+        * Less utility than other subclasses; primarily a damage-dealer.
+
+* **Battle Master (PHB):** A tactical genius, using maneuvers to control the battlefield and enhance attacks.
+    * **Specific Benefits:**
+        * **Combat Superiority (3rd level):** Gain Superiority Dice (d8s) and learn maneuvers (e.g., Commander's Strike, Disarming Attack, Goading Attack, Maneuvering Attack, Parry, Precision Attack, Pushing Attack, Riposte, Tripping Attack). These add tactical depth and versatility to your attacks.
+        * **Student of War (3rd level):** Gain proficiency with one type of artisan's tools.
+        * **Know Your Enemy (7th level):** Spend a minute observing a creature to learn about its capabilities.
+        * **Improved Combat Superiority (10th, 18th level):** Superiority Dice increase in size (d10, d12).
+        * **Relentless (15th level):** Regain one Superiority Die if you have none left at the start of combat.
+    * **Specific Drawbacks:**
+        * Relies on a limited resource (Superiority Dice) that refreshes on a short rest.
+        * Requires player creativity and knowledge of maneuvers to use effectively.
+
+* **Eldritch Knight (PHB):** Blends martial skill with arcane magic.
+    * **Specific Benefits:**
+        * **Spellcasting (3rd level):** Learn Wizard spells (restricted to Abjuration and Evocation, with some flexible choices), using Intelligence as your spellcasting ability.
+        * **Weapon Bond (3rd level):** Can bond with up to two weapons, which you can summon to your hand.
+        * **War Magic (7th level):** When you cast a cantrip, you can make one weapon attack as a bonus action.
+        * **Eldritch Strike (10th level):** When you hit a creature with a weapon attack, it has disadvantage on the next saving throw against a spell you cast before the end of your next turn.
+        * **Arcane Charge (15th level):** After using Action Surge, you can teleport.
+        * **Improved War Magic (18th level):** When you use your action to cast a spell, you can make one weapon attack as a bonus action.
+    * **Specific Drawbacks:**
+        * Slower spell progression than full casters.
+        * Relies on Intelligence (for spells) and Strength/Dexterity (for attacks), making it somewhat "MAD" (Multiple Ability Dependent).
+        * Spell list is restricted, limiting utility.
+
+* **Arcane Archer (XGtE):** Infuses arrows with magical effects.
+    * **Specific Benefits:**
+        * **Arcane Archer Lore (3rd level):** Gain proficiency in Arcana or Nature, and learn a cantrip.
+        * **Arcane Shot (3rd level):** Infuse arrows with magical effects (e.g., Grasping Arrow, Piercing Arrow, Seeking Arrow, Shadow Arrow, Bursting Arrow, Banishing Arrow). Limited uses, but powerful effects.
+        * **Curving Shot (7th level):** As a bonus action, reroll a missed attack against a different target.
+        * **Magic Arrow (7th level):** Your arrows count as magical.
+        * **Ever-Ready Shot (15th level):** Regain one Arcane Shot if you have none left at the start of combat.
+        * **Arrow of the Archmage (18th level):** Bonus damage and resistance piercing.
+    * **Specific Drawbacks:**
+        * Very limited uses of Arcane Shot (2 per short or long rest until high levels), which can feel underwhelming for a subclass's core feature.
+        * Damage doesn't scale as well as other combat-focused subclasses.
+        * Often criticized for being less impactful than its concept.
+
+* **Cavalier (XGtE):** A master of mounted combat and protecting allies.
+    * **Specific Benefits:**
+        * **Bonus Proficiency (3rd level):** Learn one skill from Animal Handling, History, Insight, Performance, or Persuasion.
+        * **Born to the Saddle (3rd level):** Advantage on saves to remain on a mount, can mount/dismount with only 5 feet of movement.
+        * **Unwavering Mark (3rd level):** When you hit a creature with a melee attack, you can mark it. If it attacks anyone but you, it has disadvantage, and you can make an opportunity attack against it. Excellent tanking/control.
+        * **Warding Maneuver (7th level):** Use Superiority Dice to reduce damage an ally takes.
+        * **Hold the Line (10th level):** Opportunity attacks stop a creature's movement.
+        * **Ferocious Charge (15th level):** Knock prone on a charge.
+        * **Vigilant Protector (18th level):** Make a special reaction opportunity attack against any creature within 5 feet that attacks someone other than you.
+    * **Specific Drawbacks:**
+        * Heavily reliant on having a mount, which can be difficult or impossible in certain environments (dungeons, urban settings).
+        * Less effective when unmounted.
+
+* **Samurai (XGtE):** Focuses on resolute determination and quick, powerful strikes.
+    * **Specific Benefits:**
+        * **Bonus Proficiency (3rd level):** Learn one skill from History, Insight, Performance, or Persuasion.
+        * **Fighting Spirit (3rd level):** Use a bonus action to gain advantage on all weapon attacks this turn and temporary hit points. Excellent for burst damage.
+        * **Elegant Courtier (7th level):** Add your Wisdom modifier to Charisma (Persuasion) checks. Gain proficiency in Wisdom saving throws.
+        * **Tireless Spirit (10th level):** Gain an extra use of Fighting Spirit if you have none at the start of combat.
+        * **Rapid Strike (15th level):** When you use the Attack action, you can forgo advantage on one attack roll to make an additional weapon attack.
+        * **Strength Before Death (18th level):** When reduced to 0 hit points, you can use your reaction to immediately take an extra turn.
+    * **Specific Drawbacks:**
+        * Relies on temporary hit points for durability.
+        * Social features are less impactful than Battle Master's utility.
+        * Can feel straightforward in combat, similar to Champion, but with a different resource.
+
+### 6. Monk
+
+**Class Overview:** Ascetics who train their bodies and minds to achieve mastery over Ki, their innate life force. Monks excel at unarmed combat, mobility, and stunning foes.
+
+* **General Benefits:** High mobility, many attacks (Martial Arts, Flurry of Blows), Stunning Strike (powerful crowd control), excellent saving throws (Dex and Wis, eventually all with Purity of Body and Diamond Soul), Unarmored Defense (high AC with good Dex/Wis).
+* **General Drawbacks:** Very "stat hungry" (needs Dex, Wis, Con for AC, attacks, and HP), low hit die (d8), reliant on short rests for Ki points, limited ranged options without specific subclass, often magic item dependent for damage scaling.
+
+**Subclasses (Monastic Tradition):**
+
+* **Way of the Open Hand (PHB):** Focuses on martial arts to control the battlefield and incapacitate foes.
+    * **Specific Benefits:**
+        * **Open Hand Technique (3rd level):** When you use Flurry of Blows, you can choose to knock the target prone, push it 15 feet away, or prevent it from taking reactions. Excellent crowd control.
+        * **Wholeness of Body (6th level):** Self-healing (3x monk level HP) as a bonus action.
+        * **Tranquility (11th level):** Gain the effect of the *sanctuary* spell at the end of a long rest until it's broken.
+        * **Quivering Palm (17th level):** As an action, you can implant a lethal vibration into a creature. At any point later, you can use an action to make it die if it fails a Con save. Potentially instantly lethal.
+    * **Specific Drawbacks:**
+        * Primarily melee focused.
+        * Less utility than other subclasses for non-combat encounters.
+
+* **Way of the Shadow (PHB):** Masters stealth, darkness, and ninja-like abilities.
+    * **Specific Benefits:**
+        * **Shadow Arts (3rd level):** Expend Ki to cast *darkness*, *darkvision*, *pass without trace*, or *silence*.
+        * **Shadow Step (6th level):** Teleport from dim light or darkness to another area of dim light or darkness, gaining advantage on your next attack. Excellent mobility and offensive boost.
+        * **Cloak of Shadows (11th level):** As an action, become invisible in dim light or darkness.
+        * **Opportunist (17th level):** When a creature within 5 feet is hit by an attack from a creature other than you, you can use your reaction to make a melee attack against that creature.
+    * **Specific Drawbacks:**
+        * Relies on dim light/darkness, which can be situational depending on the campaign setting.
+        * Ki cost for spells can be high (especially *darkness*).
+
+* **Way of the Four Elements (PHB):** Manipulates elemental forces through Ki.
+    * **Specific Benefits:**
+        * **Elemental Disciplines (3rd level):** Learn elemental spell-like effects (e.g., Fangs of the Fire Snake, Fist of Four Thunders, Patient Defense, Water Whip).
+        * **Elemental Attunement (11th level):** You have a stronger connection to the elements.
+    * **Specific Drawbacks:**
+        * **High Ki Costs:** The Ki cost for these elemental disciplines is generally very high for their effect, making them inefficient compared to a full spellcaster. This is widely considered the weakest monk subclass.
+        * Limited spell-like effects compared to a full spellcaster's versatility.
+
+* **Way of the Drunken Master (XGtE):** Fights with unpredictable, swaying movements, making them hard to hit.
+    * **Specific Benefits:**
+        * **Drunken Technique (3rd level):** When you use Flurry of Blows, you gain the benefits of Disengage and your walking speed increases. Excellent for hit-and-run tactics.
+        * **Tipsy Sway (6th level):** Use a reaction to negate a critical hit against you (if you're prone), or gain advantage on a grapple/escape.
+        * **Drunkard's Luck (11th level):** When you make an ability check, you can spend 2 Ki to have advantage on the roll.
+        * **Intoxicated Frenzy (17th level):** Redirect a missed attack at another creature.
+    * **Specific Drawbacks:**
+        * Less direct damage, relies on enemy missing for some features.
+        * The benefits are primarily defensive and mobility-focused rather than raw damage.
+
+* **Way of the Kensei (XGtE):** Focuses on weapon mastery, turning chosen weapons into extensions of their body.
+    * **Specific Benefits:**
+        * **Path of the Kensei (3rd level):** Gain proficiency with certain weapons as "Kensei Weapons," which you can use for your monk features (e.g., Martial Arts, Ki-fueled Attack). You can also use Dexterity for their attack and damage rolls.
+        * **Agile Parry (3rd level):** If you make an unarmed strike as part of the Attack action and hold a Kensei weapon, you gain +2 AC until your next turn.
+        * **Kensei's Shot (3rd level):** Make a ranged Kensei weapon attack as a bonus action after taking the Attack action.
+        * **One with the Blade (6th level):** Your Kensei weapons count as magical. You can use 2 Ki to gain +2 on attack rolls with a Kensei weapon for one minute.
+        * **Unerring Accuracy (11th level):** Reroll a missed attack once per turn.
+        * **Deft Strike (17th level):** Add martial arts die to damage with a Kensei weapon for 1 Ki.
+    * **Specific Drawbacks:**
+        * Still primarily a melee combatant despite ranged options.
+        * Requires careful weapon choice and use of bonus actions.
+
+* **Way of the Sun Soul (XGtE):** Channels radiant energy, firing blasts of light and radiating searing auras.
+    * **Specific Benefits:**
+        * **Radiant Sun Bolt (3rd level):** Make ranged spell attacks that deal radiant damage, using Dexterity.
+        * **Searing Arc Strike (6th level):** When you use Flurry of Blows, you can replace one of the unarmed strikes with an area-of-effect radiant attack.
+        * **Searing Sunburst (11th level):** Create a sphere of radiant energy that damages creatures (Dex save for half).
+        * **Sun Shield (17th level):** Create an aura of light that damages enemies who hit you.
+    * **Specific Drawbacks:**
+        * Radiant Sun Bolt uses your bonus action, competing with Flurry of Blows.
+        * Less melee power than other monk subclasses.
+        * Radiant damage can be resisted by some creatures.
+
+### 7. Paladin
+
+**Class Overview:** Holy warriors bound by a sacred oath, combining martial prowess with divine magic to protect the innocent and smite evil. Paladins are half-casters with a strong focus on melee combat and supporting their allies.
+
+* **General Benefits:** Heavy armor proficiency, martial weapons, Divine Smite (converts spell slots to massive radiant damage), Lay on Hands (healing pool), Aura of Protection (Charisma bonus to all saving throws for allies), high Charisma for social skills, strong saving throws.
+* **General Drawbacks:** Limited spell slots (half-caster progression), very Charisma-dependent (for spells, auras, and some features), often lacks ranged options, Oath tenets can be strict and challenging to uphold.
+
+**Subclasses (Sacred Oath):**
+
+* **Oath of Devotion (PHB):** The classic holy knight, upholding ideals of honesty, courage, and compassion.
+    * **Specific Benefits:**
+        * **Channel Divinity: Sacred Weapon (3rd level):** Add your Charisma modifier to attack rolls with a weapon for 1 minute.
+        * **Channel Divinity: Turn the Unholy (3rd level):** Frighten fiends and undead.
+        * **Aura of Devotion (7th level):** You and allies within 10 feet cannot be charmed.
+        * **Purity of Spirit (15th level):** Always under the effects of *protection from evil and good*.
+        * **Holy Nimbus (20th level):** Emit an aura of sunlight that harms enemies and grants advantage on saves to allies.
+    * **Specific Drawbacks:**
+        * Oath tenets can be strict (Honesty, Courage, Compassion, Honor, Duty). Breaking them can lead to becoming an Oathbreaker.
+        * Less unique compared to other oaths, very straightforward.
+
+* **Oath of the Ancients (PHB):** Protector of the light, life, and natural world.
+    * **Specific Benefits:**
+        * **Channel Divinity: Nature's Wrath (3rd level):** Ensnare a creature with magical vines.
+        * **Channel Divinity: Turn the Faithless (3rd level):** Frighten fey and fiends.
+        * **Aura of Warding (7th level):** You and allies within 10 feet have resistance to damage from spells. Extremely powerful.
+        * **Undying Sentinel (15th level):** When reduced to 0 HP, drop to 1 HP instead (once per long rest).
+        * **Elder Champion (20th level):** Emit an aura that sheds bright light, gives advantage on spell attack rolls, and enemies have disadvantage on saves against your spells.
+    * **Specific Drawbacks:**
+        * Oath tenets are broad (Kindle the Light, Shelter the Light, Preserve Your Own Light, Be the Light).
+        * Less offensive focus than Oath of Vengeance.
+
+* **Oath of Vengeance (PHB):** Driven by the pursuit of justice against great evils.
+    * **Specific Benefits:**
+        * **Channel Divinity: Abjure Enemy (3rd level):** Frighten a creature and reduce its speed to 0.
+        * **Channel Divinity: Vow of Enmity (3rd level):** Gain advantage on attack rolls against one creature for 1 minute. Excellent for single-target damage.
+        * **Aura of Hatred (7th level):** You and allies within 10 feet gain extra damage against frightened creatures.
+        * **Relentless Avenger (15th level):** When you make an opportunity attack, you can move up to your speed.
+        * **Avenging Angel (20th level):** Grow wings and emanate an aura of menace, causing enemies to be frightened.
+    * **Specific Drawbacks:**
+        * Oath tenets are specific (Fight the Greater Evil, No Mercy for the Wicked, Justice Above All, Vengeance Above All).
+        * Can be seen as less "good" than other oaths depending on interpretation.
+
+* **Oathbreaker (DMG):** (Requires DM approval for players) A Paladin who has betrayed their sacred oath. Often used for villains.
+    * **Specific Benefits:**
+        * **Channel Divinity: Control Undead (3rd level):** Charm an undead creature.
+        * **Channel Divinity: Dreadful Aspect (3rd level):** Frighten creatures within 30 feet.
+        * **Aura of Hate (7th level):** You and fiends/undead within 10 feet gain bonus damage to melee weapon attacks equal to your Charisma modifier.
+        * **Supernatural Resistance (15th level):** Resistance to bludgeoning, piercing, and slashing damage from nonmagical attacks.
+        * **Dread Lord (20th level):** Aura of fear, resistance to all damage, and can use bonus action to deal necrotic damage.
+    * **Specific Drawbacks:**
+        * Explicitly for characters who have "fallen" from their oath, making it thematic for evil characters or specific storylines.
+        * Your allies may find your undead minions or evil aura problematic.
+
+* **Oath of Conquest (XGtE):** Seeks to crush foes and establish order through dominance and fear.
+    * **Specific Benefits:**
+        * **Channel Divinity: Conquering Presence (3rd level):** Frighten creatures within 30 feet.
+        * **Channel Divinity: Guided Strike (3rd level):** Add +10 to an attack roll.
+        * **Aura of Conquest (7th level):** Frightened enemies within 10 feet have their speed reduced to 0. Powerful for locking down enemies.
+        * **Resolute (15th level):** Advantage on saving throws against being frightened.
+        * **Invincible Conqueror (20th level):** Gain resistance to all damage, critical hits on a 19-20, and an extra attack.
+    * **Specific Drawbacks:**
+        * Oath tenets can be harsh (Douse the Flame of Hope, Rule with an Iron Fist, Show No Mercy).
+        * Can be seen as tyrannical, potentially conflicting with good-aligned parties.
+        * Relies heavily on frightening enemies.
+
+* **Oath of Redemption (XGtE):** Seeks to redeem wrongdoers and avoid violence when possible.
+    * **Specific Benefits:**
+        * **Emissary of Peace (3rd level):** Bonus to Persuasion checks.
+        * **Channel Divinity: Emissary of Redemption (3rd level):** When a creature damages another creature within 30 feet, you can use your reaction to deal radiant damage to the attacker.
+        * **Aura of the Guardian (7th level):** When an ally takes damage, you can use your reaction to magically take the damage instead. Excellent protection.
+        * **Protective Spirit (15th level):** When you are at less than half HP, you regain HP at the start of your turn.
+        * **Aura of Redemption (20th level):** Automatically protect allies, reduce damage, and reflect damage back to attackers.
+    * **Specific Drawbacks:**
+        * Oath tenets are extremely restrictive (Peace, Innocence, Patience, Wisdom, Forbearance). Can be very challenging to play in combat-heavy campaigns, requiring non-lethal solutions.
+        * Less direct offensive capabilities.
+
+### 8. Ranger
+
+**Class Overview:** Wilderness warriors and skilled hunters, blending martial prowess with nature magic. Rangers excel at ranged combat, tracking, and survival.
+
+* **General Benefits:** Good at ranged and light melee combat (often Dexterity-based), access to some healing/utility spells (half-caster), Expertise in two skills (if using Tasha's optional features), strong exploration and tracking abilities.
+* **General Drawbacks:** Historically considered weaker in earlier versions of 5e (PHB versions especially), spellcasting is more limited than full casters, often less durable than Fighters or Barbarians, PHB's Favored Enemy and Natural Explorer can be situational.
+
+**Subclasses (Ranger Archetype):**
+
+* **Hunter (PHB):** The classic archetypal ranger, specializing in taking down specific types of foes.
+    * **Specific Benefits:**
+        * **Hunter's Prey (3rd level):** Choose one feature: Colossus Slayer (extra damage to damaged target), Giant Killer (reaction attack against large/larger creature that attacks you), or Horde Breaker (extra attack against second target). Provides versatile damage options.
+        * **Defensive Tactics (7th level):** Choose one feature: Escape the Horde (no opportunity attacks), Multiattack Defense (bonus AC after being hit), or Steel Will (advantage on saves vs. frightened).
+        * **Multiattack (11th level):** Choose one feature: Volley (ranged AoE attack) or Whirlwind Attack (melee AoE attack).
+        * **Superior Hunter's Defense (15th level):** Choose one feature: Evasion (no damage on successful Dex saves, half on fail) or Stand Against the Tide (reaction to move enemy).
+    * **Specific Drawbacks:**
+        * Lacks the unique magical utility or companion of other subclasses.
+        * Choices at each tier mean you specialize early and can't swap.
+
+* **Beast Master (PHB):** Fights alongside an animal companion. (Note: The PHB version is widely considered very weak; the Tasha's Cauldron of Everything version significantly improves it. We'll describe the PHB version here as requested, but keep the weakness in mind).
+    * **Specific Benefits:**
+        * **Ranger's Companion (3rd level):** Gain a beast companion that fights alongside you.
+    * **Specific Drawbacks (PHB version):**
+        * **Action Economy:** The companion uses your action to attack, meaning you sacrifice your own attack to have the beast attack. This is extremely inefficient.
+        * **Durability:** The companion is relatively fragile, and replacing it costs time and money.
+        * **Scaling:** The companion's damage and HP scale poorly at higher levels.
+        * Considerable management for limited reward.
+
+* **Gloom Stalker (XGtE):** Masters ambushes and fighting in darkness.
+    * **Specific Benefits:**
+        * **Dread Ambusher (3rd level):** Bonus to initiative, extra attack on first turn of combat (with bonus damage). Excellent for burst damage on surprised enemies.
+        * **Umbral Sight (3rd level):** Superior darkvision, and you are invisible in darkness to creatures that rely on darkvision. Incredibly powerful in dark environments.
+        * **Disguise Self & Fear (3rd, 5th level):** Bonus spells.
+        * **Stalker's Flurry (11th level):** If you miss a weapon attack, you can make another one.
+        * **Shadowy Dodge (15th level):** Use a reaction to impose disadvantage on an attack against you by vanishing briefly.
+    * **Specific Drawbacks:**
+        * Less effective in bright light, as some features depend on dim light or darkness.
+        * Features are heavily front-loaded.
+
+* **Horizon Walker (XGtE):** Guards the boundaries between planes, wielding planar magic.
+    * **Specific Benefits:**
+        * **Detect Portal (3rd level):** Sense portals within 1 mile.
+        * **Planar Warrior (3rd level):** As a bonus action, make one weapon attack deal force damage and extra force damage.
+        * **Ethereal Step (7th level):** As a bonus action, step into the Ethereal Plane briefly.
+        * **Distant Strike (11th level):** When you take the Attack action, you can teleport 10 feet before each attack. Allows for multiple targets and evasion.
+        * **Spectral Defense (15th level):** Use a reaction to gain resistance to damage from an attack.
+    * **Specific Drawbacks:**
+        * Niche benefits in campaigns without planar travel or extraplanar threats.
+        * Planar Warrior uses your bonus action, competing with other options.
+
+* **Monster Slayer (XGtE):** Specializes in hunting and defeating powerful monsters.
+    * **Specific Benefits:**
+        * **Hunter's Sense (3rd level):** As a bonus action, learn certain information about a creature's resistances, immunities, and vulnerabilities.
+        * **Slayer's Prey (3rd level):** As a bonus action, mark a creature. Your first hit against it each turn deals extra damage.
+        * **Supernatural Defense (7th level):** Gain a bonus to saving throws against the marked creature's spells and abilities, and advantage on checks to escape its grapples/restraints.
+        * **Magic-User's Nemesis (11th level):** As a reaction, interrupt a creature casting a spell.
+        * **Slayer's Counter (15th level):** Use a reaction to make a weapon attack against a creature that forces a saving throw on you.
+    * **Specific Drawbacks:**
+        * Relies on marking a single target, making it less effective against multiple foes.
+        * Some features are reactive or defensive, rather than consistently offensive.
+
+### 9. Rogue
+
+**Class Overview:** Masters of stealth, subterfuge, and precision. Rogues excel at skill checks, disarming traps, and dealing bursts of damage with Sneak Attack.
+
+* **General Benefits:** Expertise (double proficiency in chosen skills), Sneak Attack (massive bonus damage when conditions met), Cunning Action (bonus action for Dash, Disengage, Hide), Uncanny Dodge (halve damage from an attack), Evasion (no damage on successful Dex saves, half on fail), Reliable Talent (treat any roll of 9 or lower as 10 on proficient skills).
+* **General Drawbacks:** Lower HP (d8), relies on specific conditions for Sneak Attack (advantage or ally nearby), less direct combat utility than other martial classes without specific subclass/feats, often squishier.
+
+**Subclasses (Roguish Archetype):**
+
+* **Thief (PHB):** The classic master of larceny and infiltration.
+    * **Specific Benefits:**
+        * **Fast Hands (3rd level):** Use bonus action to make a Dexterity (Sleight of Hand) check, use Thieves' Tools, or use an object. Excellent for battlefield utility (e.g., healing potions, caltrops).
+        * **Second-Story Work (3rd level):** Climbing speed equals your walking speed.
+        * **Supreme Sneak (9th level):** Advantage on Dexterity (Stealth) checks if you move no more than half your speed on that turn.
+        * **Use Magic Device (13th level):** Ignore class, race, and level requirements on magic items. Tremendous utility.
+        * **Thief's Reflexes (17th level):** Take a second turn in the first round of combat.
+    * **Specific Drawbacks:**
+        * Less direct combat power than Assassin or Arcane Trickster.
+        * Features are highly situational for specific types of campaigns (urban, dungeon crawls).
+
+* **Assassin (PHB):** A master of infiltration and deadly strikes, especially when surprising enemies.
+    * **Specific Benefits:**
+        * **Bonus Proficiencies (3rd level):** Disguise kit and Poisoner's kit.
+        * **Assassinate (3rd level):** Advantage on attack rolls against any creature that hasn't taken a turn in combat yet. Any hit against a surprised creature is a critical hit. Powerful alpha strike.
+        * **Infiltration Expertise (9th level):** Can create false identities.
+        * **Imposter (13th level):** Can perfectly mimic another person's speech, writing, and mannerisms.
+        * **Death Strike (17th level):** If you hit a surprised creature, it must make a Con save or take double damage from the attack. Potentially instantly lethal.
+    * **Specific Drawbacks:**
+        * Highly reliant on surprise, which is difficult to achieve consistently in many combat encounters.
+        * Features are very front-loaded; less utility in sustained combat.
+        * Social features are niche and situational.
+
+* **Arcane Trickster (PHB):** Blends rogue skills with illusion and enchantment magic.
+    * **Specific Benefits:**
+        * **Spellcasting (3rd level):** Learn Wizard spells (restricted to Illusion and Enchantment, with some flexible choices), using Intelligence as your spellcasting ability.
+        * **Mage Hand Legerdemain (3rd level):** Cast *mage hand* and perform sleight of hand/object interactions at range and invisibly. Excellent utility.
+        * **Magical Ambush (9th level):** When you are hidden from a creature and hit it with an attack, it has disadvantage on the next saving throw against a spell you cast before the end of your next turn. Powerful combo with control spells.
+        * **Versatile Trickster (13th level):** As a bonus action, create an illusory distraction to gain advantage on an attack roll.
+        * **Spell Thief (17th level):** When a creature casts a spell, you can try to steal it from them.
+    * **Specific Drawbacks:**
+        * Slower spell progression, relies on Intelligence and Dexterity (can be MAD).
+        * Limited spell list.
+        * Requires player creativity to get the most out of *mage hand* and illusion spells.
+
+* **Inquisitive (XGtE):** A master detective, skilled at uncovering secrets and reading foes.
+    * **Specific Benefits:**
+        * **Ear for Deceit (3rd level):** Automatically succeed on Wisdom (Insight) checks to determine if a creature is lying.
+        * **Eye for Detail (3rd level):** As a bonus action, make a Wisdom (Perception) or Intelligence (Investigation) check to spot hidden things/clues.
+        * **Insightful Fighting (3rd level):** As a bonus action, use Insight on a creature. If successful, you can use Sneak Attack against it without advantage if no other condition is met. Great for enabling Sneak Attack in 1v1.
+        * **Steady Eye (9th level):** If you move no more than half your speed, gain advantage on Wis (Perception) and Int (Investigation) checks.
+        * **Unerring Eye (13th level):** Learn about illusions, shapeshifters, and hidden creatures.
+        * **Eye for Weakness (17th level):** When you use Insightful Fighting, your Sneak Attack deals extra damage.
+    * **Specific Drawbacks:**
+        * Features are more utility/social focused, less direct combat benefits unless you rely on Insightful Fighting heavily.
+        * Less impactful in dungeon crawls with fewer social interactions.
+
+* **Mastermind (XGtE):** A schemer and manipulator, excelling in social situations and tactical support.
+    * **Specific Benefits:**
+        * **Master of Intrigue (3rd level):** Proficiency with disguise kit, forgery kit, and two languages.
+        * **Master of Tactics (3rd level):** Use the Help action as a bonus action from 30 feet away. Excellent for supporting allies.
+        * **Insightful Manipulator (9th level):** Observe a creature for a minute to learn its mental/social attributes.
+        * **Misdirection (13th level):** When you are targeted by an attack, you can use your reaction to make an adjacent ally the target instead.
+        * **Soul of Deceit (17th level):** Your thoughts can't be read, and you can present false thoughts.
+    * **Specific Drawbacks:**
+        * Less direct combat benefits for the rogue themselves; more focused on supporting allies and social encounters.
+        * Help action is useful but may not be as flashy as other subclass features.
+
+* **Scout (XGtE):** A wilderness expert, agile and skilled at skirmishing.
+    * **Specific Benefits:**
+        * **Skirmisher (3rd level):** When an enemy ends its turn within 5 feet of you, you can use your reaction to move up to half your speed without provoking opportunity attacks. Excellent for battlefield positioning.
+        * **Survivalist (3rd level):** Gain proficiency in Nature and Survival skills.
+        * **Superior Mobility (9th level):** Your walking speed increases.
+        * **Ambush Master (13th level):** Bonus to initiative, and an ally you choose gains advantage on its attack against a creature you hit on the first round of combat.
+        * **Sudden Strike (17th level):** If you take the Attack action, you can make a second weapon attack as part of that action.
+    * **Specific Drawbacks:**
+        * Less social or magical utility than other rogues.
+        * More focused on movement and basic attacks, can feel less unique than other subclasses.
+
+* **Swashbuckler (XGtE):** A dashing duelist, charming and agile in one-on-one combat.
+    * **Specific Benefits:**
+        * **Fancy Footwork (3rd level):** If you make a melee attack against a creature, you don't provoke opportunity attacks from that creature for the rest of the turn. Excellent for hit-and-run.
+        * **Rakish Audacity (3rd level):** Add your Charisma modifier to your initiative. If you are within 5 feet of only one creature, you can use Sneak Attack against it even without advantage. Great for making a solo melee rogue.
+        * **Panache (9th level):** Use your action to compel a creature to focus on you, charming it or forcing it to attack only you.
+        * **Slaughter (13th level):** If you miss a melee attack, you can make a second attack against a different creature.
+        * **Master Duelist (17th level):** If you miss a melee attack, you can reroll it with advantage once per short/long rest.
+    * **Specific Drawbacks:**
+        * Relies heavily on fighting one-on-one for Rakish Audacity's benefit.
+        * Less group utility compared to Mastermind.
+        * Encourages a specific combat style.
+
+### 10. Sorcerer
+
+**Class Overview:** Innate spellcasters whose magic comes from within their bloodline. Sorcerers manipulate magic with Metamagic, allowing them to twist and enhance their spells in unique ways.
+
+* **General Benefits:** Full spellcasting (Charisma), Metamagic (unique spell customization via Sorcery Points), powerful burst damage, good social skills.
+* **General Drawbacks:** Very limited spells known (fewest of all full casters), low HP (d6), few proficiencies (no armor/shields), relies heavily on Charisma and Constitution (for concentration saves), often "glass cannons."
+
+**Subclasses (Sorcerous Origin):**
+
+* **Draconic Bloodline (PHB):** Inherits draconic power, gaining elemental resistance and scales.
+    * **Specific Benefits:**
+        * **Draconic Resilience (1st level):** AC becomes 13 + Dexterity modifier. No need for armor. Bonus HP per sorcerer level.
+        * **Elemental Affinity (6th level):** When you cast a spell that deals damage of your chosen type (from your dragon ancestor), you can add your Charisma modifier to one damage roll or spend 1 Sorcery Point to gain resistance to that damage type.
+        * **Dragon Wings (14th level):** Grow wings and gain a flying speed.
+        * **Draconic Presence (18th level):** Frighten or charm creatures in an aura.
+    * **Specific Drawbacks:**
+        * Less utility or control features compared to other subclasses.
+        * Focus on a single elemental damage type can be resisted by enemies.
+
+* **Wild Magic (PHB):** Taps into chaotic magic, leading to unpredictable and often hilarious results.
+    * **Specific Benefits:**
+        * **Wild Magic Surge (1st level):** After casting a spell of 1st level or higher, you roll on the Wild Magic Surge table, leading to random effects (can be beneficial, harmful, or neutral).
+        * **Tides of Chaos (1st level):** Gain advantage on one attack roll, ability check, or saving throw. Afterward, the DM can force a Wild Magic Surge.
+        * **Bend Luck (6th level):** Use Sorcery Points to add or subtract 1d4 from another creature's attack roll, ability check, or saving throw.
+        * **Controlled Chaos (14th level):** You can roll twice on the Wild Magic Surge table and choose which effect to use.
+        * **Spell Bombardment (18th level):** When you deal damage with a spell, roll additional dice if you've already rolled max on a damage die.
+    * **Specific Drawbacks:**
+        * **Unpredictability:** The randomness of Wild Magic Surge can be a major drawback; sometimes the effects are unhelpful or actively harmful.
+        * Requires DM adjudication for surge rolls.
+
+* **Divine Soul (XGtE):** Blessed by a divine being, gaining access to Cleric spells.
+    * **Specific Benefits:**
+        * **Divine Magic (1st level):** Learn one spell from the cleric spell list. You also add *cure wounds* to your known spells and can spend Sorcery Points to empower healing spells.
+        * **Favored by the Gods (1st level):** When you make an attack roll or saving throw, you can add 2d4 to the total.
+        * **Empowered Healing (6th level):** When you roll healing dice, you can reroll up to five of them.
+        * **Unearthly Recovery (14th level):** Regain half your max HP as a bonus action once per long rest.
+        * **Angelic Form (18th level):** Gain a flight speed and resistance to radiant damage.
+    * **Specific Drawbacks:**
+        * Can be overwhelming to manage two full spell lists (Sorcerer and Cleric).
+        * Relies on Wisdom for some features (Favored by the Gods), making it a little MAD if you want high healing and spell DCs.
+
+* **Shadow Magic (XGtE):** Touched by the Shadowfell, wielding necromancy and darkness.
+    * **Specific Benefits:**
+        * **Eyes of the Dark (1st level):** Gain 120 feet of darkvision, and can cast *darkness* for 2 Sorcery Points (seeing through it).
+        * **Strength of the Grave (1st level):** When you are reduced to 0 hit points, you can make a Charisma saving throw to drop to 1 hit point instead.
+        * **Hound of Ill Omen (6th level):** Spend 3 Sorcery Points to summon a shadowy mastiff that attacks an enemy, giving them disadvantage on saves against your spells. Powerful for single-target debuff.
+        * **Shadow Walk (14th level):** Teleport between areas of dim light or darkness as a bonus action.
+        * **Umbral Form (18th level):** As a bonus action, become insubstantial, gaining resistance to all damage except force and becoming able to move through objects.
+    * **Specific Drawbacks:**
+        * Darkness theme might not fit all campaigns.
+        * Hound of Ill Omen uses your concentration.
+
+* **Storm Sorcery (XGtE):** Inherits elemental power from storms.
+    * **Specific Benefits:**
+        * **Tempestuous Magic (1st level):** Fly up to 10 feet as a bonus action when you cast a 1st level or higher spell.
+        * **Heart of the Storm (6th level):** When you cast a 1st level or higher spell that deals lightning or thunder damage, each creature within 10 feet takes damage. Gain resistance to lightning and thunder damage.
+        * **Storm Guide (6th level):** Control weather phenomena on a small scale.
+        * **Storm's Fury (14th level):** When hit by a melee attack, use your reaction to deal lightning damage and push the attacker away.
+        * **Wind Soul (18th level):** Gain a flying speed, and can control wind.
+    * **Specific Drawbacks:**
+        * Less direct damage or crowd control from features compared to other origins.
+        * Features are often situational in specific environments or depend on lightning/thunder spells.
+
+### 11. Warlock
+
+**Class Overview:** Gain magical power through a pact with an otherworldly entity. Warlocks are unique casters with very few spell slots that recharge on a short rest, and highly customizable Eldritch Invocations.
+
+* **General Benefits:** Pact Magic (spell slots recharge on a short rest), Eldritch Invocations (customize abilities with passive buffs or spell-like effects), Eldritch Blast (powerful at-will damage cantrip), unique thematic flavor, good social skills (Charisma).
+* **General Drawbacks:** Very few spell slots (typically 2-4 for most of their career), reliance on short rests for spell slot recovery, limited spells known.
+
+**Subclasses (Otherworldly Patron):**
+
+* **The Archfey (PHB):** Gains power from the mysterious Feywild, focusing on enchantment and illusion.
+    * **Specific Benefits:**
+        * **Fey Presence (1st level):** Charm or frighten creatures in a 10-foot cube.
+        * **Misty Escape (6th level):** When you take damage, you can use your reaction to turn invisible and teleport.
+        * **Beguiling Defenses (10th level):** You are immune to being charmed, and when a creature attempts to charm you, you can use your reaction to turn the charm back on them.
+        * **Dark Delirium (14th level):** Cause a creature to be charmed or frightened, and for one minute, it perceives only itself and its chosen illusionary environment.
+    * **Specific Drawbacks:**
+        * Charm effects are resisted by many creature types.
+        * Less direct damage, features are more subtle and require creative use.
+
+* **The Fiend (PHB):** Made a pact with a devil or demon, gaining dark power and resilience.
+    * **Specific Benefits:**
+        * **Dark One's Blessing (1st level):** When you reduce a hostile creature to 0 hit points, you gain temporary hit points equal to your Charisma modifier + your warlock level. Excellent for survivability in combat.
+        * **Dark One's Own Luck (6th level):** Add 1d10 to one ability check or saving throw.
+        * **Fiendish Resilience (10th level):** Choose one damage type (except bludgeoning, piercing, or slashing) to gain resistance to. Can change it on a short/long rest.
+        * **Hurl Through Hell (14th level):** When you hit a creature, you can banish it to a lower plane of existence. Powerful crowd control.
+    * **Specific Drawbacks:**
+        * Often encourages an evil or morally ambiguous alignment for roleplaying.
+        * Temporary HP relies on getting killing blows.
+
+* **The Great Old One (PHB):** Draws power from unknowable cosmic entities.
+    * **Specific Benefits:**
+        * **Awakened Mind (1st level):** Can telepathically speak to any creature you can see within 30 feet. Excellent for covert communication.
+        * **Entropic Ward (6th level):** As a reaction, impose disadvantage on an attack roll against you. If the attack misses, your next attack roll against that creature has advantage.
+        * **Thought Shield (10th level):** Resistance to psychic damage, and no one can read your thoughts.
+        * **Create Thrall (14th level):** Charm a humanoid, turning them into your thrall.
+    * **Specific Drawbacks:**
+        * Features can be niche, and less direct combat power than other patrons.
+        * Telepathy has limited range.
+        * Thrall feature is campaign-dependent and potentially morally questionable.
+
+* **The Celestial (XGtE):** Gains power from celestials, focusing on healing and radiant damage.
+    * **Specific Benefits:**
+        * **Bonus Cantrips (1st level):** Learn *Light* and *Sacred Flame*.
+        * **Healing Light (1st level):** You have a pool of d6s (equal to 1 + warlock level) to heal creatures as a bonus action. Excellent burst healing.
+        * **Searing Vengeance (6th level):** When you make a death saving throw, you can choose to regain half your HP, then stand up.
+        * **Celestial Resilience (10th level):** Gain resistance to radiant and necrotic damage.
+        * **Grateful Aegis (14th level):** When you restore hit points to a creature, you can grant them bonus damage on their next attack.
+    * **Specific Drawbacks:**
+        * Fewer direct offensive features compared to other patrons, focuses more on support.
+        * Healing pool is limited per long rest.
+
+* **The Hexblade (XGtE):** Made a pact with a sentient weapon from the Shadowfell, becoming a martial warlock.
+    * **Specific Benefits:**
+        * **Hexblade's Curse (1st level):** Curse a creature to take extra damage, critical hits on a 19-20, and heal when it dies. Powerful single-target buff/debuff.
+        * **Hex Warrior (1st level):** Gain proficiency with medium armor, shields, and martial weapons. Can use your Charisma modifier for attack and damage rolls with one weapon. This is incredibly powerful as it makes you "SAD" (Single Ability Dependent) for offense and spellcasting.
+        * **Accursed Specter (6th level):** Create a specter from a slain humanoid to fight for you.
+        * **Armor of Hexes (10th level):** When a cursed creature hits you, you can impose disadvantage on its next attack.
+        * **Master of Hexes (14th level):** Can transfer Hexblade's Curse to a new target after a cursed creature dies.
+    * **Specific Drawbacks:**
+        * Often considered extremely powerful, sometimes to the point of overshadowing other warlock patrons, especially for melee builds.
+        * Can be difficult to roleplay the specific nature of the Hexblade's pact.
+
+### 12. Wizard
+
+**Class Overview:** Scholarly spellcasters who master arcane magic through study and practice. Wizards have the largest and most versatile spell list in the game, focusing on offensive, utility, and control spells.
+
+* **General Benefits:** Largest spell list in the game, can learn almost any spell (copying into spellbook), Arcane Recovery (regain spell slots on short rest), powerful ritual casting, can adapt to many situations due to spell versatility.
+* **General Drawbacks:** Very low HP (d6), very few proficiencies (no armor/shields), reliant on Intelligence, often fragile, can be slow to get going at low levels without specific spell choices.
+
+**Subclasses (Arcane Tradition):**
+
+* **School of Abjuration (PHB):** Masters defensive magic and dispelling.
+    * **Specific Benefits:**
+        * **Abjuration Savant (2nd level):** Halves the gold and time needed to copy Abjuration spells.
+        * **Arcane Ward (2nd level):** Create a magical shield that absorbs damage. Recharges when you cast abjuration spells. Excellent durability.
+        * **Projected Ward (6th level):** Use your reaction to interpose your Arcane Ward to protect an ally.
+        * **Improved Abjuration (10th level):** Add your proficiency bonus to ability checks you make to cast counterspell or dispel magic.
+        * **Spell Resistance (14th level):** Advantage on saving throws against spells, and resistance to damage from spells.
+    * **Specific Drawbacks:**
+        * Less direct offensive power compared to Evocation.
+        * Focused on protection, which might not be every player's style.
+
+* **School of Conjuration (PHB):** Masters summoning creatures and objects, and teleportation.
+    * **Specific Benefits:**
+        * **Conjuration Savant (2nd level):** Halves the gold and time needed to copy Conjuration spells.
+        * **Minor Conjuration (2nd level):** Conjure a small, nonmagical object. Useful for utility and clever solutions.
+        * **Benign Transposition (6th level):** Teleport yourself or swap places with an ally. Excellent for positioning.
+        * **Focused Conjuration (10th level):** Concentration on conjuration spells can't be broken by taking damage. Powerful for maintaining summoned creatures.
+        * **Durable Summons (14th level):** Summoned creatures gain temporary hit points.
+    * **Specific Drawbacks:**
+        * Summoning can be complex to manage in combat (tracking stats, actions).
+        * Some features are situational.
+
+* **School of Divination (PHB):** Specializes in scrying, foresight, and uncovering secrets.
+    * **Specific Benefits:**
+        * **Divination Savant (2nd level):** Halves the gold and time needed to copy Divination spells.
+        * **Portent (2nd level):** Roll two d20s at the end of each long rest and record the numbers. You can replace any attack roll, saving throw, or ability check made by you or a creature you can see with one of these rolls. Extremely powerful for manipulating outcomes.
+        * **Expert Divination (6th level):** When you cast a divination spell of 2nd level or higher, you regain one expended spell slot.
+        * **The Third Eye (10th level):** Gain various senses (darkvision, ethereal sight, greater comprehension) for 10 minutes.
+        * **Greater Portent (14th level):** Roll three d20s for Portent.
+    * **Specific Drawbacks:**
+        * Less direct combat power, more focused on information and control.
+        * Portent's effectiveness depends on the rolls you get.
+
+* **School of Enchantment (PHB):** Masters charming and controlling minds.
+    * **Specific Benefits:**
+        * **Enchantment Savant (2nd level):** Halves the gold and time needed to copy Enchantment spells.
+        * **Hypnotic Gaze (2nd level):** As an action, incapacitate a creature (Wis save to break) as long as you maintain concentration.
+        * **Instinctive Charm (6th level):** Use your reaction to redirect an attack targeting you to another creature.
+        * **Split Enchantment (10th level):** Target two creatures with a single-target enchantment spell.
+        * **Alter Memories (14th level):** After charming a creature, you can erase or implant memories.
+    * **Specific Drawbacks:**
+        * Many creatures are immune to charm, limiting the effectiveness of some features.
+        * Less direct damage, relies on Charisma saves for spells.
+
+* **School of Evocation (PHB):** Focuses on destructive elemental magic.
+    * **Specific Benefits:**
+        * **Evocation Savant (2nd level):** Halves the gold and time needed to copy Evocation spells.
+        * **Sculpt Spells (2nd level):** Create safe pockets within your area-of-effect spells, protecting allies from damage. Excellent for careful spellcasting.
+        * **Potent Cantrip (6th level):** Your damage cantrips deal half damage on a successful save. Ensures consistent damage.
+        * **Empowered Evocation (10th level):** Add your Intelligence modifier to one damage roll of any Evocation spell you cast. Significant damage boost.
+        * **Overchannel (14th level):** Maximize the damage of a spell once per long rest (with a risk of exhaustion).
+    * **Specific Drawbacks:**
+        * Less utility or control; focuses solely on damage.
+        * Overchannel has a drawback that limits its frequent use.
+
+* **School of Illusion (PHB):** Creates realistic illusions to deceive and misdirect.
+    * **Specific Benefits:**
+        * **Illusion Savant (2nd level):** Halves the gold and time needed to copy Illusion spells.
+        * **Improved Minor Illusion (2nd level):** Can create both a sound and an image with *minor illusion*.
+        * **Malleable Illusions (6th level):** Use a bonus action to change the nature of an illusion.
+        * **Illusory Self (10th level):** Use your reaction to create an illusory duplicate when targeted by an attack, causing it to miss. Powerful defense.
+        * **Illusory Reality (14th level):** Make a portion of an illusion spell real for 1 minute. Highly versatile and creative.
+    * **Specific Drawbacks:**
+        * Relies heavily on player creativity and DM interpretation of illusions.
+        * Less effective against intelligent enemies who can discern illusions.
+
+* **School of Necromancy (PHB):** Commands the forces of death and undeath.
+    * **Specific Benefits:**
+        * **Necromancy Savant (2nd level):** Halves the gold and time needed to copy Necromancy spells.
+        * **Grim Harvest (2nd level):** When you kill a creature with a spell, you regain hit points.
+        * **Undead Thralls (6th level):** When you cast *animate dead*, you create an additional zombie or skeleton, and they gain bonus HP and damage.
+        * **Inured to Undeath (10th level):** Resistance to necrotic damage, and your HP maximum can't be reduced.
+        * **Command Undead (14th level):** Charm an undead creature.
+    * **Specific Drawbacks:**
+        * Often associated with evil alignment, which might be socially problematic in most settings.
+        * Relies on specific spell choices (primarily *animate dead*) for its core benefits.
+
+* **School of Transmutation (PHB):** Alters the physical world, transforming objects and creatures.
+    * **Specific Benefits:**
+        * **Transmutation Savant (2nd level):** Halves the gold and time needed to copy Transmutation spells.
+        * **Minor Alchemy (2nd level):** Change the material properties of nonmagical objects.
+        * **Transmuter's Stone (6th level):** Create a magical stone that grants various passive benefits (darkvision, enhanced speed, resistance, proficiencies) to a holder.
+        * **Shapechanger (10th level):** Cast *polymorph* on yourself, or *alter self*, without expending a spell slot.
+        * **Master Transmuter (14th level):** Use your Transmuter's Stone to restore health, remove curses, or resurrect.
+    * **Specific Drawbacks:**
+        * Less direct combat application compared to offensive schools.
+        * Features are mostly utility and support.
+
+* **War Magic (XGtE):** Blends arcane and martial tactics for enhanced combat presence.
+    * **Specific Benefits:**
+        * **Tactical Wit (2nd level):** Add your Intelligence modifier to your initiative rolls.
+        * **Arcane Deflection (2nd level):** When hit by an attack or failing a save, use your reaction to gain +2 AC against the attack or +4 to the save. You can only cast cantrips on your next turn. Excellent reactive defense.
+        * **Power Surge (6th level):** Store energy after dispelling/countering spells, which can be unleashed for bonus damage on a spell.
+        * **Durable Magic (10th level):** Gain a +2 bonus to AC and all saving throws while you are concentrating on a spell.
+        * **Deflecting Shroud (14th level):** When you use Arcane Deflection, necrotic damage radiates from you.
+    * **Specific Drawbacks:**
+        * "Arcane Deflection" limits your spellcasting on the next turn, forcing a strategic choice.
+        * Less utility than other schools, focus is primarily on personal combat effectiveness.
+
+---

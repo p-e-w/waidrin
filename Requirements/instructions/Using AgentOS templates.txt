@@ -1,0 +1,17 @@
+Init:
+read all files in @lib
+read all files in @Requirements/standards/ 
+read all files in @.agent-os/product/ 
+
+
+Step 1: 
+###For new project
+@Requirements\instructions\plan-product.md  [My project idea]
+###For existing project
+@Requirements\instructions\analyze-product.md  Review the project and execute the tasks
+
+Step 2: Repeat until all features have been defined
+@Requirements/instructions/create-spec.md I want to add Add Game time tracking mechanics, see @Requirements\User\ story\R002.txt for requirements 
+
+Step 3: Build and test
+@Requirements/instructions/execute-tasks.md Work on the next task in add-game-time-tracking-mechanics (all tests will be manually done by human)

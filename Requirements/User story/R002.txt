@@ -1,0 +1,26 @@
+###Story No###
+R002
+
+##Business requirements##
+###1-line summary###
+Add Game time tracking mechanics
+###Description###
+Currently the application does not have Game Time tracking, so the narration feels seems to go on for too long when it is trying to create a sense of urgency.
+###Business Value###
+having this allows the players to use the Rest mechanics. 
+also allows further immerse in the game environment
+and allow for delay consequence of choices during text generation for the story as a whole.
+
+###User story###
+As a player
+when I pick or enter an action
+I want the system to advance game time based on the action and game situation
+so that the system can include game time impact in the prompting and text generation
+And the player can use long / short rest game mechanics
+
+###Acceptance criteria###
+Given a player is at chat view
+When an action is selected or entered
+Then the system will prompt LLM to determine how much game time has passed
+And update the game time attribute
+And the narration will take the new time as input during text generation 

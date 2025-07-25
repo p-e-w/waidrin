@@ -1,0 +1,25 @@
+###Story No###
+R003
+
+##Business requirements##
+###1-line summary###
+Add Timer event for system to tell when it needs to wrap up a Scenario/challenge/plot
+###Description###
+Currently the application does not have Timer event, and the system does not know when a time limit has been reached.
+###Business Value###
+having this allows the system to create a challenge that forces the players to complete a game task within that time or face the consequence. 
+This will allow the players to further immerse in the game environment 
+and add sense of urgency during text generation for the story as a whole.
+
+###User story###
+As a system
+when I create a time limited challenge
+I want the system to create a timer event for the challenge
+so that the system can pass or fail the challenge depending on the player's action game time total
+
+###Acceptance criteria###
+Given a player is at chat view
+When the game time attribute has been updated
+And the challenge has not been completed
+Then the system will check if the game time attribute exceeded the timer event time limit
+And the narration will take the result as input during text generation 
