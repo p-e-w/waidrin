@@ -1,46 +1,9 @@
-import type { LocationChangeEvent, NarrationEvent, State, Event } from "./state";
-
-/**
- * Represents the level of summarization applied to an event.
- * One means it's an event level summary.
- * Two means it's a scene level summary.
- */
-enum SummaryLevel {
-  None = 0,
-  One = 1,
-  Two = 2
-}
-
-/**
- * In order to make context fit within our budget, we go through a series of compression strategies.
- * 
- * We start by replacing the oldest events one by one and checking along the way if the context fits.
- * We replace the oldest events with the summary level specified in the strategy until we reach the max percent of
- * events we can compress with the current strategy. At the point we move on the to the next strategy.
- * 
- * Each subsequent strategy keeps the compression of previous strategies and
- * either increases summary level of older events or applies the summary level to newer events.
- */
-
-interface CompressionStrategy {
-  summaryLevel: SummaryLevel;
-  percent: number;
-}
-
-const COMPRESSION_STRATEGIES: CompressionStrategy[] = [
-  { summaryLevel: SummaryLevel.One, percent: .5 }, // up to 50% of the oldest events are at least SummaryLevel.One
-  { summaryLevel: SummaryLevel.Two, percent: .25 }, // up to 25% of the oldest events are at least SummaryLevel.Two
-  { summaryLevel: SummaryLevel.One, percent: .8 }, // up to 80% of the oldest events are at least SummaryLevel.One
-  { summaryLevel: SummaryLevel.Two, percent: .5 }, // up to 50% of the oldest events are at least SummaryLevel.Two
-  { summaryLevel: SummaryLevel.One, percent: 1 } // all events are least SummaryLevel.One
-];
-
+import type { LocationChangeEvent, NarrationEvent, State } from "./state";
 
 interface ContextUnit {
   type : "location_change" | "narration";
-  summaryLevel: SummaryLevel;
   text: string;
-  /** The number of tokens in this context unit at the current summary level */
+  /** The number of tokens in this context unit */
   tokenCount: number;
   /** original event index (0 = oldest) covered by this unit, inclusive */
   startEventIndex: number;
@@ -48,6 +11,12 @@ interface ContextUnit {
   endEventIndex: number;
 }
 
+/**
+ * Get the context of events given the current state and token budget that we need to fit within.
+ * @param state The current state.
+ * @param tokenBudget The token budget.
+ * @returns The context as a string.
+ */
 export function getContext(state: State, tokenBudget: number): string {
   // we filter down to only narration and location change events,
   // because the other event types like character_introduction are implied in the narration
@@ -59,24 +28,27 @@ export function getContext(state: State, tokenBudget: number): string {
 
   // Create initial context units
   let contextUnits = createInitialContextUnits(events, state);
-  // if no compression is needed just return the context
-  if (isContextWithinBudget(contextUnits, tokenBudget)) return convertContextUnitsToText(contextUnits);
-
-  // Reverse to get oldest last prior to compression
-  // (since we'll be removing oldest events first and removing from the end is more efficient)
-  contextUnits.reverse();
   
-  // Apply compression strategies until we fit within budget
-  for (const strategy of COMPRESSION_STRATEGIES) {
-    contextUnits = applyCompressionStrategy(contextUnits, strategy, events, tokenBudget);
-
-    if (isContextWithinBudget(contextUnits, tokenBudget)) {
-      break;
-    }
+  // Step 1: Try full text without summaries
+  if (isContextWithinBudget(contextUnits, tokenBudget)) {
+    return convertContextUnitsToText(contextUnits);
   }
-  
-  // Reverse to get chronological order for output
-  contextUnits.reverse();
+
+  // Step 2: Replace oldest narration events with their summaries one by one
+  contextUnits = replaceNarrationEventsWithSummaries(contextUnits, events, tokenBudget);
+  if (isContextWithinBudget(contextUnits, tokenBudget)) {
+    return convertContextUnitsToText(contextUnits);
+  }
+
+  // Step 3: Replace oldest scenes with their scene summaries (except latest scene)
+  contextUnits = replaceScenesWithSummaries(contextUnits, events, tokenBudget);
+  if (isContextWithinBudget(contextUnits, tokenBudget)) {
+    return convertContextUnitsToText(contextUnits);
+  }
+
+  // Step 4: Remove oldest scenes until we're under budget
+  contextUnits = removeOldestScenes(contextUnits, tokenBudget);
+
   return convertContextUnitsToText(contextUnits);
 }
 
@@ -94,7 +66,6 @@ function createInitialContextUnits(events: (NarrationEvent | LocationChangeEvent
       const text = event.text;
       units.push({
         type: "narration",
-        summaryLevel: SummaryLevel.None,
         text,
         tokenCount: getApproximateTokenCount(text),
         startEventIndex: i,
@@ -104,7 +75,6 @@ function createInitialContextUnits(events: (NarrationEvent | LocationChangeEvent
       const text = convertLocationChangeEventToText(event, state);
       units.push({
         type: "location_change",
-        summaryLevel: SummaryLevel.None,
         text,
         tokenCount: getApproximateTokenCount(text),
         startEventIndex: i,
@@ -117,163 +87,128 @@ function createInitialContextUnits(events: (NarrationEvent | LocationChangeEvent
 }
 
 /**
- * Apply a compression strategy to events in the context until the token budget is met or we've reached the maximum number of
- * events to compress with the strategy.
- * @param contextUnits The context units to compress.
- * @param strategy The compression strategy to apply.
- * @param events The original events.
+ * Replace oldest narration events with their summaries one by one until under budget.
+ * @param contextUnits The current context units.
+ * @param events The original events array.
  * @param tokenBudget The token budget.
- * @returns The compressed context units.
+ * @returns Updated context units.
  */
-function applyCompressionStrategy(
+function replaceNarrationEventsWithSummaries(
   contextUnits: ContextUnit[], 
-  strategy: CompressionStrategy, 
   events: (NarrationEvent | LocationChangeEvent)[], 
   tokenBudget: number
 ): ContextUnit[] {
-  const numTotalEvents = events.length;
-  const maxEventsToCompress = Math.floor(numTotalEvents * strategy.percent);
+  const units = [...contextUnits];
   
-  // to calculate the percentage of events compressed, we'll store the index of the latest event compressed at
-  // the level required by the strategy.
-  // ex: if we have 100 events and latestEventCompressedIndex is 30, we've compressed 30% of the events
-  let latestEventCompressedIndex = 0;
-  
-  // Work from oldest to newest, applying the summary level that's needed
-  // until we reach the max percent of events we can compress with this strategy.
-  for (let i = contextUnits.length - 1; i >= 0 && latestEventCompressedIndex < maxEventsToCompress - 1; i--) {
-    if (contextUnits[i].summaryLevel < strategy.summaryLevel) {
-      if (strategy.summaryLevel === SummaryLevel.One) {
-        contextUnits[i] = compressToEventSummary(contextUnits[i], events);
-      } else if (strategy.summaryLevel === SummaryLevel.Two) {
-        const compressed = compressToSceneSummary(contextUnits, i, events);
-        if (compressed) {
-          // Replace the units that were compressed into a scene summary
-          contextUnits.splice(compressed.removeStart, compressed.removeCount, compressed.unit);
-          // Adjust index since we modified the array
-          i = compressed.removeStart;
-        }
-      }
-      // after applying a compression to an event, check if we're under budget
-      if (isContextWithinBudget(contextUnits, tokenBudget)) {
-        return contextUnits;
+  for (let i = 0; i < units.length; i++) {
+    if (isContextWithinBudget(units, tokenBudget)) {
+      break;
+    }
+    
+    if (units[i].type === "narration") {
+      // replace the narration text with its summary
+      const originalEvent = events[units[i].startEventIndex] as NarrationEvent;
+      if (originalEvent.summary) {
+        units[i] = {
+          ...units[i],
+          text: originalEvent.summary,
+          tokenCount: getApproximateTokenCount(originalEvent.summary)
+        };
       }
     }
-    latestEventCompressedIndex = contextUnits[i].endEventIndex;
   }
   
-  return contextUnits;
+  return units;
 }
 
 /**
- * Replace an event with its summary
+ * Replace oldest scenes with their scene summaries (except the latest scene).
+ * We consider a location_change to mark the start of a scene.
+ * Then the next location_change marks the end of that scene and the start of the next scene.
+ * So when we summarize, we replace all events including the starting location_change up to right before the ending location_change
+ * with the scene summary.
+ * @param contextUnits The current context units.
+ * @param events The original events array.
+ * @param tokenBudget The token budget.
+ * @returns Updated context units.
  */
-function compressToEventSummary(
-  unit: ContextUnit, 
-  events: (NarrationEvent | LocationChangeEvent)[], 
-): ContextUnit {
-  if (unit.type === "location_change") {
-    // Skip location change events for event-level summaries
-    return unit;
-  }
-  
-  const event = events[unit.startEventIndex] as NarrationEvent;
-  if (event.summary) {
-    return {
-      ...unit,
-      summaryLevel: SummaryLevel.One,
-      text: event.summary,
-      tokenCount: getApproximateTokenCount(event.summary)
-    };
-  }
-  
-  // No summary available, return original
-  return unit;
-}
-
-/**
- * Replace a series of events in a scene with the scene summary from the location change event that ends the scene.
- * @param contextUnits All current context units.
- * @param unitIndex The index of the unit to start compressing from (should be within the scene to compress).
- * @param events The original events.
- * @returns The compressed context unit, which index to remove from, and how many to remove.
- */
-function compressToSceneSummary(
+function replaceScenesWithSummaries(
   contextUnits: ContextUnit[], 
-  unitIndex: number, 
   events: (NarrationEvent | LocationChangeEvent)[], 
-): { unit: ContextUnit; removeStart: number; removeCount: number } | null {
-  // Remember: contextUnits are in reverse chronological order (oldest at end)
-  // Find the location change that starts the scene containing this unit
-  let sceneStartIndex = -1;
+  tokenBudget: number
+): ContextUnit[] {
+  let units = [...contextUnits];
+  let sceneIndex = 0;
   
-  // Look backwards (towards older events) to find the scene start
-  for (let i = unitIndex; i < contextUnits.length; i++) {
-    if (contextUnits[i].type === "location_change") {
-      sceneStartIndex = i;
+  while (sceneIndex < units.length && !isContextWithinBudget(units, tokenBudget)) {
+    // Find the earliest unsummarized location change
+    // This marks that start of the scene we're summarizing
+    if (units[sceneIndex].type !== "location_change") {
+      sceneIndex++;
+      continue;
+    }
+    
+    // Find the next location change after sceneIndex
+    // that next location change marks the end of this scene we're summarizing
+    let endSceneLocationChangeIndex = -1;
+    for (let i = sceneIndex + 1; i < units.length; i++) {
+      if (units[i].type === "location_change") {
+        endSceneLocationChangeIndex = i;
+        break;
+      }
+    }
+    
+    // If no next location change found,
+    // means the scene never ended and we're at the latest scene - stop here
+    if (endSceneLocationChangeIndex === -1) {
       break;
     }
-  }
-  
-  if (sceneStartIndex === -1) {
-    return null; // No scene start found
-  }
-  
-  // Find where this scene ends by looking forward (towards newer events)
-  let sceneEndIndex = unitIndex;
-  for (let i = unitIndex - 1; i >= 0; i--) {
-    if (contextUnits[i].type === "location_change") {
-      sceneEndIndex = i + 1; // Scene ends just before this location change
-      break;
+
+    // Get the scene summary (always stored on the location change event marking the end of the scene)
+    const endSceneLocationChangeEventIndex = units[endSceneLocationChangeIndex].startEventIndex;
+    const endSceneLocationChangeEvent = events[endSceneLocationChangeEventIndex] as LocationChangeEvent;
+    
+    if (endSceneLocationChangeEvent.summary) {
+      // Replace everything from sceneIndex to right before endSceneLocationChangeIndex with the summary
+      const summaryUnit: ContextUnit = {
+        type: "location_change",
+        text: endSceneLocationChangeEvent.summary,
+        tokenCount: getApproximateTokenCount(endSceneLocationChangeEvent.summary),
+        startEventIndex: units[sceneIndex].startEventIndex,
+        endEventIndex: units[endSceneLocationChangeIndex - 1].endEventIndex
+      };
+      
+      // Replace the scene units with the summary unit
+      units = [
+        ...units.slice(0, sceneIndex),
+        summaryUnit,
+        ...units.slice(endSceneLocationChangeIndex)
+      ];
     }
+    
+    // Move to the next scene (which is now at sceneIndex + 1)
+    sceneIndex++;
   }
   
-  if (sceneEndIndex <= 0) {
-    sceneEndIndex = 0; // Scene goes to the newest events
-  }
-  
-  // Get the location change event that ends this scene (contains the scene summary)
-  // This is the location change AFTER the scene start in the original chronological order
-  const sceneStartEventIndex = contextUnits[sceneStartIndex].startEventIndex;
-  const nextLocationChangeEvent = findNextLocationChangeEvent(events, sceneStartEventIndex);
-  
-  if (!nextLocationChangeEvent || !nextLocationChangeEvent.summary) {
-    return null; // No scene summary available
-  }
-  
-  // Create the scene summary unit
-  const sceneSummaryUnit: ContextUnit = {
-    type: "location_change", 
-    summaryLevel: SummaryLevel.Two,
-    text: nextLocationChangeEvent.summary,
-    tokenCount: getApproximateTokenCount(nextLocationChangeEvent.summary),
-    startEventIndex: contextUnits[sceneStartIndex].startEventIndex,
-    endEventIndex: contextUnits[sceneEndIndex].endEventIndex
-  };
-  
-  return {
-    unit: sceneSummaryUnit,
-    removeStart: sceneEndIndex,
-    removeCount: sceneStartIndex - sceneEndIndex + 1
-  };
+  return units;
 }
 
 /**
- * Find the next location change event after a given index to start looking from.
- * @param events The list of events to search.
- * @param afterIndex The index to start searching from (exclusive).
- * @returns The next location change event, or null if not found.
+ * Remove oldest scenes until we're under the token budget.
+ * At this point, all scenes have been replaced with their summaries,
+ * so we just remove context units from the beginning until we fit the budget.
+ * @param contextUnits The current context units.
+ * @param tokenBudget The token budget.
+ * @returns Updated context units.
  */
-function findNextLocationChangeEvent(
-  events: (NarrationEvent | LocationChangeEvent)[], 
-  afterIndex: number
-): LocationChangeEvent | null {
-  for (let i = afterIndex + 1; i < events.length; i++) {
-    if (events[i].type === "location_change") {
-      return events[i] as LocationChangeEvent;
-    }
+function removeOldestScenes(contextUnits: ContextUnit[], tokenBudget: number): ContextUnit[] {
+  let units = [...contextUnits];
+  
+  while (units.length > 0 && !isContextWithinBudget(units, tokenBudget)) {
+    units = units.slice(1); // Remove the first (oldest) context unit
   }
-  return null;
+  
+  return units;
 }
 
 /**
@@ -331,4 +266,4 @@ function convertContextUnitsToText(units: ContextUnit[]): string {
 export function getApproximateTokenCount(text: string): number {
   const numCharacters = text.length;
   return Math.ceil(numCharacters / 3);
-};
+}
