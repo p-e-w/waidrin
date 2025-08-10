@@ -1,4 +1,4 @@
-import { LocationChangeEvent, NarrationEvent, State, Event } from "./state";
+import type { LocationChangeEvent, NarrationEvent, State, Event } from "./state";
 
 /**
  * Represents the level of summarization applied to an event.
@@ -96,7 +96,7 @@ function createInitialContextUnits(events: (NarrationEvent | LocationChangeEvent
         type: "narration",
         summaryLevel: SummaryLevel.None,
         text,
-        tokenCount: event.tokens ?? getApproximateTokenCount(text),
+        tokenCount: getApproximateTokenCount(text),
         startEventIndex: i,
         endEventIndex: i
       });
@@ -183,7 +183,7 @@ function compressToEventSummary(
       ...unit,
       summaryLevel: SummaryLevel.One,
       text: event.summary,
-      tokenCount: event.summaryTokens || getApproximateTokenCount(event.summary)
+      tokenCount: getApproximateTokenCount(event.summary)
     };
   }
   
@@ -246,7 +246,7 @@ function compressToSceneSummary(
     type: "location_change", 
     summaryLevel: SummaryLevel.Two,
     text: nextLocationChangeEvent.summary,
-    tokenCount: nextLocationChangeEvent.summaryTokens || getApproximateTokenCount(nextLocationChangeEvent.summary),
+    tokenCount: getApproximateTokenCount(nextLocationChangeEvent.summary),
     startEventIndex: contextUnits[sceneStartIndex].startEventIndex,
     endEventIndex: contextUnits[sceneEndIndex].endEventIndex
   };
@@ -324,11 +324,11 @@ function convertContextUnitsToText(units: ContextUnit[]): string {
 }
 
 /**
- * Estimates the number of tokens in a text string assuming 3.3 characters per token and rounding up.
+ * Estimates the number of tokens in a text string assuming 3 characters per token and rounding up.
  * @param text The text to analyze.
  * @returns The estimated token count.
  */
 export function getApproximateTokenCount(text: string): number {
   const numCharacters = text.length;
-  return Math.ceil(numCharacters / 3.3);
+  return Math.ceil(numCharacters / 3);
 };
