@@ -176,22 +176,18 @@ export class DefaultBackend implements Backend {
   async getContextLength(): Promise<number> {
     const client = this.getClient();
     const modelName = this.getSettings().model;
-    const MAX_PAGES_TO_SEARCH = 3;
     const FALLBACK_CONTEXT_LENGTH = 64000;
     
     let models = await client.models.list();
-    let pagesSearched = 0;
     
-    while (pagesSearched < MAX_PAGES_TO_SEARCH) {
+    while (true) {
       const found = models.data.find((m) => m.id === modelName) as { context_length?: number; } | undefined;
       if (found && typeof found.context_length === "number") {
         return found.context_length;
       }
       
-      pagesSearched++;
-      
-      // Try to get the next page if we haven't reached the limit
-      if (pagesSearched < MAX_PAGES_TO_SEARCH && models.hasNextPage()) {
+      // Try to get the next page
+      if (models.hasNextPage()) {
         models = await models.getNextPage();
       } else {
         break;
