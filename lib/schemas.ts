@@ -56,6 +56,9 @@ export const NarrationEvent = z.object({
   text: Text.max(5000),
   locationIndex: Index,
   referencedCharacterIndices: Index.array(),
+  tokens: z.int().optional(),
+  summary: Text.max(2500).optional(),
+  summaryTokens: z.int().optional(),
 });
 
 export const CharacterIntroductionEvent = z.object({
@@ -67,6 +70,8 @@ export const LocationChangeEvent = z.object({
   type: z.literal("location_change"),
   locationIndex: Index,
   presentCharacterIndices: Index.array(),
+  summary: Text.max(5000).optional(),
+  summaryTokens: z.int().optional(),
 });
 
 export const Event = z.discriminatedUnion("type", [
