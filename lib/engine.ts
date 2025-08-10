@@ -78,7 +78,6 @@ export async function next(
       step = ["Narrating", ""];
       event.text = await backend.getNarration(narratePrompt(state, tokenBudget, action), (token: string, count: number) => {
         event.text += token;
-        event.tokens = count;
         onToken(token, count);
         updateState();
       });
@@ -87,7 +86,6 @@ export async function next(
       step = ["Summarizing", "This typically takes between 10 and 30 seconds"];
       event.summary = await backend.getNarration(summarizeNarrationEventPrompt(state, event), (token: string, count: number) => {
         event.summary += token;
-        event.summaryTokens = count;
         onToken(token, count);
         updateState();
       });
@@ -231,7 +229,6 @@ export async function next(
           step = ["Summarizing scene", "This typically takes between 10 and 30 seconds"];
           event.summary = await backend.getNarration(summarizeScenePrompt(state), (token: string, count: number) => {
             event.summary += token;
-            event.summaryTokens = count;
             onToken(token, count);
             updateState();
           });
