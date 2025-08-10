@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
 
+import { getApproximateTokenCount, getContext } from "./context";
 import * as schemas from "./schemas";
-import type { State } from "./state";
+import type { LocationChangeEvent, NarrationEvent, State } from "./state";
 
 export interface Prompt {
   system: string;
@@ -69,57 +70,35 @@ Include a short biography (100 words maximum) for each character.
 `);
 }
 
-function makeMainPrompt(prompt: string, state: State): Prompt {
-  const context = state.events
-    .map((event) => {
-      if (event.type === "narration") {
-        return event.text;
-      } else if (event.type === "character_introduction") {
-        // Implied in the narration.
-        return null;
-      } else if (event.type === "location_change") {
-        // Also implied in the narration, but used to structure the story and describe available characters.
-        const location = state.locations[event.locationIndex];
-        return normalize(`
------
-
-LOCATION CHANGE
-
-${state.protagonist.name} is entering ${location.name}. ${location.description}
-
-The following characters are present at ${location.name}:
-
-${event.presentCharacterIndices
-  .map((index) => {
-    const character = state.characters[index];
-    return `${character.name}: ${character.biography}`;
-  })
-  .join("\n\n")}
-
------
-`);
-      }
-    })
-    .filter((text) => !!text)
-    .join("\n\n");
-
-  return makePrompt(`
-This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
+function makeMainPrompt(prompt: string, state: State, tokenBudget: number): Prompt {
+  const promptPreamble = 
+`This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
 
 The protagonist (who you should refer to as "you" in your narration, as the adventure happens from their perspective)
 is ${state.protagonist.name}. ${state.protagonist.biography}
 
-Here is what has happened so far:
+Here is what has happened so far:`;
 
+  // get the tokens used by the prompt and the preamble
+  const normalizedPrompt = normalize(prompt);
+  const promptTokens = getApproximateTokenCount(normalizedPrompt);
+  const preambleTokens = getApproximateTokenCount(promptPreamble);
+
+  // get the context based on the token budget minus the prompt and preamble tokens
+  const contextTokenBudget = tokenBudget - promptTokens - preambleTokens;
+  const context = getContext(state, contextTokenBudget);
+
+  return makePrompt(`
+${promptPreamble}
 ${context}
 
 
 
-${normalize(prompt)}
+${normalizedPrompt}
 `);
 }
 
-export function narratePrompt(state: State, action?: string): Prompt {
+export function narratePrompt(state: State, tokenBudget: number, action?: string): Prompt {
   return makeMainPrompt(
     `
 ${action ? `The protagonist (${state.protagonist.name}) has chosen to do the following: ${action}.` : ""}
@@ -134,10 +113,11 @@ Remember to refer to the protagonist (${state.protagonist.name}) as "you" in you
 Do not explicitly ask the protagonist for a response at the end; they already know what is expected of them.
 `,
     state,
+    tokenBudget,
   );
 }
 
-export function generateActionsPrompt(state: State): Prompt {
+export function generateActionsPrompt(state: State, tokenBudget: number): Prompt {
   return makeMainPrompt(
     `
 Suggest 3 options for what the protagonist (${state.protagonist.name}) could do or say next.
@@ -145,20 +125,22 @@ Each option should be a single, short sentence that starts with a verb.
 Return the options as a JSON array of strings.
 `,
     state,
+    tokenBudget,
   );
 }
 
-export function checkIfSameLocationPrompt(state: State): Prompt {
+export function checkIfSameLocationPrompt(state: State, tokenBudget: number): Prompt {
   return makeMainPrompt(
     `
 Is the protagonist (${state.protagonist.name}) still at ${state.locations[state.protagonist.locationIndex].name}?
 Answer with "yes" or "no".
 `,
     state,
+    tokenBudget,
   );
 }
 
-export function generateNewLocationPrompt(state: State): Prompt {
+export function generateNewLocationPrompt(state: State, tokenBudget: number): Prompt {
   return makeMainPrompt(
     `
 The protagonist (${state.protagonist.name}) has left ${state.locations[state.protagonist.locationIndex].name}.
@@ -166,11 +148,12 @@ Return the name and type of their new location, and a short description (100 wor
 Also include the names of the characters that are going to accompany ${state.protagonist.name} there, if any.
 `,
     state,
+    tokenBudget,
   );
 }
 
 // Must be called *before* adding the location change event to the state!
-export function generateNewCharactersPrompt(state: State, accompanyingCharacters: string[]): Prompt {
+export function generateNewCharactersPrompt(state: State, accompanyingCharacters: string[], tokenBudget: number): Prompt {
   const location = state.locations[state.protagonist.locationIndex];
 
   return makeMainPrompt(
@@ -185,5 +168,140 @@ Return the character descriptions as an array of JSON objects.
 Include a short biography (100 words maximum) for each character.
 `,
     state,
+    tokenBudget,
   );
+}
+
+export function summarizeNarrationEventPrompt(state: State, narrationEvent: NarrationEvent): Prompt {
+  const current = narrationEvent;
+  const protagonistName = state.protagonist.name;
+
+  // Find most recent previous narration or location_change
+  let prevContext = "";
+  for (let i = state.events.length - 2; i >= 0; i--) {
+    const ev = state.events[i];
+    if (ev.type === "narration") {
+      prevContext = ev.text;
+      break;
+    } else if (ev.type === "location_change") {
+      const location = state.locations[ev.locationIndex];
+      prevContext = normalize(`
+${protagonistName} entered ${location.name}. ${location.description}
+
+The following characters are present at ${location.name}:
+${ev.presentCharacterIndices
+  .map((index) => {
+    const character = state.characters[index];
+    return `${character.name}: ${character.biography}`;
+  })
+  .join("\n\n")}
+`);
+      break;
+    }
+  }
+
+  // Build the prompt
+  const userPrompt = `
+This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
+
+The protagonist (who you should refer to as "you", as the adventure happens from their perspective)
+is ${state.protagonist.name}. ${state.protagonist.biography}
+
+You will create a compact memory note of the latest event in this adventure. 
+This memory is used as long-term context for future generations.
+
+${prevContext ? `PREVIOUS CONTEXT (most recent prior event or location change)\n\n${prevContext}\n\n` : ""}
+
+CURRENT EVENT
+
+${current.text}
+
+TASK
+
+Write a single-paragraph short summary (no more than 100 words in total). Use proper names and refer to the protagonist as "you". 
+Capture only plot-relevant facts that will matter later:
+- what ${protagonistName} does/learns/decides,
+- other characters' impactful actions/agreements,
+- changes to location, inventory, injuries, or relationships,
+- discoveries/clues,
+- unresolved goals, promises, threats, or timers.
+Do not quote dialogue, add new facts, or include stylistic prose.
+
+OUTPUT
+
+Return only the summary paragraph with no preamble, labels, markdown or quotes.
+`;
+
+  return makePrompt(userPrompt);
+}
+
+export function summarizeScenePrompt(state: State): Prompt {
+  const protagonistName = state.protagonist.name;
+
+  // Find the start of the current scene (most recent location change in state).
+  let sceneStartIndex = -1;
+  for (let i = state.events.length - 1; i >= 0; i--) {
+    if (state.events[i].type === "location_change") {
+      sceneStartIndex = i;
+      break;
+    }
+  }
+
+  // Build location + cast context from that location change
+  let sceneContext = "";
+  const ev = state.events[sceneStartIndex];
+  // ev is a LocationChangeEvent here
+  const location = state.locations[(ev as LocationChangeEvent).locationIndex];
+  const cast = (ev as any).presentCharacterIndices
+    .map((idx: number) => {
+      const c = state.characters[idx];
+      return `${c.name}: ${c.biography}`;
+    })
+    .join("\n\n");
+
+  sceneContext = normalize(`
+${protagonistName} is at ${location.name}. ${location.description}
+
+The following characters are present at ${location.name}:
+
+${cast}
+`);
+
+  // Gather all narration texts from this scene (after the last location change).
+  const narrationTexts = state.events
+    .slice(sceneStartIndex + 1)
+    .map((ev) => (ev.type === "narration" ? ev.text : null))
+    .filter((t): t is string => !!t)
+    .join("\n\n");
+
+  const userPrompt = `
+This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
+
+The protagonist (refer to them as "you") is ${protagonistName}. ${state.protagonist.biography}
+
+You will create a compact memory of the just-completed scene. This memory is used as long-term context for future generations.
+
+SCENE
+
+${sceneContext}
+
+${narrationTexts}
+
+TASK
+
+Write a 1-2 paragraph scene summary (no more than 300 words in total). Use proper names and refer to the protagonist as "you".
+Capture only plot-relevant facts that will matter later:
+- what ${protagonistName} does/learns/decides,
+- other characters' impactful actions/agreements,
+- changes to location, inventory, injuries, or relationships,
+- discoveries/clues,
+- unresolved goals, promises, threats, or timers.
+Do not quote dialogue, add new facts, or include stylistic prose.
+
+OUTPUT
+
+Return only the summary with no preamble, labels, markdown or quotes.
+`;
+
+  return makePrompt(userPrompt);
 }

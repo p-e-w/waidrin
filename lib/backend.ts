@@ -18,6 +18,8 @@ export interface Backend {
     onToken?: TokenCallback,
   ): Promise<Type>;
 
+  getContextLength(): Promise<number>;
+
   abort(): void;
 
   isAbortError(error: unknown): boolean;
@@ -33,6 +35,7 @@ export interface DefaultBackendSettings {
 
 export class DefaultBackend implements Backend {
   controller = new AbortController();
+  contextLength: number | null = null;
 
   // Can be overridden by subclasses to provide custom settings.
   getSettings(): DefaultBackendSettings {
@@ -169,6 +172,40 @@ export class DefaultBackend implements Backend {
     );
 
     return schema.parse(JSON.parse(response)) as Type;
+  }
+
+  async getContextLength(): Promise<number> {
+    if (this.contextLength !== null) {
+      return this.contextLength;
+    }
+    const client = this.getClient();
+    const modelName = this.getSettings().model;
+    const MAX_PAGES_TO_SEARCH = 3;
+    const FALLBACK_CONTEXT_LENGTH = 64000;
+    
+    let models = await client.models.list();
+    let pagesSearched = 0;
+    
+    while (pagesSearched < MAX_PAGES_TO_SEARCH) {
+      const found = models.data.find((m) => m.id === modelName) as { context_length?: number; } | undefined;
+      if (found && typeof found.context_length === "number") {
+        this.contextLength = found.context_length;
+        return found.context_length;
+      }
+      
+      pagesSearched++;
+      
+      // Try to get the next page if we haven't reached the limit
+      if (pagesSearched < MAX_PAGES_TO_SEARCH && models.hasNextPage()) {
+        models = await models.getNextPage();
+      } else {
+        break;
+      }
+    }
+    
+    // Fallback to default if not found
+    this.contextLength = FALLBACK_CONTEXT_LENGTH;
+    return this.contextLength;
   }
 
   abort(): void {
