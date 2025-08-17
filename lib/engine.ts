@@ -15,7 +15,6 @@ import {
   generateStartingLocationPrompt,
   generateWorldPrompt,
   narratePrompt,
-  summarizeNarrationEventPrompt,
   summarizeScenePrompt,
   type Prompt,
 } from "./prompts";
@@ -78,14 +77,6 @@ export async function next(
       step = ["Narrating", ""];
       event.text = await backend.getNarration(narratePrompt(state, tokenBudget, action), (token: string, count: number) => {
         event.text += token;
-        onToken(token, count);
-        updateState();
-      });
-
-      // create a summary of the narration
-      step = ["Summarizing", "This typically takes between 10 and 30 seconds"];
-      event.summary = await backend.getNarration(summarizeNarrationEventPrompt(state, event), (token: string, count: number) => {
-        event.summary += token;
         onToken(token, count);
         updateState();
       });
@@ -177,7 +168,11 @@ export async function next(
         state.view = "chat";
       } else if (state.view === "chat") {
         const contextLength = await backend.getContextLength();
-        const tokenBudget = Math.floor(contextLength * 0.5); // Set token budget to 50% of context length
+        // Set token budget to 90% of context length
+        // This is because context length includes both input and output tokens
+        // so we need to allow space for output. Also some models have a fixed max input length
+        // that's less than the context length. This should help mitigate those issues.
+        const tokenBudget = Math.floor(contextLength * 0.9);
 
         state.actions = [];
         updateState();
