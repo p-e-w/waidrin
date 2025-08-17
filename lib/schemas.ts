@@ -56,7 +56,6 @@ export const NarrationEvent = z.object({
   text: Text.max(5000),
   locationIndex: Index,
   referencedCharacterIndices: Index.array(),
-  summary: Text.max(2500).optional(),
 });
 
 export const CharacterIntroductionEvent = z.object({

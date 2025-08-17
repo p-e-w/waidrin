@@ -174,15 +174,28 @@ export class DefaultBackend implements Backend {
   }
 
   async getContextLength(): Promise<number> {
+    // Some API providers do not provide a way to get the context length,
+    // so we hardcode values for those.
+    const settings = this.getSettings();
+    if (settings.apiUrl.startsWith("https://api.deepseek.com")) {
+      // All DeepSeek models from official API support at least this size.
+      return 64000;
+    } else if (settings.apiUrl.startsWith("https://api.anthropic.com/")) {
+      // All Anthropic models support at least this size.
+      return 200000;
+    }
+
     const client = this.getClient();
     const modelName = this.getSettings().model;
-    const FALLBACK_CONTEXT_LENGTH = 64000;
     
     let models = await client.models.list();
     
     while (true) {
       const found = models.data.find((m) => m.id === modelName) as { context_length?: number; } | undefined;
-      if (found && typeof found.context_length === "number") {
+      if (found) {
+        if (typeof found.context_length !== "number") {
+          throw new Error("Model does not have a valid context length");
+        }
         return found.context_length;
       }
       
@@ -193,9 +206,8 @@ export class DefaultBackend implements Backend {
         break;
       }
     }
-    
-    // Fallback to default if not found
-    return FALLBACK_CONTEXT_LENGTH;
+    // If the model was not found, throw an error
+    throw new Error("Model not found")
   }
 
   abort(): void {

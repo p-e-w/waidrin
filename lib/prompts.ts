@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
 
-import { getApproximateTokenCount, getContext } from "./context";
+import { convertLocationChangeEventToText, getApproximateTokenCount, getContext } from "./context";
 import * as schemas from "./schemas";
 import type { LocationChangeEvent, NarrationEvent, State } from "./state";
 
@@ -172,69 +172,6 @@ Include a short biography (100 words maximum) for each character.
   );
 }
 
-export function summarizeNarrationEventPrompt(state: State, narrationEvent: NarrationEvent): Prompt {
-  const current = narrationEvent;
-  const protagonistName = state.protagonist.name;
-
-  // Find most recent previous narration or location_change
-  let prevContext = "";
-  for (let i = state.events.length - 2; i >= 0; i--) {
-    const ev = state.events[i];
-    if (ev.type === "narration") {
-      prevContext = ev.text;
-      break;
-    } else if (ev.type === "location_change") {
-      const location = state.locations[ev.locationIndex];
-      prevContext = normalize(`
-${protagonistName} entered ${location.name}. ${location.description}
-
-The following characters are present at ${location.name}:
-${ev.presentCharacterIndices
-  .map((index) => {
-    const character = state.characters[index];
-    return `${character.name}: ${character.biography}`;
-  })
-  .join("\n\n")}
-`);
-      break;
-    }
-  }
-
-  // Build the prompt
-  const userPrompt = `
-This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
-
-The protagonist (who you should refer to as "you", as the adventure happens from their perspective)
-is ${state.protagonist.name}. ${state.protagonist.biography}
-
-You will create a compact memory note of the latest event in this adventure. 
-This memory is used as long-term context for future generations.
-
-${prevContext ? `PREVIOUS CONTEXT (most recent prior event or location change)\n\n${prevContext}\n\n` : ""}
-
-CURRENT EVENT
-
-${current.text}
-
-TASK
-
-Write a single-paragraph short summary (no more than 100 words in total). Use proper names and refer to the protagonist as "you". 
-Capture only plot-relevant facts that will matter later:
-- what ${protagonistName} does/learns/decides,
-- other characters' impactful actions/agreements,
-- changes to location, inventory, injuries, or relationships,
-- discoveries/clues,
-- unresolved goals, promises, threats, or timers.
-Do not quote dialogue, add new facts, or include stylistic prose.
-
-OUTPUT
-
-Return only the summary paragraph with no preamble, labels, markdown or quotes.
-`;
-
-  return makePrompt(userPrompt);
-}
-
 export function summarizeScenePrompt(state: State): Prompt {
   const protagonistName = state.protagonist.name;
 
@@ -248,24 +185,8 @@ export function summarizeScenePrompt(state: State): Prompt {
   }
 
   // Build location + cast context from that location change
-  let sceneContext = "";
-  const ev = state.events[sceneStartIndex];
-  // ev is a LocationChangeEvent here
-  const location = state.locations[(ev as LocationChangeEvent).locationIndex];
-  const cast = (ev as any).presentCharacterIndices
-    .map((idx: number) => {
-      const c = state.characters[idx];
-      return `${c.name}: ${c.biography}`;
-    })
-    .join("\n\n");
-
-  sceneContext = normalize(`
-${protagonistName} is at ${location.name}. ${location.description}
-
-The following characters are present at ${location.name}:
-
-${cast}
-`);
+  const mostRecentLocationChangeEvent = state.events[sceneStartIndex];
+  const sceneContext = convertLocationChangeEventToText(mostRecentLocationChangeEvent as LocationChangeEvent, state);
 
   // Gather all narration texts from this scene (after the last location change).
   const narrationTexts = state.events
@@ -280,27 +201,23 @@ This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state
 The protagonist (refer to them as "you") is ${protagonistName}. ${state.protagonist.biography}
 
 You will create a compact memory of the just-completed scene. This memory is used as long-term context for future generations.
+Write a 1-2 paragraph scene summary (no more than 300 words in total).
+Use proper names and refer to the protagonist as "you".
+Capture only plot-relevant facts that will matter later such as:
+what ${protagonistName} does/learns/decides,
+changes to location, inventory, injuries, or relationships,
+discoveries/clues,
+unresolved goals, promises, threats, or timers.
+Do not quote dialogue, add new facts, or include stylistic prose.
+Return only the summary with no preamble, labels, markdown or quotes.
 
-SCENE
+Here's the context for the scene to summarize:
 
 ${sceneContext}
 
+Here's the scene to summarize:
+
 ${narrationTexts}
-
-TASK
-
-Write a 1-2 paragraph scene summary (no more than 300 words in total). Use proper names and refer to the protagonist as "you".
-Capture only plot-relevant facts that will matter later:
-- what ${protagonistName} does/learns/decides,
-- other characters' impactful actions/agreements,
-- changes to location, inventory, injuries, or relationships,
-- discoveries/clues,
-- unresolved goals, promises, threats, or timers.
-Do not quote dialogue, add new facts, or include stylistic prose.
-
-OUTPUT
-
-Return only the summary with no preamble, labels, markdown or quotes.
 `;
 
   return makePrompt(userPrompt);
