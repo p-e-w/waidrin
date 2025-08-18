@@ -101,7 +101,7 @@ Before your actions to edit file, you must present your reasoning and approach f
 ## Current Progress Summary
 
 **Last Task:** Implementing the "Dynamic Game Rule Selection" feature.
-**Current Status:** The modifications to `lib/schemas.ts`, `lib/state.ts`, `lib/engine.ts`, and `lib/prompts.ts` have been completed and verified (no compile/runtime errors). Console logs were added to `lib/engine.ts` for debugging, and there are no compile, runtime, or logic issues. Manual testing is currently in progress.
+**Current Status:** The modifications to `lib/schemas.ts`, `lib/state.ts`, `lib/engine.ts`, and `lib/prompts.ts` have been completed and verified (no compile/runtime errors). Console logs were added to `lib/engine.ts` for debugging, and there are no compile, runtime, or logic issues. The `selectedPlugin` property has been introduced in `lib/state.ts` and the `setPluginSelected` method in `app/plugins.ts`. The `getActiveGameRuleLogic()` in `lib/engine.ts` has been updated to prioritize `selectedPlugin`. The `game-rule-dnd5e` plugin's `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName`. The `views/CharacterSelect.tsx` has been updated to include a label showing the `selectedPluginName`, a smaller red light indicator on plugin tabs if `selectedPlugin` is true, and a `Switch` toggle within each plugin's content to control `selectedPlugin` status. The glowing red light indicator and its CSS have been removed from `views/CharacterSelect.tsx`. All tests have passed, and there are no known issues.
 
 **Next Step:** Update `views/CharacterSelect.tsx` to include UI for game rule selection.
 
