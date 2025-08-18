@@ -42,7 +42,6 @@ This script is written by the previous You before the session ended. It is desig
     *   `run_shell_command('npm install --prefer-offline --no-audit --progress=false', description='Ensuring all project dependencies are installed.')`
 
 3.  **Automated Initial Lint and Type Check:**
-    *   `run_shell_command('npm run lint --no-fix', description='Running initial lint check without auto-fixing.')`
     *   `run_shell_command('npx tsc --noEmit', description='Running initial TypeScript type check.')`
 
 4.  **Review Project Structure and Key Source Files:**
@@ -82,21 +81,39 @@ This script is written by the previous You before the session ended. It is desig
 
 **Goal:** Verify the outcome of the executed step and log the results.
 
-1.  **Rebuild Affected Components:**
+1.  **Automated Post-Build Lint and Type Check:**
+    *   `run_shell_command('npx tsc --noEmit', description='Running post-build TypeScript type check.')`
+2.  **Rebuild Affected Components:**
     *   `run_shell_command` to rebuild the plugin, for example if the target is test-ui-plugin (`cd plugins/test-ui-plugin && npm run build`).
     *   `run_shell_command` to rebuild the main application (`npm run build`).
-2.  **Automated Test Execution:**
-    *   `run_shell_command('npm test', description='Running project tests to verify changes.')`
-3.  **Automated Post-Build Lint and Type Check:**
-    *   `run_shell_command('npm run lint --no-fix', description='Running post-build lint check without auto-fixing.')`
-    *   `run_shell_command('npx tsc --noEmit', description='Running post-build TypeScript type check.')`
-4.  **Report Compilation and Test Status:** Inform the user about the compilation and test results (success/failure).
-5.  **Await Runtime Feedback:** Wait for the user to provide console logs from the running application.
-6.  **Log Results:** Update `implementation_journal.md` with the outcome of the step, including any new errors or successful progress.
+3.  **Report Compilation and Test Status:** Inform the user about the compilation and test results (success/failure).
+4.  **Await Runtime Feedback:** Wait for the user to provide console logs from the running application.
+5.  **Log Results:** Update `implementation_journal.md` in the directory where the main code base is (i.e. plug/test-ui-plugin) with the outcome of the step, including any new errors or successful progress. If file does not exist you must create it.
 
 ---
 
 ## Resume Current Operation: Implement Dynamic Game Rule Selection
+
+: stand by once all tasks has been executed and memory regained form previous session. DO NOT START on any task until human approved.
+
+Before your actions to edit file, you must present your reasoning and approach for HUMAN to approve, once approved you may request for edit permission.
+
+## Current Progress Summary
+
+**Last Task:** Implementing the "Dynamic Game Rule Selection" feature.
+**Current Status:** The modifications to `lib/schemas.ts`, `lib/state.ts`, `lib/engine.ts`, and `lib/prompts.ts` have been completed and verified (no compile/runtime errors). Console logs were added to `lib/engine.ts` for debugging, and there are no compile, runtime, or logic issues. Manual testing is currently in progress.
+
+**Next Step:** Update `views/CharacterSelect.tsx` to include UI for game rule selection.
+
+**Key aspects of the implemented changes include:**
+- Added `activeGameRule: z.string()` to the `State` schema in `lib/schemas.ts`.
+- Initialized `activeGameRule` to `"default"` in `initialState` in `lib/state.ts`.
+- Defined `CheckDefinition`, `CheckResult`, `RaceDefinition`, `ClassDefinition`, and the `IGameRuleLogic` interface in `lib/state.ts`.
+- Extended the `Plugin` interface with `getGameRuleLogic?(): IGameRuleLogic;` in `lib/state.ts`.
+- Implemented `getDefaultGameRuleLogic()` and `getActiveGameRuleLogic()` in `lib/engine.ts`.
+- Modified the `next()` function in `lib/engine.ts` to use `getActiveGameRuleLogic()` for protagonist generation, action resolution, and combat narration.
+- Modified `generateProtagonistPrompt` in `lib/prompts.ts` to accept `initialProtagonistStats`.
+- Modified `narratePrompt` in `lib/prompts.ts` to accept `checkResultStatements`.
 
 **Background:** The previous task involved investigating the current mechanics for enabling/disabling installed plugins. It was determined that plugin enablement is controlled by an `enabled` boolean in the global state, which is persisted and respected by the loading logic, but there is no user-facing UI to manage this. The `rpg-dice-roller` integration and "Re-roll" button functionality have been successfully implemented and verified at runtime.
 
