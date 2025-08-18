@@ -170,6 +170,7 @@ export const State = z.object({
   logPrompts: z.boolean(),
   logParams: z.boolean(),
   logResponses: z.boolean(),
+  activeGameRule: z.string(),
   view: View,
   world: World,
   locations: Location.array(),
@@ -181,6 +182,7 @@ export const State = z.object({
   sameSexMagnet: z.boolean(),
   sexualContentLevel: SexualContentLevel,
   violentContentLevel: ViolentContentLevel,
+  isCombat: z.boolean(),
   events: Event.array(),
   actions: Action.array(),
 });

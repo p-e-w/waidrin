@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
 
-import { current } from "immer";
+import { current, WritableDraft } from "immer";
 import { throttle } from "lodash";
 import * as z from "zod/v4";
 import { getBackend } from "./backend";
@@ -18,10 +18,80 @@ import {
   type Prompt,
 } from "./prompts";
 import * as schemas from "./schemas";
-import { getState, initialState, type Location, type LocationChangeEvent, type NarrationEvent } from "./state";
-//Test-plugin helper function use
-//import { WritableDraft } from "immer";
-//import { StoredState } from "./state";
+import { getState, initialState, type Location, type LocationChangeEvent, type NarrationEvent, type IGameRuleLogic, StoredState } from "./state";
+
+/**
+ * @function getDefaultGameRuleLogic
+ * @description Provides a default implementation of the IGameRuleLogic interface.
+ * @returns {IGameRuleLogic} The default game rule logic.
+ */
+function getDefaultGameRuleLogic(): IGameRuleLogic {
+  return {
+    // Default implementation for getInitialProtagonistStats
+    getInitialProtagonistStats: () => "",
+
+    // Default implementation for modifyProtagonistPrompt
+    modifyProtagonistPrompt: (originalPrompt: Prompt) => originalPrompt,
+
+    // Default implementation for getAvailableRaces
+    getAvailableRaces: () => [],
+
+    // Default implementation for getAvailableClasses
+    getAvailableClasses: () => [],
+
+    // Default implementation for getActionChecks
+    getActionChecks: () => [],
+
+    // Default implementation for resolveCheck
+    resolveCheck: () => "",
+
+    // Default implementation for getNarrationPrompt
+    getNarrationPrompt: (eventType: string, context: WritableDraft<StoredState>, checkResultStatements?: string[]) => {
+      // Call the comprehensive narratePrompt from lib/prompts.ts
+      // The 'action' parameter for narratePrompt is not directly available here,
+      // as getNarrationPrompt is called with eventType and context.
+      // We pass undefined for action, as narratePrompt handles it.
+      return narratePrompt(context, undefined, checkResultStatements);
+    },
+
+    // Default implementation for getCombatRoundNarration
+    getCombatRoundNarration: (roundNumber: number, combatLog: string[]) => {
+      return `Default combat narration for round ${roundNumber}. Log: ${combatLog.join("; ")}`;
+    },
+  };
+}
+
+/**
+ * @function getActiveGameRuleLogic
+ * @description Retrieves the currently active IGameRuleLogic implementation.
+ * @returns {IGameRuleLogic} The active game rule logic.
+ */
+function getActiveGameRuleLogic(): IGameRuleLogic {
+  const state = getState();
+
+  // First, check if any plugin is explicitly selected via the new 'selectedPlugin' flag.
+  // This allows a plugin's game rule logic to be active regardless of the currently activeGameRule (tab selection).
+  for (const pluginWrapper of state.plugins) {
+    if (pluginWrapper.enabled && pluginWrapper.selectedPlugin && pluginWrapper.plugin?.getGameRuleLogic) {
+      console.log(`ENGINE: Using game rule logic from explicitly selected plugin: ${pluginWrapper.name}`);
+      return pluginWrapper.plugin.getGameRuleLogic();
+    }
+  }
+
+  // If no plugin is explicitly selected, fall back to the logic based on activeGameRule (tab selection).
+  // This preserves the previous behavior where the active tab determined the game rule.
+  const activeGameRuleName = state.activeGameRule;
+  for (const pluginWrapper of state.plugins) {
+    if (pluginWrapper.enabled && pluginWrapper.name === activeGameRuleName && pluginWrapper.plugin?.getGameRuleLogic) {
+      console.log(`ENGINE: Using game rule logic from active tab plugin: ${pluginWrapper.name}`);
+      return pluginWrapper.plugin.getGameRuleLogic();
+    }
+  }
+
+  console.log("ENGINE: Using default game rule logic.");
+  // If no matching plugin is found or activeGameRule is "default", return the default logic
+  return getDefaultGameRuleLogic();
+}
 
 /**
  * @constant RawCharacter
@@ -160,6 +230,23 @@ export async function next(
      * @returns {Promise<void>} A promise that resolves when narration generation and processing is complete.
      */
     const narrate = async (action?: string) => {
+      const gameRuleLogic = getActiveGameRuleLogic();
+      let checkResultStatements: string[] = [];
+
+      if (action && gameRuleLogic.getActionChecks) {
+        console.log(`ENGINE: getActionChecks called with action: ${action}`);
+        const checkDefinitions = gameRuleLogic.getActionChecks(action, state);
+        console.log(`ENGINE: getActionChecks returned: ${JSON.stringify(checkDefinitions)}`);
+        for (const check of checkDefinitions) {
+          if (gameRuleLogic.resolveCheck) {
+            console.log(`ENGINE: resolveCheck called with check: ${JSON.stringify(check)}`);
+            const resultStatement = gameRuleLogic.resolveCheck(check, state.protagonist);
+            console.log(`ENGINE: resolveCheck returned: ${resultStatement}`);
+            checkResultStatements.push(resultStatement);
+          }
+        }
+      }
+
       // Initialize a new NarrationEvent object. This object will store the generated
       // narration text and associated metadata.
       const event: NarrationEvent = {
@@ -176,7 +263,24 @@ export async function next(
       step = ["Narrating", ""];
       // Request narration text from the backend. The `getNarration` method streams
       // tokens, and the callback updates the `event.text` and triggers UI updates.
-      event.text = await backend.getNarration(narratePrompt(state, action), (token: string, count: number) => {
+      let narrationPromptContent: Prompt;
+      if (state.isCombat && gameRuleLogic.getCombatRoundNarration) {
+        console.log(`ENGINE: getCombatRoundNarration called.`);
+        // Placeholder for combatLog and roundNumber. These would typically come from a combat system.
+        narrationPromptContent = { system: "", user: gameRuleLogic.getCombatRoundNarration(1, ["Combat log entry 1", "Combat log entry 2"]) };
+        console.log(`ENGINE: getCombatRoundNarration returned: ${JSON.stringify(narrationPromptContent)}`);
+      } else if (gameRuleLogic.getNarrationPrompt) {
+        console.log(`ENGINE: getNarrationPrompt called.`);
+        narrationPromptContent = gameRuleLogic.getNarrationPrompt("general", state, checkResultStatements);
+        console.log(`ENGINE: getNarrationPrompt returned: ${JSON.stringify(narrationPromptContent)}`);
+      } else {
+        // This branch should ideally not be hit if getDefaultGameRuleLogic is correctly implemented
+        console.log(`ENGINE: Falling back to narratePrompt from lib/prompts.ts.`);
+        narrationPromptContent = narratePrompt(state, action, checkResultStatements);
+        console.log(`ENGINE: narratePrompt (fallback) returned: ${JSON.stringify(narrationPromptContent)}`);
+      }
+
+      event.text = await backend.getNarration(narrationPromptContent, (token: string, count: number) => {
         // Append the received token to the narration text.
         event.text += token;
         // Call the throttled `onToken` function to update progress indicators.
@@ -270,7 +374,17 @@ export async function next(
         step = ["Generating protagonist", "This typically takes between 10 and 30 seconds"];
         // Request the backend to generate the protagonist character.
         // The generated character object is assigned to `state.protagonist`.
-        state.protagonist = await backend.getObject(generateProtagonistPrompt(state), RawCharacter, onToken);
+        const gameRuleLogic = getActiveGameRuleLogic();
+        const initialProtagonistStats = gameRuleLogic.getInitialProtagonistStats ? gameRuleLogic.getInitialProtagonistStats() : "";
+        console.log(`ENGINE: getInitialProtagonistStats returned: ${initialProtagonistStats}`); //Debug logging
+        let protagonistPrompt = generateProtagonistPrompt(state, initialProtagonistStats);
+        if (gameRuleLogic.modifyProtagonistPrompt) {
+          const originalPrompt = { ...protagonistPrompt }; // Capture original for logging
+          protagonistPrompt = gameRuleLogic.modifyProtagonistPrompt(protagonistPrompt);
+          console.log(`ENGINE: modifyProtagonistPrompt called. Original system: ${originalPrompt.system}, user: ${originalPrompt.user}`);
+          console.log(`ENGINE: modifyProtagonistPrompt returned system: ${protagonistPrompt.system}, user: ${protagonistPrompt.user}`);
+        }
+        state.protagonist = await backend.getObject(protagonistPrompt, RawCharacter, onToken);
         // Initialize the protagonist's location to the first location (index 0).
         state.protagonist.locationIndex = 0;
 

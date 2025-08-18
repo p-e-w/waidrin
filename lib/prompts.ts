@@ -61,12 +61,14 @@ The world is populated by humans, elves, and dwarves.
  * @param {State} state - The current game state, containing world and protagonist gender/race.
  * @returns {Prompt} A Prompt object for protagonist generation.
  */
-export function generateProtagonistPrompt(state: State): Prompt {
+export function generateProtagonistPrompt(state: State, initialProtagonistStats: string): Prompt {
   return makePrompt(`
 Create a ${state.protagonist.gender} ${state.protagonist.race} protagonist
 for a fantasy adventure set in the world of ${state.world.name}.
 
 ${state.world.description}
+
+${initialProtagonistStats}
 
 Return the character description as a JSON object. Include a short biography (100 words maximum).
 `);
@@ -185,10 +187,11 @@ ${normalize(prompt)}
  * @param {string} [action] - The action the protagonist has just taken, if any.
  * @returns {Prompt} A prompt for the LLM to generate narration.
  */
-export function narratePrompt(state: State, action?: string): Prompt {
+export function narratePrompt(state: State, action?: string, checkResultStatements?: string[]): Prompt {
+  const checkResultsText = checkResultStatements && checkResultStatements.length > 0 ? `\n\nCheck Results:\n${checkResultStatements.join('\n')}` : '';
   return makeMainPrompt(
     `
-${action ? `The protagonist (${state.protagonist.name}) has chosen to do the following: ${action}.` : ""}
+${action ? `The protagonist (${state.protagonist.name}) has chosen to do the following: ${action}.` : ""}${checkResultsText}
 Narrate what happens next, using novel-style prose, in the present tense.
 Prioritize dialogue over descriptions.
 Do not mention more than 2 different characters in your narration.

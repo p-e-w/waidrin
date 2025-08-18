@@ -111,6 +111,7 @@ export default function Home() {
       });
 
       setPluginsLoaded(true);
+      console.log("Plugins loaded. Current state.plugins:", useStateStore.getState().plugins); // Add this line for debugging
     } catch (error) {
       let message = error instanceof Error ? error.message : String(error);
       if (!message) {

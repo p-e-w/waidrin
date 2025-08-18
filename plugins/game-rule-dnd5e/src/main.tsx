@@ -66,7 +66,7 @@ const generateDefaultDndStatsSettings = (rpgDiceRoller: typeof import('@dice-rol
     dndClass: "",
     dndSubclass: "",
   };
-  console.log("generateDefaultDndStatsSettings generated:", generated);
+  //console.log("generateDefaultDndStatsSettings generated:", generated);
   return generated;
 };
 
@@ -205,9 +205,9 @@ const DndStatsCharacterUIPage = ({
   const pluginSettings = injectedReact.useMemo(() => {
     const state = getGlobalState();
     const plugin = state.plugins.find((p: PluginWrapper) => p.name === "game-rule-dnd5e");
-    console.log("DndStatsCharacterUIPage - plugin.settings:", plugin ? plugin.settings : "not found");
+    //console.log("DndStatsCharacterUIPage - plugin.settings:", plugin ? plugin.settings : "not found");
     const settingsToUse = plugin ? (plugin.settings as DndStatsSettings) : generateDefaultDndStatsSettings(injectedRpgDiceRoller);
-    console.log("DndStatsCharacterUIPage - pluginSettings (after useMemo):", settingsToUse);
+    //console.log("DndStatsCharacterUIPage - pluginSettings (after useMemo):", settingsToUse);
     return settingsToUse;
   }, [getGlobalState, injectedRpgDiceRoller]);
 
@@ -309,10 +309,10 @@ export default class DndStatsPlugin implements Plugin {
    */
   async init(settings: Record<string, unknown>, context: Context): Promise<void> {
     this.context = context;
-    console.log("DndStatsPlugin - init settings parameter:", settings);
+    //console.log("DndStatsPlugin - init settings parameter:", settings);
     // Parse and validate settings, applying defaults for missing properties
     this.settings = DndStatsSettingsSchema.parse({ ...generateDefaultDndStatsSettings(this.context.rpgDiceRoller), ...settings });
-    console.log("DndStatsPlugin - this.settings (after parse):", this.settings);
+    //console.log("DndStatsPlugin - this.settings (after parse):", this.settings);
 
     // Assign the main application's React instance to the module-level React variable.
     // This is critical for all JSX within this plugin to use the correct React instance.
@@ -320,7 +320,7 @@ export default class DndStatsPlugin implements Plugin {
 
     // Register the D&D 5E tab in the CharacterSelect screen
     this.context.addCharacterUI(
-      "D&D 5E", // GameRuleName: Display name for the UI tab.
+      this.context.pluginName, // Changed from "D&D 5E" to this.context.pluginName
       <span>D&D 5E</span>, // GameRuleTab: The ReactNode for the tab trigger.
       <DndStatsCharacterUIPage
         injectedReact={this.context.react}

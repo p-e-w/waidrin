@@ -37,8 +37,8 @@ This feature aims to introduce a robust system for dynamic game rule selection, 
 
 ### 1. Update `lib/schemas.ts`
 
-*   **Action:** Add `activeGameRule: z.string()` to the `State` schema.
-*   **Reasoning:** The `State` schema (`lib/schemas.ts`) defines the overall structure of the application's global state. To enable dynamic game rule selection, we need a persistent way to track which game rule is currently active. Adding `activeGameRule` as a `z.string()` ensures that this information is part of the validated global state, allowing it to be stored and retrieved reliably. This is a foundational step for any state-driven feature.
+*   **Action:** Modify `generateProtagonistPrompt` to accept `initialProtagonistStats` and `narratePrompt` to accept `checkResultStatements`.
+*   **Reasoning:** The `generateProtagonistPrompt` function now takes an `initialProtagonistStats` string, which allows game rule plugins to inject specific character attributes or background details into the protagonist generation prompt. The `narratePrompt` function now accepts an optional `checkResultStatements` array, enabling the inclusion of check outcomes directly into the narration prompt, thereby allowing game rules to influence the narrative based on action resolution.
 
 ### 2. Update `lib/state.ts`
 
@@ -171,13 +171,14 @@ This feature aims to introduce a robust system for dynamic game rule selection, 
         The `IGameRuleLogic` interface is exposed through the existing `Plugin` interface in `lib/state.ts` via the new `getGameRuleLogic?(): IGameRuleLogic;` method.
         1.  **Plugin Registration:** When a plugin is loaded by `app/page.tsx`, if it implements `getGameRuleLogic()`, the application will be able to retrieve its specific game rule logic.
         2.  **Dynamic Discovery:** The application can iterate through its loaded and enabled plugins to identify all available game rules (those that provide an `IGameRuleLogic` implementation). This list will include the "default" rule set provided by the core application.
+        3.  **Explicit Plugin Selection:** The `PluginWrapper` interface in `lib/state.ts` has been extended with `selectedPlugin?: boolean;`. This flag allows a plugin's game rule logic to be explicitly activated, overriding the `activeGameRule` based on tab selection. This is particularly useful for plugins that provide game rule logic but might not have a dedicated UI tab, or for scenarios where a game rule needs to be active regardless of the currently displayed UI.
 
 ### 3. Update `lib/engine.ts`
 
 *   **Action 3.1:** Implement `getDefaultGameRuleLogic()`.
     *   **Reasoning:** This function will provide a robust, default implementation of the `IGameRuleLogic` interface. It acts as a fallback if no plugin is active or if the active plugin does not provide its own game rule logic. This ensures that the game always has a set of rules to operate by, preventing errors and providing a consistent experience even without specialized game rule plugins.
 *   **Action 3.2:** Implement `getActiveGameRuleLogic()`.
-    *   **Reasoning:** This function will be responsible for retrieving the correct `IGameRuleLogic` implementation. It will first check if the `activeGameRule` in the global state corresponds to an enabled plugin that provides `IGameRuleLogic`. If so, it will return that plugin's logic. Otherwise, it will fall back to `getDefaultGameRuleLogic()`. This function centralizes the logic for selecting the active game rule, making it easy for other parts of the engine to use the correct rule set.
+    *   **Reasoning:** This function will be responsible for retrieving the correct `IGameRuleLogic` implementation. It will first check if any plugin is explicitly selected via the new `selectedPlugin` flag. If an enabled plugin with `selectedPlugin` set to `true` and a `getGameRuleLogic` implementation is found, that plugin's logic will be returned. This allows a plugin's game rule logic to be active regardless of the currently active `activeGameRule` (tab selection). If no such plugin is found, it will then fall back to checking if the `activeGameRule` in the global state corresponds to an enabled plugin that provides `IGameRuleLogic`. If so, it will return that plugin's logic. Otherwise, it will fall back to `getDefaultGameRuleLogic()`. This function centralizes the logic for selecting the active game rule, making it easy for other parts of the engine to use the correct rule set.
 *   **Action 3.3:** Modify `next()` function to use `getActiveGameRuleLogic()`:
     *   **Flow within `lib/engine.ts`:** The `lib/engine.ts` file, which orchestrates the game's state machine, will be the primary consumer of `IGameRuleLogic`.
         *   **`activeGameRule` in State:** The `activeGameRule: z.string()` property in the global `State` (defined in `lib/schemas.ts` and initialized in `lib/state.ts`) will store the name of the currently selected game rule (e.g., "default", "dnd5e").
@@ -190,17 +191,25 @@ This feature aims to introduce a robust system for dynamic game rule selection, 
             *   **Character Generation:** When the game is in the "character" view, `next()` will call `gameRuleLogic.getInitialProtagonistStats()` to get initial character attributes and `gameRuleLogic.modifyProtagonistPrompt()` to tailor the AI prompt for protagonist generation. This allows game rules to define how characters are created (e.g., stat generation methods, available races/classes with their descriptions).
             *   **Action Resolution:** When a user takes an action, `next()` will call `gameRuleLogic.getActionChecks(actionType, state)` to determine if any checks are required. For each `CheckDefinition` returned, it will then call `gameRuleLogic.resolveCheck(check, characterStats)` (utilizing the `rpg-dice-roller` internally) to get a `CheckResult`.
             *   **Narration Generation:** The `CheckResult` (and other context) will be passed to `gameRuleLogic.getNarrationPrompt(eventType, state, checkResults)` to generate the narrative. This allows the game rule to dynamically describe the success, failure, or critical outcome of actions, and to weave in the lore from `RaceDefinition` and `ClassDefinition` descriptions.
-            *   **Combat Narration:** If the game enters a "combat" state, `next()` will call `gameRuleLogic.getCombatRoundNarration(roundNumber, combatLog)` to generate combat-specific narration, allowing for different narrative structures during combat.
+            *   **Combat Narration:** If the game enters a "combat" state (indicated by `state.isCombat`), `next()` will call `gameRuleLogic.getCombatRoundNarration(roundNumber, combatLog)` to generate combat-specific narration. Otherwise, it will use `gameRuleLogic.getNarrationPrompt` for general narration. This allows for different narrative structures during combat.
 
 ### 4. Update `views/CharacterSelect.tsx`
 
 *   **Action:** Modify UI for game rule selection and display. This will involve presenting the user with available game rules (either default or from loaded plugins) and allowing them to select one.
-*   **Reasoning:** The `CharacterSelect.tsx` view is the logical place for users to choose their desired game rule, as character generation is often tied to the rule set. This step involves creating UI elements (e.g., dropdowns, radio buttons) to display the available game rules (which can be retrieved by iterating through `state.plugins` and checking for `getGameRuleLogic` implementations, plus the default). User selection will then update `state.activeGameRule`, triggering the dynamic behavior implemented in `lib/engine.ts`. This provides the user-facing control for the new feature.
+*   **Reasoning:** The `CharacterSelect.tsx` view is the logical place for users to choose their desired game rule, as character generation is often tied to the rule set. This step involves creating UI elements (e.g., tabs, switches) to display the available game rules (which can be retrieved by iterating through `state.plugins` and checking for `getGameRuleLogic` implementations, plus the default). User selection will then update `state.activeGameRule`, triggering the dynamic behavior implemented in `lib/engine.ts`. This provides the user-facing control for the new feature.
 
-    *   **User Interface (`views/CharacterSelect.tsx`):** The `views/CharacterSelect.tsx` component will be updated to provide the user interface for selecting the active game rule.
-        1.  It will query the `usePluginsStateStore` (from `app/plugins.ts`) to get a list of all `CharacterUI` components provided by plugins. Each `CharacterUI` will implicitly represent a game rule if the plugin also provides `IGameRuleLogic`.
-        2.  It will display these available game rules (including a "Default Rules" option) as selectable elements (e.g., tabs, dropdowns).
-        3.  When a user selects a game rule, the UI will update the `activeGameRule` property in the global state (`state.activeGameRule = selectedRuleName`). This change will trigger the dynamic behavior in `lib/engine.ts` on subsequent game turns.
+    *   **User Interface (`views/CharacterSelect.tsx`):** The `views/CharacterSelect.tsx` component has been updated to provide the user interface for selecting the active game rule. Key changes include:
+        1.  **State Integration:** The component now destructures `activeGameRule`, `plugins`, and `protagonist` from the `useStateStore` to manage and display game rule related information.
+        2.  **Context Instantiation:** A `Context` instance is created within the component to access `setPluginSelected`, allowing the UI to control which plugin's game rule logic is active.
+        3.  **Tab Change Handler (`handleTabChange`):** A function `handleTabChange` is implemented to update `state.activeGameRule` when a different tab (representing a game rule) is selected.
+        4.  **Plugin Selection Toggle (`handlePluginSelectionToggle`):** This function is responsible for updating the `selectedPlugin` status of a plugin via `context.setPluginSelected`. It also updates `state.activeGameRule` to reflect the newly selected plugin or reverts to "default" if the currently active plugin is deselected.
+        5.  **Active Game Rule Display:** Logic is added to determine `currentlySelectedPlugins` and `activeGameRuleDisplay` to show the names of all currently selected plugins, or "Default" if none are selected.
+        6.  **UI Elements:**
+            *   A `Flex` container with `Text` displays the `activeGameRuleDisplay` at the top.
+            *   `Tabs.Root` is used with `value={activeGameRule}` and `onValueChange={handleTabChange}` to control the active tab.
+            *   `Tabs.Trigger` elements are dynamically generated for each `characterUI` (representing a game rule), displaying `characterUI.GameRuleTab`.
+            *   A small red light `Box` indicator is conditionally rendered next to the tab trigger if `isSelected` is true for that plugin.
+            *   Within each plugin's `Tabs.Content`, a `Switch` toggle is provided, bound to `isSelected` and `handlePluginSelectionToggle`, allowing users to enable/disable a plugin's game rule logic.
 
 #### 4.5. Plugin Developer Impact
 
@@ -260,7 +269,7 @@ For a plugin developer to create a custom game rule:
 
 1.  **Implement `IGameRuleLogic`:** The plugin's main class (or a separate class within the plugin) must implement the `IGameRuleLogic` interface, providing concrete implementations for the desired methods (e.g., `getInitialProtagonistStats`, `getAvailableRaces`, `getActionChecks`).
 2.  **Expose via `Plugin` Interface:** The plugin's main class must return an instance of its `IGameRuleLogic` implementation via the `getGameRuleLogic()` method in its `Plugin` interface.
-3.  **Register UI (Optional but Recommended):** To make the game rule selectable in the UI, the plugin should use `context.addCharacterUI()` to register a `CharacterUI` component. The `GameRuleName` provided during this registration should match the name used to identify the game rule (which will be stored in `state.activeGameRule`).
+3.  **Register UI (Optional but Recommended):** To make the game rule selectable in the UI, the plugin should use `context.addCharacterUI()` to register a `CharacterUI` component. The `GameRuleName` provided during this registration should match the name used to identify the game rule (which will be stored in `state.activeGameRule`). Additionally, the `PluginWrapper` now includes a `selectedPlugin?: boolean` flag, which can be set via `context.setPluginSelected` to explicitly activate a plugin's game rule logic, overriding the `activeGameRule` based on tab selection.
 
 In summary, these interfaces create a powerful, extensible system where game rules are no longer hardcoded but can be dynamically provided by plugins, significantly enhancing the application's flexibility and narrative depth.
 

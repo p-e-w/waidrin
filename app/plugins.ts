@@ -139,6 +139,25 @@ export class Context {
   }
 
   /**
+   * @method setPluginSelected
+   * @description Sets the `selectedPlugin` status for a specific plugin in the global state.
+   * This method is used to indicate whether a plugin should be processed by the engine.
+   * @param {string} pluginName - The name of the plugin to update.
+   * @param {boolean} isSelected - The new `selectedPlugin` status.
+   * @throws {Error} If no plugin with the given name is found.
+   */
+  setPluginSelected(pluginName: string, isSelected: boolean): void {
+    getState().set((state) => {
+      const plugin = state.plugins.find((p) => p.name === pluginName);
+      if (plugin) {
+        plugin.selectedPlugin = isSelected;
+      } else {
+        throw new Error(`Plugin with name ${pluginName} not found.`);
+      }
+    });
+  }
+
+  /**
    * @method addCharacterUI
    * @description Registers a Character UI component with the application.
    * This allows the plugin's UI to be displayed in the `CharacterSelect` screen.

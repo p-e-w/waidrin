@@ -76,7 +76,7 @@ var TestUIPlugin = class {
     this.settings = settings;
     React = this.context.react;
     this.context.addCharacterUI(
-      "Test UI",
+      this.context.pluginName,
       // GameRuleName: Display name for the UI tab.
       /* @__PURE__ */ React.createElement("span", null, "Test UI Tab"),
       // GameRuleTab: The ReactNode for the tab trigger.
@@ -91,7 +91,7 @@ var TestUIPlugin = class {
           getGlobalState: this.context.getGlobalState,
           setGlobalState: this.context.setGlobalState,
           onSave: async (newValue) => {
-            this.context.setGlobalState(async (state) => {
+            await this.context.setGlobalState(async (state) => {
               const plugin = state.plugins.find((p) => p.name === "test-ui-plugin");
               if (plugin) {
                 plugin.settings = __spreadProps(__spreadValues({}, plugin.settings), { customAttribute: newValue });

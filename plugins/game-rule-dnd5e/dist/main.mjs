@@ -3811,7 +3811,6 @@ var generateDefaultDndStatsSettings = (rpgDiceRoller) => {
     dndClass: "",
     dndSubclass: ""
   };
-  console.log("generateDefaultDndStatsSettings generated:", generated);
   return generated;
 };
 var DND_CLASS_DATA = {
@@ -3925,9 +3924,7 @@ var DndStatsCharacterUIPage = ({
   const pluginSettings = injectedReact.useMemo(() => {
     const state = getGlobalState();
     const plugin = state.plugins.find((p) => p.name === "game-rule-dnd5e");
-    console.log("DndStatsCharacterUIPage - plugin.settings:", plugin ? plugin.settings : "not found");
     const settingsToUse = plugin ? plugin.settings : generateDefaultDndStatsSettings(injectedRpgDiceRoller);
-    console.log("DndStatsCharacterUIPage - pluginSettings (after useMemo):", settingsToUse);
     return settingsToUse;
   }, [getGlobalState, injectedRpgDiceRoller]);
   const [currentSettings, setCurrentSettings] = injectedReact.useState(pluginSettings);
@@ -3981,13 +3978,11 @@ var DndStatsPlugin = class {
    */
   async init(settings, context) {
     this.context = context;
-    console.log("DndStatsPlugin - init settings parameter:", settings);
     this.settings = DndStatsSettingsSchema.parse(__spreadValues(__spreadValues({}, generateDefaultDndStatsSettings(this.context.rpgDiceRoller)), settings));
-    console.log("DndStatsPlugin - this.settings (after parse):", this.settings);
     React = this.context.react;
     this.context.addCharacterUI(
-      "D&D 5E",
-      // GameRuleName: Display name for the UI tab.
+      this.context.pluginName,
+      // Changed from "D&D 5E" to this.context.pluginName
       /* @__PURE__ */ React.createElement("span", null, "D&D 5E"),
       // GameRuleTab: The ReactNode for the tab trigger.
       /* @__PURE__ */ React.createElement(

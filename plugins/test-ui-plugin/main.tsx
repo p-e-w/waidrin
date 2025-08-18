@@ -196,7 +196,7 @@ export default class TestUIPlugin implements Plugin {
     // The PluginCharacterUIPage component is passed as a ReactNode, along with
     // necessary injected libraries and global state access functions as props.
     this.context.addCharacterUI(
-      "Test UI", // GameRuleName: Display name for the UI tab.
+      this.context.pluginName, // GameRuleName: Display name for the UI tab.
       <span>Test UI Tab</span>, // GameRuleTab: The ReactNode for the tab trigger.
       <PluginCharacterUIPage
         // Pass injected shared libraries as props to the UI component.
