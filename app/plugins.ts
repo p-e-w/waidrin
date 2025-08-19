@@ -94,6 +94,7 @@ export class Context {
   reactIconsGi: typeof import('react-icons/gi');
   useShallow: typeof import('zustand/shallow').useShallow;
   rpgDiceRoller: typeof import('@dice-roller/rpg-dice-roller');
+  getBackend: typeof import('@/lib/backend').getBackend;
 
   constructor(
     pluginName: string,
@@ -105,6 +106,7 @@ export class Context {
     reactIconsGi: typeof import('react-icons/gi'),
     useShallow: typeof import('zustand/shallow').useShallow,
     rpgDiceRoller: typeof import('@dice-roller/rpg-dice-roller'),
+    getBackend: typeof import('@/lib/backend').getBackend,
   ) {
     this.pluginName = pluginName;
     this.react = react;
@@ -115,6 +117,7 @@ export class Context {
     this.reactIconsGi = reactIconsGi;
     this.useShallow = useShallow;
     this.rpgDiceRoller = rpgDiceRoller;
+    this.getBackend = getBackend;
   }
 
   /**

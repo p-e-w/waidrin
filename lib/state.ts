@@ -183,7 +183,7 @@ export interface IGameRuleLogic {
    * (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
    * @returns {string} A statement to augment the protagonist generation prompt.
    */
-  getInitialProtagonistStats?(): string;
+  getInitialProtagonistStats?(): Promise<string>;
 
   /**
    * @method modifyProtagonistPrompt

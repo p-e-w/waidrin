@@ -1,0 +1,121 @@
+In Dungeons & Dragons 5th Edition, ability scores range from 1 to 30, with 10-11 being the average for a commoner. While the game provides numerical modifiers, a descriptive interpretation helps bring characters to life. Here's a complete example for each main stat, from lowest to highest:
+
+## Strength
+
+**Strength** measures bodily power, athletic training, and the extent to which you can exert raw physical force.
+
+* **3 (Mod. -4):** **Morbidly Weak.** You struggle to lift your own limbs. Basic movements are a Herculean effort. You'd likely need help to stand and could be knocked over by a strong breeze.
+* **4-5 (Mod. -3):** **Feeble.** Visibly weak and frail. You might be able to pick up a small child, but anything more is a serious strain. Swinging even a light weapon might throw you off balance.
+* **6-7 (Mod. -2):** **Weak.** You struggle with anything heavier than a light load. Pushing an object your own weight is a significant challenge. You're easily winded by physical exertion.
+* **8-9 (Mod. -1):** **Below Average.** You can perform basic physical tasks, but you're not particularly strong. Lifting heavy objects for an extended time is difficult. You'd probably be one of the last picked for a team in a physically demanding task.
+* **10-11 (Mod. 0):** **Average.** You're capable of typical physical labor for a few hours. You can pull your own weight and lift moderately heavy objects for short periods. This is the common human average.
+* **12-13 (Mod. +1):** **Competent.** You're noticeably stronger than the average person. You can carry heavy objects, throw small objects with decent force, and perform physical labor for half a day without excessive fatigue.
+* **14-15 (Mod. +2):** **Strong.** You're visibly toned and capable. You can easily carry heavy objects with one arm and are not easily exhausted by physical exertion. You'd stand out in a crowd for your physique.
+* **16-17 (Mod. +3):** **Very Strong.** Muscular and powerful. You can break objects like wood with your bare hands and perform heavy physical labor for several hours. You'd be competitive in most strength challenges.
+* **18-19 (Mod. +4):** **Heavily Muscular/Near Peak Human.** Your strength borders on legendary for a mortal. You can bend steel bars, easily lift and throw grown individuals, and are a force of nature in a direct physical confrontation.
+* **20-21 (Mod. +5):** **Legendary.** Your strength is beyond what most consider possible. You can effortlessly tear through thick materials, lift small carts, and single-handedly overcome obstacles that would require a team of lesser individuals.
+* **22-23 (Mod. +6):** **Superhuman.** You are a physical marvel, easily confused for a minor giant or demigod. You can shatter boulders with a punch and rip trees from the ground.
+* **24-25 (Mod. +7):** **Mythic.** Your raw physical power is truly astounding, capable of feats of strength that defy mortal understanding. You might be able to throw siege weapons or punch through reinforced walls.
+* **26-27 (Mod. +8):** **Godlike (Lesser).** You possess strength that few mortals could ever hope to attain, hinting at divine lineage or immense magical power.
+* **28-29 (Mod. +9):** **Godlike (Greater).** Your strength approaches the might of true deities, capable of altering the landscape with your bare hands.
+* **30 (Mod. +10):** **Divine.** You possess the strength of a god. Your physical might is virtually boundless, allowing you to reshape reality through sheer force.
+
+## Dexterity
+
+**Dexterity** measures agility, reflexes, and balance.
+
+* **3 (Mod. -4):** **Barely Mobile.** You are severely uncoordinated, likely due to a physical disability or paralysis. Basic movements are painful and require extreme effort.
+* **4-5 (Mod. -3):** **Clumsy.** You frequently stumble, drop things, and struggle with tasks requiring manual precision. You move slowly and deliberately to avoid accidents.
+* **6-7 (Mod. -2):** **Awkward.** You're graceless and slow to react. You might trip over your own feet occasionally and have difficulty with fine motor skills like sewing or picking up small objects quickly.
+* **8-9 (Mod. -1):** **A Bit Ungainly.** You're somewhat slow and occasionally trip or bump into things. You're not particularly agile, but generally functional.
+* **10-11 (Mod. 0):** **Average.** You have typical balance and hand-eye coordination. You can catch a small tossed object, and perform basic precise tasks if needed, though not exceptionally well.
+* **12-13 (Mod. +1):** **Nimble.** You're well-poised and balanced. You move with a degree of grace and are capable of precise manipulations. You can generally handle an obstacle course with some effort.
+* **14-15 (Mod. +2):** **Adept.** You move elegantly and can manipulate objects with care and precision. You can often hit small targets and skillfully navigate challenging terrain.
+* **16-17 (Mod. +3):** **Graceful.** You have excellent control over your body, moving with the fluidity of a dancer or a trained acrobat. You're capable of extremely subtle and precise tasks, hitting moving targets with ease.
+* **18-19 (Mod. +4):** **Lithe/Peak Human Agility.** Your agility is bordering on the incredible. You can perform complex acrobatic maneuvers, dodge a barrage of projectiles, and pick even intricate locks with astonishing speed.
+* **20-21 (Mod. +5):** **Uncanny Agility.** You move like water, reacting to all situations with almost no effort. You can dodge a large number of thrown objects simultaneously and traverse difficult terrain as if it were flat ground.
+* **22-23 (Mod. +6):** **Superhuman Agility.** Your reflexes and control are beyond mortal comprehension. You can perceive and react to threats before others even register them, moving with impossible speed and precision.
+* **24-25 (Mod. +7):** **Mythic Agility.** You can disappear and reappear seemingly at will, or move so fast that you appear to be in multiple places at once. Your movements are a blur to the untrained eye.
+* **26-27 (Mod. +8):** **Godlike (Lesser).** You possess agility that rivals minor deities, capable of feats of impossible evasion and acrobatic brilliance.
+* **28-29 (Mod. +9):** **Godlike (Greater).** Your agility is on par with true deities. You can move with such speed and grace that you seem to transcend physical limitations.
+* **30 (Mod. +10):** **Divine.** You embody pure agility. Your movements are perfect, anticipating and reacting to any event with flawless execution.
+
+## Constitution
+
+**Constitution** measures health, stamina, and vital force.
+
+* **3 (Mod. -4):** **Frail/Mortally Ill.** Your body is barely functioning. You have a minimal immune system, are constantly exhausted, and likely suffer from chronic illness or multiple broken bones. A strong cough might put you in critical condition.
+* **4-5 (Mod. -3):** **Delicate.** You bruise very easily, are prone to sickness, and can be knocked unconscious by a light punch. You have very little stamina and tire quickly.
+* **6-7 (Mod. -2):** **Unhealthy.** You're unusually prone to disease and infection, easily winded, and struggle with prolonged physical activity. You often feel unwell.
+* **8-9 (Mod. -1):** **Fragile.** You're easily winded and can't endure a full day of hard labor without needing significant rest. You might occasionally catch mild illnesses.
+* **10-11 (Mod. 0):** **Average.** You're in typical health. You might occasionally contract mild sicknesses, but you recover normally. You can handle a standard workday.
+* **12-13 (Mod. +1):** **Sturdy.** You're in good health and fairly fit. You can take a few hits before being knocked unconscious and can labor for extended periods without undue fatigue.
+* **14-15 (Mod. +2):** **Hardy.** You easily shrug off most illnesses and can endure significant physical punishment. You're capable of working twelve hours most days with little complaint.
+* **16-17 (Mod. +3):** **Tough.** Physically robust and resilient. You rarely get sick, can shrug off serious injuries, and can stay awake and active for days on end without significant rest.
+* **18-19 (Mod. +4):** **Iron Will/Peak Human Endurance.** Your body is a fortress. You are incredibly difficult to sicken, poison, or injure, and you can push through pain and exhaustion far beyond normal limits.
+* **20-21 (Mod. +5):** **Indomitable.** Your physical resilience is almost unnatural. You can survive wounds that would be instantly fatal to others, endure extreme environments, and resist nearly all forms of physical affliction.
+* **22-23 (Mod. +6):** **Superhuman Endurance.** Your body is an engine of pure resilience. You can regenerate from grievous wounds with startling speed and are virtually immune to most mundane threats to your health.
+* **24-25 (Mod. +7):** **Mythic Endurance.** You are a living testament to unyielding fortitude. You can withstand cataclysmic forces and continue fighting long after any normal creature would have perished.
+* **26-27 (Mod. +8):** **Godlike (Lesser).** Your very being defies physical limitations, hinting at an eternal nature or divine protection.
+* **28-29 (Mod. +9):** **Godlike (Greater).** You possess the endurance of a true deity, seemingly impervious to harm and the ravages of time.
+* **30 (Mod. +10):** **Divine.** You are the embodiment of vital force. You are immortal and unyielding, effectively immune to all but the most powerful cosmic forces.
+
+## Intelligence
+
+**Intelligence** measures mental acuity, accuracy of recall, and the ability to reason.
+
+* **3 (Mod. -4):** **Animalistic.** You are barely sentient, incapable of logic or reason. Your behavior is reduced to simple reactions to immediate stimuli, perhaps akin to a very simple-minded animal.
+* **4-5 (Mod. -3):** **Dim-witted.** You have extremely limited speech and knowledge, often resorting to charades to express simple thoughts. You struggle with basic concepts and forget details easily.
+* **6-7 (Mod. -2):** **Slow-witted.** You have trouble following trains of thought, often misuse or mispronounce words, and forget most unimportant things. Learning new concepts is a slow and frustrating process.
+* **8-9 (Mod. -1):** **Forgetful/Unimaginative.** You make more errors than usual when reasoning and might struggle to retain complex knowledge. You're not unintelligent, but you're not particularly quick or insightful.
+* **10-11 (Mod. 0):** **Average.** You know what you need to know to get by. You can reason effectively for most daily tasks and retain general knowledge. This is the common human average.
+* **12-13 (Mod. +1):** **Bright.** You know a bit more than is necessary and are fairly logical. You can grasp new concepts relatively quickly and are generally quick-witted in conversation.
+* **14-15 (Mod. +2):** **Intelligent.** You are fairly intelligent, able to understand new tasks quickly and perform complex mental calculations. You can often solve logic puzzles mentally with reasonable accuracy.
+* **16-17 (Mod. +3):** **Very Intelligent.** You possess a keen mind, capable of deep analysis and abstract thought. You might invent new processes or uses for knowledge and readily connect disparate ideas.
+* **18-19 (Mod. +4):** **Highly Intelligent/Genius.** You are highly knowledgeable and probably the smartest person many people know. You can make Holmesian leaps of logic and master complex subjects with remarkable speed.
+* **20-21 (Mod. +5):** **Exceptional Genius.** You are famous as a sage and a genius, capable of groundbreaking discoveries and solving problems that baffle others. Your mind works at an incredible pace.
+* **22-23 (Mod. +6):** **Superhuman Intellect.** Your mental faculties operate on a different plane. You can process information at an astonishing rate, hold multiple complex thoughts simultaneously, and instantly recall vast amounts of information.
+* **24-25 (Mod. +7):** **Mythic Intellect.** Your intellect borders on the cosmic. You might be able to understand complex magical theories at a glance, devise strategies with incredible foresight, or even comprehend impossible concepts.
+* **26-27 (Mod. +8):** **Godlike (Lesser).** Your mind approaches that of a minor deity, capable of understanding and manipulating fundamental forces of reality through sheer mental power.
+* **28-29 (Mod. +9):** **Godlike (Greater).** Your intellect is on par with true deities. You possess omniscience within a certain domain, capable of comprehending the universe's most profound mysteries.
+* **30 (Mod. +10):** **Divine.** You are the embodiment of pure intellect. Your knowledge is boundless, and your understanding encompasses all things.
+
+## Wisdom
+
+**Wisdom** measures perception, intuition, insight, and common sense.
+
+* **3 (Mod. -4):** **Oblivious/Barely Aware.** You are seemingly incapable of thought or barely aware of your surroundings. You might stare blankly or miss obvious threats.
+* **4-5 (Mod. -3):** **Unobservant.** You rarely notice important or prominent items, people, or occurrences. You seem incapable of forethought and are easily surprised or misled.
+* **6-7 (Mod. -2):** **Foolish.** You often fail to exert common sense, make rash decisions, and are prone to overlooking crucial details. You're easily tricked or caught off guard.
+* **8-9 (Mod. -1):** **Inattentive.** You might forget or opt not to consider all options before taking action. You're generally well-meaning but prone to errors in judgment and perception.
+* **10-11 (Mod. 0):** **Average.** You make reasoned decisions most of the time and have a decent awareness of your surroundings. You're generally sensible. This is the common human average.
+* **12-13 (Mod. +1):** **Perceptive.** You have a good eye for detail and are capable of reading people fairly well. You can often tell when a person is upset or lying.
+* **14-15 (Mod. +2):** **Insightful.** You read people and situations very well and often get strong hunches about a situation that doesn't feel right. You're rarely surprised and notice subtle clues others miss.
+* **16-17 (Mod. +3):** **Keen-witted.** You are keenly aware of your environment and changes within it, seldom missing a clue, insinuation, or lie. You possess excellent judgment and intuition.
+* **18-19 (Mod. +4):** **Profoundly Wise/Preternatural Awareness.** You are often sought out for your wisdom and are a natural leader in difficult situations. You seem to anticipate events before they happen and possess an almost preternatural awareness.
+* **20-21 (Mod. +5):** **Sage-like.** Your wisdom is legendary. You possess perfect awareness of surroundings, context, and implications, making it extremely hard to get anything past you. You are a fount of practical knowledge.
+* **22-23 (Mod. +6):** **Superhuman Perception.** Your senses are incredibly acute, and your intuition is infallible. You can perceive hidden truths and insights others can't even fathom.
+* **24-25 (Mod. +7):** **Mythic Awareness.** Your perception extends beyond the mundane, allowing you to sense magic, spirits, or even faint echoes of past events. You are rarely truly surprised.
+* **26-27 (Mod. +8):** **Godlike (Lesser).** Your wisdom rivals that of minor deities, granting you glimpses into fate or the true nature of reality.
+* **28-29 (Mod. +9):** **Godlike (Greater).** Your wisdom is on par with true deities. You understand the fundamental truths of existence and the intricate workings of the cosmos.
+* **30 (Mod. +10):** **Divine.** You embody pure wisdom. Your understanding is absolute, and your intuition is flawless, allowing you to perceive all things as they truly are.
+
+## Charisma
+
+**Charisma** measures your ability to interact effectively with others, reflecting confidence, eloquence, and force of personality.
+
+* **3 (Mod. -4):** **Repellent.** You are profoundly hateful, utterly tactless, and possess no empathy. People are instinctively repulsed by you or find you incredibly boring.
+* **4-5 (Mod. -3):** **Off-putting.** You are deeply disagreeable, whether through extreme incompetence, malice, or utter blandness. You have trouble even thinking of others as people and how to interact with them.
+* **6-7 (Mod. -2):** **Unlikable.** You are terribly reticent, uninteresting, or rude. You frequently make gaffes and have difficulty connecting with others.
+* **8-9 (Mod. -1):** **Awkward.** You're somewhat socially inept or dull. You might make people mildly uncomfortable or struggle to find the right words in conversation.
+* **10-11 (Mod. 0):** **Average.** You are capable of polite conversation and can generally navigate social situations without major issues. You're neither particularly charming nor particularly off-putting. This is the common human average.
+* **12-13 (Mod. +1):** **Personable.** You are mildly interesting and know what to say to the right people. You can make a good first impression and hold your own in a debate.
+* **14-15 (Mod. +2):** **Charming.** You are often popular or infamous, possessing assured social skills. You know what to say to most people and can confidently lead a conversation or argument.
+* **16-17 (Mod. +3):** **Compelling.** You are quickly likeable, respected, or feared by many. You are very eloquent, persuasive, and possess a strong force of personality that draws others to you (or makes them wary).
+* **18-19 (Mod. +4):** **Magnetic/Peak Human Presence.** Your presence lights up a room, and people are immediately drawn to you. Even your worst enemies can't help but respond to your words. You are a natural leader, orator, or performer.
+* **20-21 (Mod. +5):** **Inspirational.** You possess a truly captivating personality. You can inspire devotion, command legions, and sway the hearts and minds of entire crowds with your words and actions.
+* **22-23 (Mod. +6):** **Superhuman Presence.** Your force of personality is overwhelming. You can charm beings resistant to mundane influence, and your mere presence can instill awe or dread.
+* **24-25 (Mod. +7):** **Mythic Presence.** You radiate an aura of power and conviction that few can resist. Your words can bend the will of others, and your influence spans vast distances.
+* **26-27 (Mod. +8):** **Godlike (Lesser).** Your charisma rivals that of minor deities, granting you the ability to inspire cults, lead nations, or influence the very fabric of social order.
+* **28-29 (Mod. +9):** **Godlike (Greater).** Your charisma is on par with true deities. You can command loyalty from legions of followers and sway even the most powerful of beings with your presence.
+* **30 (Mod. +10):** **Divine.** You are the embodiment of pure charisma. Your presence is irresistible, your words are law, and your force of personality can shape the very beliefs and emotions of others.

@@ -101,84 +101,45 @@ Before your actions to edit file, you must present your reasoning and approach f
 ## Current Progress Summary
 
 **Last Task:** Implementing the "Dynamic Game Rule Selection" feature.
-**Current Status:** The modifications to `lib/schemas.ts`, `lib/state.ts`, `lib/engine.ts`, and `lib/prompts.ts` have been completed and verified (no compile/runtime errors). Console logs were added to `lib/engine.ts` for debugging, and there are no compile, runtime, or logic issues. The `selectedPlugin` property has been introduced in `lib/state.ts` and the `setPluginSelected` method in `app/plugins.ts`. The `getActiveGameRuleLogic()` in `lib/engine.ts` has been updated to prioritize `selectedPlugin`. The `game-rule-dnd5e` plugin's `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName`. The `views/CharacterSelect.tsx` has been updated to include a label showing the `selectedPluginName`, a smaller red light indicator on plugin tabs if `selectedPlugin` is true, and a `Switch` toggle within each plugin's content to control `selectedPlugin` status. The glowing red light indicator and its CSS have been removed from `views/CharacterSelect.tsx`. All tests have passed, and there are no known issues.
 
-**Next Step:** Update `views/CharacterSelect.tsx` to include UI for game rule selection.
+**Completed Changes:**
+*   **`lib/schemas.ts`:** Added `activeGameRule: z.string()` and `isCombat: z.boolean()` to the `State` schema.
+*   **`lib/state.ts`:**
+    *   Initialized `activeGameRule` to `"default"` in `initialState`.
+    *   Defined `CheckDefinition`, `CheckResult`, `RaceDefinition`, `ClassDefinition`, and the `IGameRuleLogic` interface.
+    *   Extended the `Plugin` interface with `getGameRuleLogic?(): IGameRuleLogic;`.
+    *   Added `selectedPlugin?: boolean;` to the `PluginWrapper` interface.
+*   **`lib/engine.ts`:**
+    *   Implemented `getDefaultGameRuleLogic()` and `getActiveGameRuleLogic()`.
+    *   Modified the `next()` function to use `getActiveGameRuleLogic()` for protagonist generation, action resolution, and combat narration.
+*   **`lib/prompts.ts`:**
+    *   Modified `generateProtagonistPrompt` to accept `initialProtagonistStats`.
+    *   Modified `narratePrompt` to accept `checkResultStatements`.
+*   **`app/plugins.ts`:** Added the `setPluginSelected` method to `Context`.
+*   **`views/CharacterSelect.tsx`:**
+    *   Updated to include UI for game rule selection, including `activeGameRule`, `plugins`, `protagonist` in `useStateStore`.
+    *   Instantiated `Context` to access `setPluginSelected`.
+    *   Implemented `handleTabChange` and `handlePluginSelectionToggle`.
+    *   Added logic for `currentlySelectedPlugins` and `activeGameRuleDisplay`.
+    *   Implemented UI elements for tabs, switches, and the red light indicator.
+    *   The `game-rule-dnd5e` plugin's `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName`.
+    *   The `test-ui-plugin`'s `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName` and `await` for `setGlobalState`.
+    *   All tests have passed, and there are no known issues.
 
-**Key aspects of the implemented changes include:**
-- Added `activeGameRule: z.string()` to the `State` schema in `lib/schemas.ts`.
-- Initialized `activeGameRule` to `"default"` in `initialState` in `lib/state.ts`.
-- Defined `CheckDefinition`, `CheckResult`, `RaceDefinition`, `ClassDefinition`, and the `IGameRuleLogic` interface in `lib/state.ts`.
-- Extended the `Plugin` interface with `getGameRuleLogic?(): IGameRuleLogic;` in `lib/state.ts`.
-- Implemented `getDefaultGameRuleLogic()` and `getActiveGameRuleLogic()` in `lib/engine.ts`.
-- Modified the `next()` function in `lib/engine.ts` to use `getActiveGameRuleLogic()` for protagonist generation, action resolution, and combat narration.
-- Modified `generateProtagonistPrompt` in `lib/prompts.ts` to accept `initialProtagonistStats`.
-- Modified `narratePrompt` in `lib/prompts.ts` to accept `checkResultStatements`.
+**Current Task:** Implement the `IGameRuleLogic` methods in the `game-rule-dnd5e` plugin (`plugins/game-rule-dnd5e/src/main.tsx`) so that it will start passing customized prompts back to the main app.
 
-**Background:** The previous task involved investigating the current mechanics for enabling/disabling installed plugins. It was determined that plugin enablement is controlled by an `enabled` boolean in the global state, which is persisted and respected by the loading logic, but there is no user-facing UI to manage this. The `rpg-dice-roller` integration and "Re-roll" button functionality have been successfully implemented and verified at runtime.
+**Reasoning for Current Task:**
+The `game-rule-dnd5e` plugin is designed to provide D&D 5th Edition specific game rules. To integrate these rules with the main Waidrin application, the plugin needs to implement the `IGameRuleLogic` interface. This interface defines a contract for how a game rule can influence character generation, action resolution, and narration within the Waidrin engine. By implementing these methods, the D&D 5e plugin can inject its specific mechanics and flavor into the game flow.
 
-**Objective:** Implement the "Dynamic Game Rule Selection" feature, allowing the application to dynamically switch between different sets of game rules provided by plugins, influencing core game mechanics like character generation, action resolution (including skill checks), and narration.
+**Approach for Current Task:**
+1.  **Import necessary types:** Add imports for `IGameRuleLogic`, `Character`, and `Prompt` to `plugins/game-rule-dnd5e/src/main.tsx`.
+2.  **Declare `DndStatsPlugin` implements `IGameRuleLogic`:** Modify the class signature of `DndStatsPlugin` to explicitly state that it implements `IGameRuleLogic`.
+3.  **Implement `getGameRuleLogic()`:** This method will simply return `this` (the instance of `DndStatsPlugin`), as the plugin itself will be providing the game rule logic.
+4.  **Implement `getInitialProtagonistStats()`:** This method will generate a string summarizing the D&D 5e character's core attributes (Strength, Dexterity, etc.) based on the plugin's current settings. This string will be used by the main application to augment the protagonist generation prompt, ensuring that newly generated characters align with D&D 5e stat conventions.
+5.  **Implement `modifyProtagonistPrompt()`:** This method will allow the plugin to modify the system or user prompt for protagonist generation. Initially, it will return the original prompt, but it provides a clear extension point for future D&D 5e specific prompt modifications (e.g., emphasizing a fantasy setting, specific character roles).
+6.  **Implement `getActionChecks()`:** This method will analyze the user's action and the current game state to determine if any D&D 5e specific checks (e.g., skill checks, saving throws) are required. For a first pass, I will implement a simplified version that uses keyword matching to identify common D&D actions (e.g., "attack", "persuade", "sneak") and return predefined `CheckDefinition`s.
+7.  **Implement `resolveCheck()`:** This method will take a `CheckDefinition` (e.g., "Strength check, DC 15") and the protagonist's `Character` object. It will use the `rpg-dice-roller` (injected via `Context`) to simulate a D20 roll, apply relevant D&D 5e attribute modifiers (derived from the plugin's settings), and determine if the check succeeds or fails against the `difficultyClass`. It will then return a descriptive string summarizing the outcome of the check (e.g., "You succeeded on your Strength check!").
+8.  **Implement `getNarrationPrompt()`:** This method will construct a `Prompt` object for narration. It will incorporate the `checkResultStatements` (generated by `resolveCheck`) into the user prompt, ensuring that the narration reflects the outcomes of D&D 5e checks. It will also allow for D&D 5e specific narrative framing.
+9.  **Implement `getCombatRoundNarration()`:** This method will provide a D&D 5e flavored narration for combat rounds, taking `roundNumber` and `combatLog` as input.
 
-**Problem We Are Solving (Refined):**
-
-The core application needs a flexible way to allow game rule plugins to:
-1.  Influence the narrative generation of protagonist background, personality, and appearance based on the plugin's internal character interpretations.
-2.  Define and resolve game-specific checks (e.g., skill checks, attribute checks) based on the protagonist's actions, without forcing a rigid global character schema.
-3.  Augment the core application's narration with results and consequences of these checks, effectively "shielding" the core app from game mechanics details.
-
-**Detailed Plan with Reasoning:** Only provide plan to Human, do NOT edit any files, they will first approve the plan, then you can ask for edit permission once approved.
-
-This feature aims to introduce a robust system for dynamic game rule selection, allowing the application to dynamically switch between different sets of game rules provided
-by plugins, influencing core game mechanics like character generation, action resolution (including checks), and narration. The implementation will leverage Waidrin's
-existing plugin framework and state management system.
-
-**Original 7 Topics (and their refined details):**
-
-1.  **Update `lib/schemas.ts`:**
-    *   **Action:** Add `activeGameRule: z.string()` to the `State` schema.
-    *   **Reasoning:** The `State` schema (`lib/schemas.ts`) defines the overall structure of the application's global state. To enable dynamic game rule selection, we need a persistent way to track which game rule is currently active. Adding `activeGameRule` as a `z.string()` ensures that this information is part of the validated global state, allowing it to be stored and retrieved reliably. This is a foundational step for any state-driven feature.
-    *   **Refined Detail (Character Schema):** The global `Character` schema will **NOT** be expanded to include detailed RPG attributes (Str, Dex, etc.) or skills. These are managed internally by the plugins.
-
-2.  **Update `lib/state.ts`:**
-    *   **Action 2.1:** Initialize `activeGameRule` to `"default"` in `initialState`.
-        *   **Reasoning:** The `initialState` in `lib/state.ts` defines the default values for the application's state when it first loads or is reset. Setting `activeGameRule` to `"default"` ensures that the application always starts with a known, fallback game rule if no other rule is explicitly selected or persisted. This provides a stable baseline for the game mechanics.
-    *   **Action 2.2:** Define `CheckDefinition`, `CheckResult`, `RaceDefinition`, `ClassDefinition`, and the `IGameRuleLogic` interface.
-        *   **`IGameRuleLogic` Interface Refinement:**
-            *   `getInitialProtagonistStats?(): string;` (Changed from `Partial<Character>`)
-                *   **Purpose:** To return a statement that augments the default prompt in `generateProtagonistPrompt`, influencing the protagonist's background, personality, and appearance based on the plugin's internal interpretation of stats.
-            *   `getActionChecks?(action: string, context: WritableDraft<State>): CheckDefinition[];` (Changed `actionType` to `action`)
-                *   **Purpose:** To interpret the raw action and context (potentially using LLM internally) to derive the necessary `CheckDefinition`s.
-            *   `resolveCheck?(check: CheckDefinition, characterStats: Character): string;` (Changed from `CheckResult`)
-                *   **Purpose:** To perform a roll against the character's appropriate stat and skill modifier (managed internally by the plugin) and present the result as a statement to influence `narratePrompt`. The `characterStats: Character` parameter will be the global `Character` object, which the plugin will map to its internal representation.
-            *   `getNarrationPrompt?(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[]): string;` (Changed `checkResults` to `checkResultStatements` and `CheckResult[]` to `string[]`)
-            *   `getCombatRoundNarration?(roundNumber: number, combatLog: string[]): string;` (Changed `combatLog` from `any` to `string[]`)
-            *   Other methods (`modifyProtagonistPrompt`, `getAvailableRaces`, `getAvailableClasses`) remain as previously defined.
-        *   **Reasoning:** This interface is central to the dynamic game rule system. It formalizes the contract between the core game engine and any game rule plugin. By defining these methods, we create clear extension points for plugins to inject their specific logic for character generation, action resolution, and narration. The optional `?` makes these methods flexible, allowing plugins to implement only the logic they need. This aligns with the plugin framework's goal of extensibility and modularity.
-    *   **Action 2.3:** Extend `Plugin` interface with `getGameRuleLogic?(): IGameRuleLogic;`.
-        *   **Reasoning:** The `Plugin` interface in `lib/state.ts` defines the capabilities that any plugin can expose to the main application. By adding `getGameRuleLogic?()`, we provide a standard way for plugins to register their `IGameRuleLogic` implementation. The optional `?` ensures that not all plugins are required to provide game rule logic, maintaining flexibility. This is how the core application will discover and access the specific game rule logic provided by an active plugin.
-
-3.  **Update `lib/engine.ts`:**
-    *   **Action 3.1:** Implement `getDefaultGameRuleLogic()`.
-    *   **Action 3.2:** Implement `getActiveGameRuleLogic()`.
-    *   **Action 3.3:** Modify `next()` function to use `getActiveGameRuleLogic()`:
-        *   **For protagonist generation:** Call `getActiveGameRuleLogic().getInitialProtagonistStats()` to get a statement that augments the prompt for character generation.
-        *   **For action resolution and narration:** When an action is passed to `narratePrompt`, the core application will trigger `getActiveGameRuleLogic().getActionChecks(action, state)` to get `CheckDefinition`s. For each `CheckDefinition`, `getActiveGameRuleLogic().resolveCheck()` will be called to get a result statement. These statements will be incorporated into the `narratePrompt`'s output.
-        *   **For combat narration:** Introduce logic to detect if the game is in a "combat" state. If so, call `getActiveGameRuleLogic().getCombatRoundNarration()` instead of the general `getNarrationPrompt()` for turn-based narration.
-
-4.  **Update `views/CharacterSelect.tsx`:**
-    *   **Action:** Modify UI for game rule selection and display. This will involve presenting the user with available game rules (either default or from loaded plugins) and allowing them to select one.
-
-5.  **Benefits:** (Remain as previously defined)
-6.  **Risks/Considerations:** (Remain as previously defined)
-    *   **Error Handling Strategy:**
-        *   **Centralized State Rollback (`lib/state.ts`):** The `setAsync` mechanism in `lib/state.ts` provides a robust `try...catch` block for all state updates. If an error occurs during a state update (including those triggered by plugin logic), the state will be rolled back to its last valid committed state, ensuring data consistency. Errors are then re-thrown for higher-level handling.
-        *   **Plugin-Internal LLM Error Handling:** For LLM interactions within plugin methods (e.g., `getActionChecks`), the plugin itself is responsible for implementing `try...catch` blocks around LLM API calls and JSON parsing/validation.
-            *   If the LLM response is invalid, unparseable, or does not conform to the expected schema, the plugin should **not** throw an error. Instead, it should return a "safe" default (e.g., an empty array for `CheckDefinition[]` from `getActionChecks`).
-            *   This allows the core application to continue gracefully without interruption.
-            *   Plugins should log these internal errors for debugging purposes.
-        *   **Core Application Expectation:** The core application (e.g., in `lib/engine.ts`) will call plugin methods expecting these "safe" defaults in case of internal plugin errors.
-        *   **Propagated Errors:** Errors that *do* propagate out of `next()` (e.g., unhandled exceptions from plugin logic, Zod validation failures) will be caught by the top-level `setAsync` mechanism and re-thrown. These should be caught and displayed to the user by the UI.
-
-7.  **How `IGameRuleLogic` influences narration (expanded):** (Updated to reflect the new flow for `getActionChecks` and `resolveCheck` influencing `narratePrompt` via statements.)
-
-**Verification Steps (Post-Implementation):** (Remain as previously defined, but will be interpreted in light of the refined design.)
+This will significantly enhance the `game-rule-dnd5e` plugin's functionality and its integration with the main application's dynamic game rule system.

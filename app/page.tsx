@@ -12,6 +12,7 @@ import MainMenu from "@/components/MainMenu";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
 import StateDebugger from "@/components/StateDebugger";
 import { abort, back, isAbortError, next } from "@/lib/engine";
+import { getBackend } from "@/lib/backend";
 import { type Plugin, type PluginWrapper, useStateStore } from "@/lib/state";
 import CharacterSelect from "@/views/CharacterSelect";
 import Chat from "@/views/Chat";
@@ -86,7 +87,7 @@ export default function Home() {
           const plugin: Plugin = new pluginClass();
 
           if (plugin.init) {
-            const context = new Context(manifest.name, React, useStateStore.getState().setAsync, useStateStore.getState, Immer, RadixThemes, ReactIconsGi, useShallow, rpgDiceRoller);
+            const context = new Context(manifest.name, React, useStateStore.getState().setAsync, useStateStore.getState, Immer, RadixThemes, ReactIconsGi, useShallow, rpgDiceRoller, getBackend);
             await plugin.init(pluginWrapper ? current(pluginWrapper.settings) : manifest.settings, context);
           }
 

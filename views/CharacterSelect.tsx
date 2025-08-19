@@ -6,6 +6,7 @@ import { GiFemale, GiMale } from "react-icons/gi";
 import { useShallow } from "zustand/shallow";
 import ImageOption from "@/components/ImageOption";
 import { usePluginsStateStore, Context } from "@/app/plugins"; // Import Context
+import { getBackend } from "@/lib/backend";
 import WizardStep from "@/components/WizardStep";
 import { type Gender, type Race, useStateStore } from "@/lib/state";
 
@@ -44,6 +45,7 @@ export default function CharacterSelect({ onNext, onBack }: { onNext?: () => voi
     null as any, // reactIconsGi not needed
     null as any, // useShallow not needed
     null as any, // rpgDiceRoller not needed
+    getBackend,
   );
 
   const handleTabChange = (value: string) => {

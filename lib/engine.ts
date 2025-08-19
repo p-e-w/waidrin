@@ -28,7 +28,7 @@ import { getState, initialState, type Location, type LocationChangeEvent, type N
 function getDefaultGameRuleLogic(): IGameRuleLogic {
   return {
     // Default implementation for getInitialProtagonistStats
-    getInitialProtagonistStats: () => "",
+    getInitialProtagonistStats: () => Promise.resolve(""),
 
     // Default implementation for modifyProtagonistPrompt
     modifyProtagonistPrompt: (originalPrompt: Prompt) => originalPrompt,
@@ -375,7 +375,7 @@ export async function next(
         // Request the backend to generate the protagonist character.
         // The generated character object is assigned to `state.protagonist`.
         const gameRuleLogic = getActiveGameRuleLogic();
-        const initialProtagonistStats = gameRuleLogic.getInitialProtagonistStats ? gameRuleLogic.getInitialProtagonistStats() : "";
+        const initialProtagonistStats = gameRuleLogic.getInitialProtagonistStats ? await gameRuleLogic.getInitialProtagonistStats() : "";
         console.log(`ENGINE: getInitialProtagonistStats returned: ${initialProtagonistStats}`); //Debug logging
         let protagonistPrompt = generateProtagonistPrompt(state, initialProtagonistStats);
         if (gameRuleLogic.modifyProtagonistPrompt) {
