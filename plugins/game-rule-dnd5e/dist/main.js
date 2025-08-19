@@ -4061,7 +4061,6 @@ Provide a concise, narrative-friendly description of the character's core attrib
 var React;
 var DndStatsCharacterUIPage = ({
   injectedReact,
-  injectedImmer,
   injectedRadixThemes,
   getGlobalState,
   setGlobalState,
@@ -4137,7 +4136,6 @@ var DndStatsPlugin = class {
         DndStatsCharacterUIPage,
         {
           injectedReact: this.context.react,
-          injectedImmer: this.context.immer,
           injectedRadixThemes: this.context.radixThemes,
           getGlobalState: this.context.getGlobalState,
           setGlobalState: this.context.setGlobalState,

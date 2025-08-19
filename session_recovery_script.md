@@ -124,9 +124,15 @@ Before your actions to edit file, you must present your reasoning and approach f
     *   Implemented UI elements for tabs, switches, and the red light indicator.
     *   The `game-rule-dnd5e` plugin's `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName`.
     *   The `test-ui-plugin`'s `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName` and `await` for `setGlobalState`.
-    *   All tests have passed, and there are no known issues.
+*   **`plugins/game-rule-dnd5e/src/main.tsx` refactored:**
+    *   Moved D&D 5e specific data (schemas, default settings, class data) to `plugins/game-rule-dnd5e/src/pluginData.ts`.
+    *   Moved prompt-related content and logic to `plugins/game-rule-dnd5e/src/pluginPrompt.ts`.
+    *   Removed unused imports (`Character`, `ChangeEvent`, `Immer`) and unused props (`injectedImmer`) to clean up the file.
+*   **`plugins/game-rule-dnd5e/src/pluginData.ts` created:** Contains D&D 5e specific data structures and default value generation.
+*   **`plugins/game-rule-dnd5e/src/pluginPrompt.ts` created:** Contains prompt content and logic for generating protagonist prompts.
+*   All tests have passed, and there are no known issues.
 
-**Current Task:** Implement the `IGameRuleLogic` methods in the `game-rule-dnd5e` plugin (`plugins/game-rule-dnd5e/src/main.tsx`) so that it will start passing customized prompts back to the main app.
+**Current Task:** Implement the remaining `IGameRuleLogic` methods in the `game-rule-dnd5e` plugin (`plugins/game-rule-dnd5e/src/main.tsx`) so that it will start passing customized prompts back to the main app. Specifically, the `getInitialProtagonistStats()` method has been updated to use the new `pluginPrompt.ts`, but other methods like `getActionChecks()`, `resolveCheck()`, `getNarrationPrompt()`, and `getCombatRoundNarration()` still need implementation.
 
 **Reasoning for Current Task:**
 The `game-rule-dnd5e` plugin is designed to provide D&D 5th Edition specific game rules. To integrate these rules with the main Waidrin application, the plugin needs to implement the `IGameRuleLogic` interface. This interface defines a contract for how a game rule can influence character generation, action resolution, and narration within the Waidrin engine. By implementing these methods, the D&D 5e plugin can inject its specific mechanics and flavor into the game flow.

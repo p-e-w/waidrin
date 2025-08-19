@@ -11,14 +11,12 @@
 // These imports are crucial for TypeScript type checking but are removed during the build process
 // to prevent bundling these libraries within the plugin, thus avoiding the "two Reacts" problem.
 import type { WritableDraft } from "immer";
-import type { Plugin, PluginWrapper, StoredState, IGameRuleLogic, Character } from "@/lib/state";
+import type { Plugin, PluginWrapper, StoredState, IGameRuleLogic } from "@/lib/state";
 import type { Context } from "@/app/plugins";
-import type * as Immer from 'immer';
+
 import type * as RadixThemes from '@radix-ui/themes';
-import type { ChangeEvent } from 'react';
 import type { useShallow } from 'zustand/shallow';
-import type { Prompt } from "@/lib/prompts";
-import { DndStatsSettings, generateDefaultDndStatsSettings, DndClassData, DND_CLASS_DATA, DndStatsSettingsSchema } from "./pluginData";
+import { DndStatsSettings, generateDefaultDndStatsSettings, DND_CLASS_DATA, DndStatsSettingsSchema } from "./pluginData";
 import { getProtagonistGenerationPrompt } from "./pluginPrompt";
 
 
@@ -33,7 +31,7 @@ let React: typeof import('react');
  */
 interface DndStatsCharacterUIPageProps {
   injectedReact: typeof React;
-  injectedImmer: typeof Immer;
+  
   injectedRadixThemes: typeof RadixThemes;
   getGlobalState: () => StoredState;
   setGlobalState: (updater: (state: WritableDraft<StoredState>) => Promise<void>) => Promise<void>;
@@ -49,7 +47,6 @@ interface DndStatsCharacterUIPageProps {
  */
 const DndStatsCharacterUIPage = ({
   injectedReact,
-  injectedImmer,
   injectedRadixThemes,
   getGlobalState,
   setGlobalState,
@@ -179,7 +176,6 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
       <span>D&D 5E</span>, // GameRuleTab: The ReactNode for the tab trigger.
       <DndStatsCharacterUIPage
         injectedReact={this.context.react}
-        injectedImmer={this.context.immer}
         injectedRadixThemes={this.context.radixThemes}
         getGlobalState={this.context.getGlobalState}
         setGlobalState={this.context.setGlobalState}
