@@ -186,7 +186,7 @@ export class DefaultBackend implements Backend {
     }
 
     const client = this.getClient();
-    const modelName = this.getSettings().model;
+    const modelName = settings.model;
     
     let models = await client.models.list();
     
