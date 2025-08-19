@@ -3,24 +3,15 @@
 
 import type { LocationChangeEvent, NarrationEvent, State } from "./state";
 
-// We'll use context unit types to build our context and replace parts of it with summaries as needed.
-interface LocationChangeContextUnit {
-  type: "location_change";
+// Type that represents each scene in context
+interface Scene {
+  // text for the entire scene
   text: string;
-  tokenCount: number;
+  // the summary for the scene
   summary?: string;
+  // whether to use the scene summary in the context or not
+  summarize: boolean;
 }
-interface NarrationContextUnit {
-  type: "narration";
-  text: string;
-  tokenCount: number;
-}
-interface SummaryContextUnit {
-  type: "summary";
-  text: string;
-  tokenCount: number;
-}
-type ContextUnit = LocationChangeContextUnit | NarrationContextUnit | SummaryContextUnit;
 
 /**
  * Get the context of events given the current state and token budget that we need to fit within.
@@ -37,28 +28,28 @@ export function getContext(state: State, tokenBudget: number): string {
     return "";
   }
 
-  // Create initial context units
-  let contextUnits = createInitialContextUnits(events, state);
+  // Create initial context
+  let context = createInitialContext(events, state);
   
   // Step 1: Try full text without summaries
-  if (isContextWithinBudget(contextUnits, tokenBudget)) {
-    return convertContextUnitsToText(contextUnits);
+  if (isContextWithinBudget(context, tokenBudget)) {
+    return convertContextToText(context);
   }
 
   // Step 2: Replace oldest scenes with their scene summaries (except latest scene)
-  contextUnits = replaceScenesWithSummaries(contextUnits, events, tokenBudget);
-  if (isContextWithinBudget(contextUnits, tokenBudget)) {
-    return convertContextUnitsToText(contextUnits);
+  context = replaceScenesWithSummaries(context, tokenBudget);
+  if (isContextWithinBudget(context, tokenBudget)) {
+    return convertContextToText(context);
   }
 
   // Step 3: Remove oldest scenes until we're under budget
-  contextUnits = removeOldestScenes(contextUnits, tokenBudget);
+  context = removeOldestScenes(context, tokenBudget);
   // if we're still not able to fit within budget (just the current scene takes up more than the budget) throw an error
-  if (!isContextWithinBudget(contextUnits, tokenBudget)) {
+  if (!isContextWithinBudget(context, tokenBudget)) {
     throw new Error("Unable to fit context within token budget even after summarization");
   }
 
-  return convertContextUnitsToText(contextUnits);
+  return convertContextToText(context);
 }
 
 /**
@@ -67,134 +58,126 @@ export function getContext(state: State, tokenBudget: number): string {
  * @param state current state
  * @returns 
  */
-function createInitialContextUnits(events: (NarrationEvent | LocationChangeEvent)[], state: State): ContextUnit[] {
-  const units: ContextUnit[] = [];
+function createInitialContext(events: (NarrationEvent | LocationChangeEvent)[], state: State): Scene[] {
+  const scenes: Scene[] = [];
 
-  events.forEach((event, i) => {
-    if (event.type === "narration") {
-      const text = event.text;
-      units.push({
-        type: "narration",
-        text,
-        tokenCount: getApproximateTokenCount(text),
-      });
-    } else if (event.type === "location_change") {
-      const text = convertLocationChangeEventToText(event, state);
-      units.push({
-        type: "location_change",
-        text,
-        tokenCount: getApproximateTokenCount(text),
-        summary: event.summary,
-      });
+  if (events.length === 0) {
+    return scenes;
+  }
+
+  // We go through all the events, as we encounter location changes, we create a new scene
+  let currentSceneEvents: (NarrationEvent | LocationChangeEvent)[] = [];
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+    if (event.type === "location_change") {
+      // If we have accumulated events from a previous scene, create a scene for them
+      if (currentSceneEvents.length > 0) {
+        const sceneText = createSceneText(currentSceneEvents, state);
+        scenes.push({
+          text: sceneText,
+          summary: event.summary, // the summary for the previous scene is stored in this location change event
+          summarize: false // Initially all scenes use full text
+        });
+      }
+
+      // Start a new scene with this location change
+      currentSceneEvents = [event];
+    } else if (event.type === "narration") {
+      // Add narration events to the current scene
+      currentSceneEvents.push(event);
     }
-  });
+  }
 
-  return units;
+  // Handle the final scene (if there are remaining events)
+  if (currentSceneEvents.length > 0) {
+    const sceneText = createSceneText(currentSceneEvents, state);
+    scenes.push({
+      text: sceneText,
+      summary: undefined, // The last scene doesn't have a summary yet
+      summarize: false
+    });
+  }
+
+  return scenes;
+}
+
+/**
+ * Convert a sequence of events for a single scene into text.
+ * @param events The events that make up the scene
+ * @param state The current state
+ * @returns The text representation of the scene
+ */
+function createSceneText(events: (NarrationEvent | LocationChangeEvent)[], state: State): string {
+  const sceneParts: string[] = [];
+
+  for (const event of events) {
+    if (event.type === "location_change") {
+      sceneParts.push(convertLocationChangeEventToText(event, state));
+    } else if (event.type === "narration") {
+      sceneParts.push(event.text);
+    }
+  }
+
+  return sceneParts.join("\n\n");
 }
 
 /**
  * Replace oldest scenes with their scene summaries (except the latest scene).
- * We consider a location_change to mark the start of a scene.
- * Then the next location_change marks the end of that scene and the start of the next scene.
- * So when we summarize, we replace all events including the starting location_change up to right before the ending location_change
- * with the scene summary.
- * @param contextUnits The current context units.
- * @param events The original events array.
+ * @param context The current context.
  * @param tokenBudget The token budget.
- * @returns Updated context units.
+ * @returns Updated context.
  */
 function replaceScenesWithSummaries(
-  contextUnits: ContextUnit[], 
-  events: (NarrationEvent | LocationChangeEvent)[], 
+  context: Scene[], 
   tokenBudget: number
-): ContextUnit[] {
-  let units = [...contextUnits];
-  let sceneIndex = 0;
+): Scene[] {
+  const scenes = [...context];
   
-  while (sceneIndex < units.length && !isContextWithinBudget(units, tokenBudget)) {
-    // Find the earliest location change
-    // This marks that start of the scene we're summarizing
-    if (units[sceneIndex].type !== "location_change") {
-      sceneIndex++;
-      continue;
-    }
-    
-    // Find the next location change after sceneIndex
-    // that next location change marks the end of this scene we're summarizing
-    let endSceneLocationChange: LocationChangeContextUnit | null = null;
-    let endSceneLocationChangeIndex = -1;
-    for (let i = sceneIndex + 1; i < units.length; i++) {
-      const contextUnit = units[i];
-      if (contextUnit.type === "location_change") {
-        endSceneLocationChange = contextUnit;
-        endSceneLocationChangeIndex = i;
+  // Go through each scene (except the last one) and switch to summary if available
+  for (let i = 0; i < scenes.length - 1; i++) {
+    if (scenes[i].summary && !scenes[i].summarize) {
+      scenes[i] = { ...scenes[i], summarize: true };
+      
+      // Check if we're now within budget
+      if (isContextWithinBudget(scenes, tokenBudget)) {
         break;
       }
     }
-    
-    // If no next location change found,
-    // means the scene never ended and we're at the latest scene - stop here
-    if (!endSceneLocationChange) {
-      break;
-    }
-
-    // Get the scene summary (always stored on the location change event marking the end of the scene)
-    const sceneSummary = endSceneLocationChange.summary;
-    if (sceneSummary) {
-      // Replace everything from sceneIndex to right before endSceneLocationChangeIndex with the summary
-      const summaryUnit: SummaryContextUnit = {
-        type: "summary",
-        text: sceneSummary,
-        tokenCount: getApproximateTokenCount(sceneSummary),
-      };
-      
-      // Replace the scene units with the summary unit
-      units = [
-        ...units.slice(0, sceneIndex),
-        summaryUnit,
-        ...units.slice(endSceneLocationChangeIndex)
-      ];
-    }
-    
-    // Move to the next scene (which is now at sceneIndex + 1)
-    sceneIndex++;
   }
   
-  return units;
+  return scenes;
 }
 
 /**
  * Remove oldest scenes until we're under the token budget.
  * Assume that at this point, all scenes except the most recent have been replaced with their summaries,
- * So this will keep removing the oldest summaries until it runs into the most recent non-summary event.
- * @param contextUnits The current context units.
+ * So this will keep removing the oldest summaries until the most recent scene.
+ * @param context The current context.
  * @param tokenBudget The token budget.
- * @returns Updated context units.
+ * @returns Updated context.
  */
-function removeOldestScenes(contextUnits: ContextUnit[], tokenBudget: number): ContextUnit[] {
-  let units = [...contextUnits];
-  
-  while (units.length > 0 && !isContextWithinBudget(units, tokenBudget)) {
-    // If the first event is a summary, remove it
-    if (units[0].type === "summary") {
-      units = units.slice(1);
-    } else {
-      // If the first event is not a summary, we've reached the most recent scene - stop
-      break;
-    }
+function removeOldestScenes(context: Scene[], tokenBudget: number): Scene[] {
+  let scenes = [...context];
+
+  // Remove oldest scenes until we fit within budget or only have the current scene left
+  while (scenes.length > 1 && !isContextWithinBudget(scenes, tokenBudget)) {
+    scenes = scenes.slice(1); // Remove the oldest scene (first element)
   }
 
-  return units;
+  return scenes;
 }
 
 /**
  * Check if the current context is within the token budget.
- * @param contextUnits The context units to check.
+ * @param context The context to check.
  * @param tokenBudget The token budget to compare against.
  * @returns True if the context is within budget, false otherwise.
  */
-function isContextWithinBudget(contextUnits: ContextUnit[], tokenBudget: number): boolean {
-  const totalTokens = contextUnits.reduce((sum: number, unit: ContextUnit) => sum + unit.tokenCount, 0);
+function isContextWithinBudget(context: Scene[], tokenBudget: number): boolean {
+  const totalTokens = context.reduce(
+    (sum: number, scene) => sum + getApproximateTokenCount((scene.summarize && scene.summary) ? scene.summary : scene.text),
+    0
+  );
   return totalTokens <= tokenBudget;
 }
 
@@ -227,12 +210,12 @@ ${cast}
 }
 
 /**
- * Converts an array of context units representing the context to text.
- * @param units The context units to convert.
+ * Converts an array of scenes representing the context to text.
+ * @param scenes The context to convert.
  * @returns A string representation of the context.
  */
-function convertContextUnitsToText(units: ContextUnit[]): string {
-  return units.map(unit => unit.text).join("\n\n");
+function convertContextToText(scenes: Scene[]): string {
+  return scenes.map(scene => (scene.summarize && scene.summary) ? scene.summary : scene.text).join("\n\n");
 }
 
 /**

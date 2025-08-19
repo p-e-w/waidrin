@@ -70,14 +70,13 @@ Include a short biography (100 words maximum) for each character.
 `);
 }
 
-function makeMainPrompt(prompt: string, state: State, tokenBudget: number): Prompt {
-  const promptPreamble = 
-`This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
+const makeMainPromptPreamble = (state: State): string => `This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
 
 The protagonist (who you should refer to as "you" in your narration, as the adventure happens from their perspective)
-is ${state.protagonist.name}. ${state.protagonist.biography}
+is ${state.protagonist.name}. ${state.protagonist.biography}`;
 
-Here is what has happened so far:`;
+function makeMainPrompt(prompt: string, state: State, tokenBudget: number): Prompt {
+  const promptPreamble = makeMainPromptPreamble(state);
 
   // get the tokens used by the prompt and the preamble
   const normalizedPrompt = normalize(prompt);
@@ -90,6 +89,8 @@ Here is what has happened so far:`;
 
   return makePrompt(`
 ${promptPreamble}
+
+Here is what has happened so far:
 ${context}
 
 
@@ -196,9 +197,7 @@ export function summarizeScenePrompt(state: State): Prompt {
     .join("\n\n");
 
   const userPrompt = `
-This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
-
-The protagonist (refer to them as "you") is ${protagonistName}. ${state.protagonist.biography}
+${makeMainPromptPreamble(state)}
 
 You will create a compact memory of the just-completed scene. This memory is used as long-term context for future generations.
 Write a 1-2 paragraph scene summary (no more than 300 words in total).
@@ -207,7 +206,7 @@ Capture only plot-relevant facts that will matter later such as:
 what ${protagonistName} does/learns/decides,
 changes to location, inventory, injuries, or relationships,
 discoveries/clues,
-unresolved goals, promises, threats, or timers.
+unresolved goals, promises, threats, or deadlines.
 Do not quote dialogue, add new facts, or include stylistic prose.
 Return only the summary with no preamble, labels, markdown or quotes.
 
