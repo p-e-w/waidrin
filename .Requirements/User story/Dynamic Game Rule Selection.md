@@ -89,9 +89,9 @@ For a plugin developer to create a custom game rule:
         *   `getInitialProtagonistStats()`: **Implemented**. Uses `pluginPrompt.getProtagonistGenerationPrompt` and `backend.getNarration` to generate descriptive stats.
         *   `modifyProtagonistPrompt()`: **Implemented**. Calls `pluginPrompt.modifyProtagonistPromptForDnd`.
         *   `getActionChecks()`: **Implemented**. It is an `async` method that uses `pluginPrompt.getChecksPrompt` and `backend.getObject` to dynamically determine `CheckDefinition`s from the LLM.
-        *   `resolveCheck()`: **Pending Implementation**.
-        *   `getNarrationPrompt()`: **Pending Implementation**.
-        *   `getCombatRoundNarration()`: **Pending Implementation**.
+        *   `resolveCheck()`: **Implemented**. Calls `resolveCheck` from `pluginData.ts`.
+        *   `getNarrationPrompt()`: **Implemented**. Leverages `narratePrompt` from `lib/prompts.ts`.
+        *   `getCombatRoundNarration()`: **Implemented**. Provides a basic narration string.
         *   `getAvailableRaces()`: **Pending Implementation**.
         *   `getAvailableClasses()`: **Pending Implementation**.
 2.  **Expose via `Plugin` Interface:** The plugin's main class must return an instance of its `IGameRuleLogic` implementation via the `getGameRuleLogic()` method in its `Plugin` interface.

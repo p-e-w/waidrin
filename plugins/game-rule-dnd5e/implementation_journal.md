@@ -61,6 +61,35 @@
 
 **Next Steps:** Proceed with the interface change in `lib/state.ts` as the first step of the detailed plan for `getActionChecks`.
 
+### Implemented `resolveCheck`, `getNarrationPrompt`, and `getCombatRoundNarration` and Refactored `resolveCheck` Location
+
+**Date:** August 19, 2025
+
+**Objective:** Implement the `resolveCheck()`, `getNarrationPrompt()`, and `getCombatRoundNarration()` methods in `plugins/game-rule-dnd5e/src/main.tsx`, and refactor the `resolveCheck` logic to `plugins/game-rule-dnd5e/src/pluginData.ts`.
+
+**Changes Made:**
+
+1.  **`plugins/game-rule-dnd5e/src/pluginData.ts`:**
+    *   Added `getAbilityModifier(score: number): number` helper function.
+    *   Added `resolveCheck(check: CheckDefinition, characterStats: Character, dndStats: DndStatsSettings, rpgDiceRoller: typeof RpgDiceRoller): string` function. This function now contains the core logic for resolving D&D 5e checks.
+    *   Updated imports to include `CheckDefinition` and `Character` from `@/lib/state`.
+2.  **`plugins/game-rule-dnd5e/src/main.tsx`:**
+    *   Updated imports to include `resolveCheck as resolveCheckFromPluginData` from `pluginData.ts`, `narratePrompt` from `@/lib/prompts`, and `Character`, `State` from `@/lib/state`.
+    *   Implemented `resolveCheck(check: CheckDefinition, characterStats: Character): string` to call `resolveCheckFromPluginData`, passing the necessary arguments.
+    *   Implemented `getNarrationPrompt(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[]): Prompt` to leverage `narratePrompt` from `lib/prompts.ts`.
+    *   Implemented `getCombatRoundNarration(roundNumber: number, combatLog: string[]): string` with a basic narration string.
+
+**Verification:**
+
+*   **TypeScript Type Check (`npx tsc --noEmit`):** Passed successfully (Exit Code: 0).
+*   **Plugin Build (`cd plugins/game-rule-dnd5e && npm run build`):** Passed successfully (Exit Code: 0).
+*   **Main Application Build (`npm run build`):** Passed successfully (Exit Code: 0).
+*   **Manual Testing:** `resolveCheck` appears to be working as expected in runtime.
+
+**Outcome:** The `resolveCheck()`, `getNarrationPrompt()`, and `getCombatRoundNarration()` methods have been successfully implemented, and the `resolveCheck` logic has been refactored to `pluginData.ts` for better organization. All build checks passed, and manual testing indicates correct functionality.
+
+**Next Steps:** Continue with the remaining `IGameRuleLogic` methods (`getAvailableRaces()` and `getAvailableClasses()`) or await further instructions.
+
 ### Implemented and Refactored `getActionChecks`
 
 **Date:** August 19, 2025

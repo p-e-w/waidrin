@@ -3914,6 +3914,89 @@ var DND_CLASS_DATA = {
     "War Magic"
   ]
 };
+function getAbilityModifier(score) {
+  return Math.floor((score - 10) / 2);
+}
+function resolveCheck(check2, characterStats, dndStats, rpgDiceRoller) {
+  let abilityScore;
+  let modifier = 0;
+  switch (check2.type.toLowerCase()) {
+    case "strength":
+    case "athletics":
+      abilityScore = dndStats.strength;
+      break;
+    case "dexterity":
+    case "acrobatics":
+    case "sleight of hand":
+    case "stealth":
+      abilityScore = dndStats.dexterity;
+      break;
+    case "constitution":
+      abilityScore = dndStats.constitution;
+      break;
+    case "intelligence":
+    case "arcana":
+    case "history":
+    case "investigation":
+    case "nature":
+    case "religion":
+      abilityScore = dndStats.intelligence;
+      break;
+    case "wisdom":
+    case "animal handling":
+    case "insight":
+    case "medicine":
+    case "perception":
+    case "survival":
+      abilityScore = dndStats.wisdom;
+      break;
+    case "charisma":
+    case "deception":
+    case "intimidation":
+    case "performance":
+    case "persuasion":
+      abilityScore = dndStats.charisma;
+      break;
+    default:
+      if (check2.modifiers && check2.modifiers.length > 0) {
+        const primaryModifier = check2.modifiers[0].toLowerCase();
+        switch (primaryModifier) {
+          case "strength":
+            abilityScore = dndStats.strength;
+            break;
+          case "dexterity":
+            abilityScore = dndStats.dexterity;
+            break;
+          case "constitution":
+            abilityScore = dndStats.constitution;
+            break;
+          case "intelligence":
+            abilityScore = dndStats.intelligence;
+            break;
+          case "wisdom":
+            abilityScore = dndStats.wisdom;
+            break;
+          case "charisma":
+            abilityScore = dndStats.charisma;
+            break;
+        }
+      }
+      break;
+  }
+  if (abilityScore === void 0) {
+    return `Check for ${check2.type} could not be resolved: No relevant ability score found.`;
+  }
+  modifier = getAbilityModifier(abilityScore);
+  const roll = new rpgDiceRoller.DiceRoll("1d20").total;
+  const total = roll + modifier;
+  let resultStatement;
+  if (total >= check2.difficultyClass) {
+    resultStatement = `${characterStats.name} successfully passed the ${check2.type} check (DC ${check2.difficultyClass}) with a roll of ${roll} and a total of ${total}.`;
+  } else {
+    resultStatement = `${characterStats.name} failed the ${check2.type} check (DC ${check2.difficultyClass}) with a roll of ${roll} and a total of ${total}.`;
+  }
+  return resultStatement;
+}
 
 // src/pluginPrompt.ts
 function modifyProtagonistPromptForDnd(originalPrompt) {
@@ -4176,23 +4259,19 @@ Proficiency and Expertise: Characters with proficiency in a skill add their prof
 `;
 function getChecksPrompt(action) {
   return {
-    system: `You are an expert in Dungeons & Dragons 5th Edition skill checks. Your task is to analyze a given action and determine the most appropriate D&D 5e skill checks required to resolve it. You must return an array of CheckDefinition objects in JSON format.
+    system: `You are an expert DM in Dungeons & Dragons 5th Edition. Your task is to analyze a given action and determine if a skill check is required and if so, what are the most appropriate D&D 5e skill checks required to resolve it. 
+    You must return an array of CheckDefinition objects in JSON format.
 
 Each CheckDefinition object must have the following properties:
 - 'type': A string representing the skill (e.g., "athletics", "stealth", "perception") or attribute (e.g., "strength", "dexterity", "intelligence", "wisdom", "charisma", "constitution") being checked.
 - 'difficultyClass': A number representing the target number to beat for a successful check.
 - 'modifiers': An optional array of strings representing the character attributes relevant to the check (e.g., ["strength", "dexterity"]).
 
-You should consider the context of the action and the typical challenges associated with it in a D&D 5e setting. If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array.
-
-Here are the D&D 5e core skills and guidelines for difficulty classes:
-${coreSkillsAndDifficultyCheckContent}
-
 Your output must be a JSON array of CheckDefinition objects, and nothing else. For example:
 [
   {
     "type": "stealth",
-    "difficultyClass": 15,
+    "difficultyClass": 5,
     "modifiers": ["dexterity"]
   },
   {
@@ -4200,8 +4279,16 @@ Your output must be a JSON array of CheckDefinition objects, and nothing else. F
     "difficultyClass": 10,
     "modifiers": ["wisdom"]
   }
+
+You should consider the context of the action and the typical challenges associated with it in a D&D 5e setting. If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array.
+
+Here are the D&D 5e core skills and guidelines for difficulty classes:
+${coreSkillsAndDifficultyCheckContent}
+
 ]`,
-    user: `Given the action: "${action}", what D&D 5e skill checks are required? If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array. Simply accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all DC for these are aet to 0. Provide your answer as a JSON array of CheckDefinition objects.`
+    user: `Given the action: "${action}", what if any D&D 5e skill checks are required? If multiple checks are appropriate, list them all. 
+    If no specific check is needed, return an empty array. Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0. 
+    Provide your answer as a JSON array of CheckDefinition objects.`
   };
 }
 
@@ -6074,10 +6161,10 @@ var $ZodURL = /* @__PURE__ */ $constructor("$ZodURL", (inst, def) => {
   $ZodStringFormat.init(inst, def);
   inst._zod.check = (payload) => {
     try {
-      const url = new URL(payload.value);
+      const url2 = new URL(payload.value);
       if (def.hostname) {
         def.hostname.lastIndex = 0;
-        if (!def.hostname.test(url.hostname)) {
+        if (!def.hostname.test(url2.hostname)) {
           payload.issues.push({
             code: "invalid_format",
             format: "url",
@@ -6091,7 +6178,7 @@ var $ZodURL = /* @__PURE__ */ $constructor("$ZodURL", (inst, def) => {
       }
       if (def.protocol) {
         def.protocol.lastIndex = 0;
-        if (!def.protocol.test(url.protocol.endsWith(":") ? url.protocol.slice(0, -1) : url.protocol)) {
+        if (!def.protocol.test(url2.protocol.endsWith(":") ? url2.protocol.slice(0, -1) : url2.protocol)) {
           payload.issues.push({
             code: "invalid_format",
             format: "url",
@@ -14130,6 +14217,9 @@ var ZodURL = /* @__PURE__ */ $constructor("ZodURL", (inst, def) => {
   $ZodURL.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
+function url(params) {
+  return _url(ZodURL, params);
+}
 var ZodEmoji = /* @__PURE__ */ $constructor("ZodEmoji", (inst, def) => {
   $ZodEmoji.init(inst, def);
   ZodStringFormat.init(inst, def);
@@ -14230,6 +14320,9 @@ var ZodBoolean2 = /* @__PURE__ */ $constructor("ZodBoolean", (inst, def) => {
   $ZodBoolean.init(inst, def);
   ZodType2.init(inst, def);
 });
+function boolean2(params) {
+  return _boolean(ZodBoolean2, params);
+}
 var ZodBigInt2 = /* @__PURE__ */ $constructor("ZodBigInt", (inst, def) => {
   var _a, _b, _c;
   $ZodBigInt.init(inst, def);
@@ -14328,6 +14421,17 @@ function union(options, params) {
     options
   }, util_exports.normalizeParams(params)));
 }
+var ZodDiscriminatedUnion2 = /* @__PURE__ */ $constructor("ZodDiscriminatedUnion", (inst, def) => {
+  ZodUnion2.init(inst, def);
+  $ZodDiscriminatedUnion.init(inst, def);
+});
+function discriminatedUnion(discriminator, options, params) {
+  return new ZodDiscriminatedUnion2(__spreadValues({
+    type: "union",
+    options,
+    discriminator
+  }, util_exports.normalizeParams(params)));
+}
 var ZodIntersection2 = /* @__PURE__ */ $constructor("ZodIntersection", (inst, def) => {
   $ZodIntersection.init(inst, def);
   ZodType2.init(inst, def);
@@ -14338,6 +14442,19 @@ function intersection(left, right) {
     left,
     right
   });
+}
+var ZodRecord2 = /* @__PURE__ */ $constructor("ZodRecord", (inst, def) => {
+  $ZodRecord.init(inst, def);
+  ZodType2.init(inst, def);
+  inst.keyType = def.keyType;
+  inst.valueType = def.valueType;
+});
+function record(keyType, valueType, params) {
+  return new ZodRecord2(__spreadValues({
+    type: "record",
+    keyType,
+    valueType
+  }, util_exports.normalizeParams(params)));
 }
 var ZodEnum2 = /* @__PURE__ */ $constructor("ZodEnum", (inst, def) => {
   $ZodEnum.init(inst, def);
@@ -14379,6 +14496,25 @@ function _enum2(values, params) {
   return new ZodEnum2(__spreadValues({
     type: "enum",
     entries
+  }, util_exports.normalizeParams(params)));
+}
+var ZodLiteral2 = /* @__PURE__ */ $constructor("ZodLiteral", (inst, def) => {
+  $ZodLiteral.init(inst, def);
+  ZodType2.init(inst, def);
+  inst.values = new Set(def.values);
+  Object.defineProperty(inst, "value", {
+    get() {
+      if (def.values.length > 1) {
+        throw new Error("This schema contains multiple valid literal values. Use `.values` instead.");
+      }
+      return def.values[0];
+    }
+  });
+});
+function literal(value, params) {
+  return new ZodLiteral2(__spreadValues({
+    type: "literal",
+    values: Array.isArray(value) ? value : [value]
   }, util_exports.normalizeParams(params)));
 }
 var ZodTransform = /* @__PURE__ */ $constructor("ZodTransform", (inst, def) => {
@@ -14561,7 +14697,7 @@ var INVALID2 = Object.freeze({
 var coerce_exports = {};
 __export(coerce_exports, {
   bigint: () => bigint2,
-  boolean: () => boolean2,
+  boolean: () => boolean3,
   date: () => date3,
   number: () => number3,
   string: () => string3
@@ -14572,7 +14708,7 @@ function string3(params) {
 function number3(params) {
   return _coercedNumber(ZodNumber2, params);
 }
-function boolean2(params) {
+function boolean3(params) {
   return _coercedBoolean(ZodBoolean2, params);
 }
 function bigint2(params) {
@@ -14584,6 +14720,167 @@ function date3(params) {
 
 // ../../node_modules/zod/dist/esm/v4/classic/external.js
 config(en_default2());
+
+// ../../lib/schemas.ts
+var Text = string2().trim().nonempty();
+var Name = Text.max(100);
+var Description = Text.max(2e3);
+var Action = Text.max(200);
+var Index = int();
+var RequestParams = record(string2(), unknown());
+var View = _enum2(["welcome", "connection", "genre", "character", "scenario", "chat"]);
+var World = object({
+  name: Name,
+  description: Description
+});
+var Gender = _enum2(["male", "female"]);
+var Race = _enum2(["human", "elf", "dwarf"]);
+var Character = object({
+  name: Name,
+  gender: Gender,
+  race: Race,
+  biography: Description,
+  locationIndex: Index
+});
+var LocationType = _enum2(["tavern", "market", "road"]);
+var Location = object({
+  name: Name,
+  type: LocationType,
+  description: Description
+});
+var SexualContentLevel = _enum2(["regular", "explicit", "actively_explicit"]);
+var ViolentContentLevel = _enum2(["regular", "graphic", "pervasive"]);
+var ActionEvent = object({
+  type: literal("action"),
+  action: Action
+});
+var NarrationEvent = object({
+  type: literal("narration"),
+  text: Text.max(5e3),
+  locationIndex: Index,
+  referencedCharacterIndices: Index.array()
+});
+var CharacterIntroductionEvent = object({
+  type: literal("character_introduction"),
+  characterIndex: Index
+});
+var LocationChangeEvent = object({
+  type: literal("location_change"),
+  locationIndex: Index,
+  presentCharacterIndices: Index.array()
+});
+var Event = discriminatedUnion("type", [
+  ActionEvent,
+  NarrationEvent,
+  CharacterIntroductionEvent,
+  LocationChangeEvent
+]);
+var State = object({
+  apiUrl: url(),
+  apiKey: string2().trim(),
+  model: string2().trim(),
+  generationParams: RequestParams,
+  narrationParams: RequestParams,
+  updateInterval: int(),
+  logPrompts: boolean2(),
+  logParams: boolean2(),
+  logResponses: boolean2(),
+  activeGameRule: string2(),
+  view: View,
+  world: World,
+  locations: Location.array(),
+  characters: Character.array(),
+  protagonist: Character,
+  hiddenDestiny: boolean2(),
+  betrayal: boolean2(),
+  oppositeSexMagnet: boolean2(),
+  sameSexMagnet: boolean2(),
+  sexualContentLevel: SexualContentLevel,
+  violentContentLevel: ViolentContentLevel,
+  isCombat: boolean2(),
+  events: Event.array(),
+  actions: Action.array()
+});
+
+// ../../lib/prompts.ts
+function normalize(text) {
+  const singleNewline = new RegExp("(?<!\\n)\\n(?!\\n)", "g");
+  return text.replaceAll(singleNewline, " ").trim();
+}
+function makePrompt(userPrompt) {
+  return {
+    system: "You are the game master of a text-based fantasy role-playing game.",
+    user: normalize(userPrompt)
+  };
+}
+var generateWorldPrompt = makePrompt(`
+Create a fictional world for a fantasy adventure RPG and return its name
+and a short description (100 words maximum) as a JSON object.
+Do not use a cliched name like 'Eldoria'.
+The world is populated by humans, elves, and dwarves.
+`);
+function makeMainPrompt(prompt, state) {
+  const context = state.events.map((event) => {
+    if (event.type === "narration") {
+      return event.text;
+    } else if (event.type === "character_introduction") {
+      return null;
+    } else if (event.type === "location_change") {
+      const location = state.locations[event.locationIndex];
+      return normalize(`
+-----
+
+LOCATION CHANGE
+
+${state.protagonist.name} is entering ${location.name}. ${location.description}
+
+The following characters are present at ${location.name}:
+
+${event.presentCharacterIndices.map((index) => {
+        const character = state.characters[index];
+        return `${character.name}: ${character.biography}`;
+      }).join("\n\n")}
+
+-----
+`);
+    }
+  }).filter((text) => !!text).join("\n\n");
+  return makePrompt(`
+This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
+
+The protagonist (who you should refer to as "you" in your narration, as the adventure happens from their perspective)
+ is ${state.protagonist.name}. ${state.protagonist.biography}
+
+Here is what has happened so far:
+
+${context}
+
+
+
+${normalize(prompt)}
+`);
+}
+function narratePrompt(state, action, checkResultStatements) {
+  const checkResultsText = checkResultStatements && checkResultStatements.length > 0 ? `
+
+Check Results:
+${checkResultStatements.join("\n")}` : "";
+  return makeMainPrompt(
+    `
+${action ? `The protagonist (${state.protagonist.name}) has chosen to do the following: ${action}.` : ""}${checkResultsText}
+Narrate what happens next, using novel-style prose, in the present tense.
+Prioritize dialogue over descriptions.
+Do not mention more than 2 different characters in your narration.
+Refer to characters using their first names.
+Make all character names bold by surrounding them with double asterisks (**Name**).
+Write 2-3 paragraphs (no more than 200 words in total).
+Stop when it is the protagonist's turn to speak or act.
+Remember to refer to the protagonist (${state.protagonist.name}) as "you" in your narration.
+Do not explicitly ask the protagonist for a response at the end; they already know what is expected of them.
+`,
+    state
+  );
+}
 
 // src/main.tsx
 var React;
@@ -14698,6 +14995,15 @@ var DndStatsPlugin = class {
   modifyProtagonistPrompt(originalPrompt) {
     return modifyProtagonistPromptForDnd(originalPrompt);
   }
+  /**
+   * @method getActionChecks
+   * @description Specifies what checks are required for a given action, based on the action and current context.
+   * This method is triggered when an action is passed to `narratePrompt`.
+   * Its implementation will typically involve constructing an LLM prompt, making an API call, and parsing/validating the LLM's JSON response against the `CheckDefinition` schema.
+   * @param {string} action - The raw action string performed by the protagonist.
+   * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
+   * @returns {Promise<CheckDefinition[]>} A promise that resolves to an array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
+   */
   async getActionChecks(action, context) {
     if (!this.context) {
       console.error("Context not available for getActionChecks.");
@@ -14717,6 +15023,44 @@ var DndStatsPlugin = class {
       console.error("Error getting action checks from LLM:", error39);
       return [];
     }
+  }
+  /**
+   * @method resolveCheck
+   * @description Resolves a game rule check, utilizing rpg-dice-roller, and returns the result as a statement.
+   * The plugin will use its internal rules to determine the character's appropriate stat and skill modifier.
+   * This statement will be incorporated into the `narratePrompt`'s output, typically after the action description.
+   * @param {CheckDefinition} check - The definition of the check to resolve.
+   * @param {Character} characterStats - The global `Character` object. The plugin will map this to its internal representation of the character's stats.
+   *   (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
+   * @returns {string} A statement describing the check's result and any consequences.
+   */
+  resolveCheck(check2, characterStats) {
+    if (!this.settings || !this.context) {
+      return `Check for ${check2.type} could not be resolved due to missing context or settings.`;
+    }
+    const dndStats = this.settings;
+    return resolveCheck(check2, characterStats, dndStats, this.context.rpgDiceRoller);
+  }
+  /**
+   * @method getNarrationPrompt
+   * @description Generates a narration prompt, influenced by the outcome of performed checks and consequences (e.g., HP, item, relationship, story/plot branch changes).
+   * @param {string} eventType - The type of event triggering narration.
+   * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
+   * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
+   * @returns {Prompt} The generated narration prompt.
+   */
+  getNarrationPrompt(eventType, context, checkResultStatements) {
+    return narratePrompt(context, void 0, checkResultStatements);
+  }
+  /**
+   * @method getCombatRoundNarration
+   * @description A dedicated method for handling narration during combat rounds, allowing for different narrative structures and details compared to general scene narration.
+   * @param {number} roundNumber - The current combat round number.
+   * @param {string[]} combatLog - A minimal log of events that occurred in the combat round, e.g., ["Protagonist attacks Goblin for 5 damage.", "Goblin misses Protagonist."].
+   * @returns {string} The narration for the combat round.
+   */
+  getCombatRoundNarration(roundNumber, combatLog) {
+    return `Combat Round ${roundNumber}: ${combatLog.join(". ")}.`;
   }
 };
 export {

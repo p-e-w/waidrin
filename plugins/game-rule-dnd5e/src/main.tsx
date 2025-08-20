@@ -17,9 +17,11 @@ import type { Prompt } from "@/lib/prompts";
 
 import type * as RadixThemes from '@radix-ui/themes';
 import type { useShallow } from 'zustand/shallow';
-import { DndStatsSettings, generateDefaultDndStatsSettings, DND_CLASS_DATA, DndStatsSettingsSchema } from "./pluginData";
+import { DndStatsSettings, generateDefaultDndStatsSettings, DND_CLASS_DATA, DndStatsSettingsSchema, resolveCheck as resolveCheckFromPluginData } from "./pluginData";
 import { getProtagonistGenerationPrompt, modifyProtagonistPromptForDnd, getChecksPrompt } from "./pluginPrompt";
 import * as z from "zod/v4";
+import { narratePrompt } from "@/lib/prompts"; // Import narratePrompt
+import type { Character, State } from "@/lib/state"; // Import Character and State
 
 
 // Declare a module-level React variable.
@@ -249,5 +251,51 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
       console.error("Error getting action checks from LLM:", error);
       return []; // Graceful fallback
     }
+  }
+
+  /**
+   * @method resolveCheck
+   * @description Resolves a game rule check, utilizing rpg-dice-roller, and returns the result as a statement.
+   * The plugin will use its internal rules to determine the character's appropriate stat and skill modifier.
+   * This statement will be incorporated into the `narratePrompt`'s output, typically after the action description.
+   * @param {CheckDefinition} check - The definition of the check to resolve.
+   * @param {Character} characterStats - The global `Character` object. The plugin will map this to its internal representation of the character's stats.
+   *   (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
+   * @returns {string} A statement describing the check's result and any consequences.
+   */
+  resolveCheck(check: CheckDefinition, characterStats: Character): string {
+    if (!this.settings || !this.context) {
+      return `Check for ${check.type} could not be resolved due to missing context or settings.`;
+    }
+    const dndStats = this.settings as DndStatsSettings;
+    return resolveCheckFromPluginData(check, characterStats, dndStats, this.context.rpgDiceRoller);
+  }
+
+  /**
+   * @method getNarrationPrompt
+   * @description Generates a narration prompt, influenced by the outcome of performed checks and consequences (e.g., HP, item, relationship, story/plot branch changes).
+   * @param {string} eventType - The type of event triggering narration.
+   * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
+   * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
+   * @returns {Prompt} The generated narration prompt.
+   */
+  getNarrationPrompt(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[]): Prompt {
+    // For now, we'll just leverage the existing narratePrompt from lib/prompts.ts
+    // and pass the checkResultStatements.
+    return narratePrompt(context, undefined, checkResultStatements);
+  }
+
+  /**
+   * @method getCombatRoundNarration
+   * @description A dedicated method for handling narration during combat rounds, allowing for different narrative structures and details compared to general scene narration.
+   * @param {number} roundNumber - The current combat round number.
+   * @param {string[]} combatLog - A minimal log of events that occurred in the combat round, e.g., ["Protagonist attacks Goblin for 5 damage.", "Goblin misses Protagonist."].
+   * @returns {string} The narration for the combat round.
+   */
+  getCombatRoundNarration(roundNumber: number, combatLog: string[]): string {
+    // This is a placeholder implementation.
+    // In a full combat system, this would generate a more detailed narration
+    // based on the combat log and round number.
+    return `Combat Round ${roundNumber}: ${combatLog.join(". ")}.`;
   }
 }

@@ -1,5 +1,6 @@
 import * as z from "zod";
 import type * as RpgDiceRoller from '@dice-roller/rpg-dice-roller';
+import type { CheckDefinition, Character } from "@/lib/state"; // Import CheckDefinition and Character
 
 /**
  * Zod schema for validating D&D character stats settings.
@@ -147,3 +148,99 @@ export const DND_CLASS_DATA: DndClassData = {
     "War Magic"
   ]
 };
+
+/**
+ * Helper function to calculate D&D 5e ability modifier.
+ * @param score The ability score.
+ * @returns The calculated modifier.
+ */
+export function getAbilityModifier(score: number): number {
+  return Math.floor((score - 10) / 2);
+}
+
+/**
+ * Resolves a game rule check, utilizing rpg-dice-roller, and returns the result as a statement.
+ * @param check The definition of the check to resolve.
+ * @param characterStats The global Character object.
+ * @param dndStats The D&D 5e specific stats for the character.
+ * @param rpgDiceRoller The rpg-dice-roller instance.
+ * @returns A statement describing the check's result and any consequences.
+ */
+export function resolveCheck(check: CheckDefinition, characterStats: Character, dndStats: DndStatsSettings, rpgDiceRoller: typeof RpgDiceRoller): string {
+  let abilityScore: number | undefined;
+  let modifier: number = 0;
+
+  // Determine the ability score based on the check type
+  switch (check.type.toLowerCase()) {
+    case "strength":
+    case "athletics":
+      abilityScore = dndStats.strength;
+      break;
+    case "dexterity":
+    case "acrobatics":
+    case "sleight of hand":
+    case "stealth":
+      abilityScore = dndStats.dexterity;
+      break;
+    case "constitution":
+      abilityScore = dndStats.constitution;
+      break;
+    case "intelligence":
+    case "arcana":
+    case "history":
+    case "investigation":
+    case "nature":
+    case "religion":
+      abilityScore = dndStats.intelligence;
+      break;
+    case "wisdom":
+    case "animal handling":
+    case "insight":
+    case "medicine":
+    case "perception":
+    case "survival":
+      abilityScore = dndStats.wisdom;
+      break;
+    case "charisma":
+    case "deception":
+    case "intimidation":
+    case "performance":
+    case "persuasion":
+      abilityScore = dndStats.charisma;
+      break;
+    default:
+      // If it's a custom check type not directly mapped to an ability,
+      // try to find a modifier from the check's modifiers array.
+      if (check.modifiers && check.modifiers.length > 0) {
+        const primaryModifier = check.modifiers[0].toLowerCase();
+        switch (primaryModifier) {
+          case "strength": abilityScore = dndStats.strength; break;
+          case "dexterity": abilityScore = dndStats.dexterity; break;
+          case "constitution": abilityScore = dndStats.constitution; break;
+          case "intelligence": abilityScore = dndStats.intelligence; break;
+          case "wisdom": abilityScore = dndStats.wisdom; break;
+          case "charisma": abilityScore = dndStats.charisma; break;
+        }
+      }
+      break;
+  }
+
+  if (abilityScore === undefined) {
+    return `Check for ${check.type} could not be resolved: No relevant ability score found.`;
+  }
+
+  modifier = getAbilityModifier(abilityScore);
+
+  // Roll a d20
+  const roll = new rpgDiceRoller.DiceRoll('1d20').total;
+  const total = roll + modifier;
+
+  let resultStatement: string;
+  if (total >= check.difficultyClass) {
+    resultStatement = `${characterStats.name} successfully passed the ${check.type} check (DC ${check.difficultyClass}) with a roll of ${roll} and a total of ${total}.`;
+  } else {
+    resultStatement = `${characterStats.name} failed the ${check.type} check (DC ${check.difficultyClass}) with a roll of ${roll} and a total of ${total}.`;
+  }
+
+  return resultStatement;
+}

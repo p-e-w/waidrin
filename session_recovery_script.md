@@ -52,7 +52,7 @@ This script is written by the previous You before the session ended. It is desig
     *   `read_file` for `.Requirements/Current State/Application Design Spec.md` (core app design, plugin framework).
     *   `read_file` for `.Requirements/Current State/Plugin development guide.md` (summary of UI plugin development challenges and solutions).
     *   `read_file` for `.Requirements/Current State/Plugin best practice guide.md` (lessons learned, common pitfalls).
-    *   `read_file` for `.Requirements/User story/Dynamic Game Rule Selection - Refactored.md` (detailed specification for dynamic game rule selection, refactored).
+    *   `read_file` for `.Requirements/User story/Dynamic Game Rule Selection.md` (detailed specification for dynamic game rule selection, refactored).
 
 6.  **Review Core Configuration Files:**
     *   `read_file` for `package.json` (main app dependencies and scripts).
@@ -116,13 +116,17 @@ Before your actions to edit file, you must present your reasoning and approach f
     *   Implemented UI elements for tabs, switches, and the red light indicator.
     *   The `game-rule-dnd5e` plugin's `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName`.
     *   The `test-ui-plugin`'s `main.tsx` has been updated to use `this.context.pluginName` for `GameRuleName` and `await` for `setGlobalState`.
-*   **`plugins/game-rule-dnd5e/src/main.tsx` refactored:**
+*   **`plugins/game-rule-dnd5e/src/main.tsx`:**
     *   Moved D&D 5e specific data (schemas, default settings, class data) to `plugins/game-rule-dnd5e/src/pluginData.ts`.
     *   Moved prompt-related content and logic to `plugins/game-rule-dnd5e/src/pluginPrompt.ts`.
     *   Removed unused imports (`Character`, `ChangeEvent`, `Immer`) and unused props (`injectedImmer`) to clean up the file.
-    *   **`getActionChecks()` implemented (LLM-based).**
-*   **`plugins/game-rule-dnd5e/src/pluginData.ts` created:** Contains D&D 5e specific data structures and default value generation.
+    *   `getActionChecks()` implemented (LLM-based).
+    *   `resolveCheck()`: Implemented. Calls `resolveCheck` from `pluginData.ts`.
+    *   `getNarrationPrompt()`: Implemented. Leverages `narratePrompt` from `lib/prompts.ts`.
+    *   `getCombatRoundNarration()`: Implemented. Provides a basic narration string.
+*   **`plugins/game-rule-dnd5e/src/pluginData.ts`:**
+    *   Created: Contains D&D 5e specific data structures and default value generation.
+    *   `getAbilityModifier()`: Implemented and exported.
+    *   `resolveCheck()`: Implemented and exported. This function now takes `dndStats` and `rpgDiceRoller` as arguments.
 *   **`plugins/game-rule-dnd5e/src/pluginPrompt.ts` created:** Contains prompt content and logic for generating protagonist prompts.
 *   All tests have passed, and there are no known issues.
-
-**Current Task:** Implement the remaining `IGameRuleLogic` methods in the `game-rule-dnd5e` plugin (`plugins/game-rule-dnd5e/src/main.tsx`) so that it will start passing customized prompts back to the main app. Specifically, the `getInitialProtagonistStats()` method has been updated to use the new `pluginPrompt.ts`, and `modifyProtagonistPrompt()` has been implemented. The next focus is on `resolveCheck()`, `getNarrationPrompt()`, and `getCombatRoundNarration()`.
