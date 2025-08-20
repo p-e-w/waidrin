@@ -3,6 +3,18 @@ import type { DndStatsSettings } from "./pluginData";
 import type { StoredState } from "@/lib/state";
 
 /**
+ * Modifies the protagonist generation prompt for D&D 5e rules.
+ * For now, it simply returns the original prompt without modification.
+ * @param originalPrompt - The original prompt for protagonist generation.
+ * @returns The modified prompt.
+ */
+export function modifyProtagonistPromptForDnd(originalPrompt: Prompt): Prompt {
+  // For now, simply return the original prompt.
+  return originalPrompt;
+}
+
+
+/**
  * The coreAttributesContent string provides descriptive guidance for D&D 5e attributes.
  */
 const coreAttributesContent = `
@@ -154,5 +166,158 @@ And the following descriptive guidance from D&D 5e rules:
 ${coreAttributesContent}
 
 Provide a concise, narrative-friendly description of the character's core attributes, incorporating the descriptive interpretations. Focus on how these attributes would manifest in the character's personality, physical presence, and abilities. Based on the pattern of the attributes add a couple of backstory to explain the outlier attributes tied to the gender, race during upbringing and the eventual growth to their class and subclass (if applicable). Do not include the numerical values in your description.`,
+  };
+}
+
+const coreSkillsAndDifficultyCheckContent = `
+In Dungeons & Dragons 5th Edition, there are 18 skills, each tied to one of the six core ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma).
+
+Here's the full list, grouped by their associated ability score:
+
+Strength (STR)
+Athletics: Covers difficult physical tasks like climbing, jumping, and swimming, or feats of strength like grappling.
+
+Dexterity (DEX)
+Acrobatics: Used for maintaining balance, tumbling, flips, or intricate maneuvers.
+Sleight of Hand: For acts of manual trickery, such as picking pockets, concealing objects, or performing illusions with your hands.
+Stealth: For hiding, moving silently, or avoiding detection.
+
+Intelligence (INT)
+Arcana: Measures your knowledge of spells, magic items, arcane symbols, magical traditions, and the planes of existence.
+History: Recalling lore about historical events, legendary figures, ancient kingdoms, and past conflicts.
+Investigation: Used when you're looking for clues, making deductions, and interpreting evidence (e.g., finding a hidden object, discerning the weak point of a structure).
+Nature: Measures your knowledge of terrain, plants, animals, weather, and natural cycles.
+Religion: Recalling lore about deities, rites, prayers, religious hierarchies, holy symbols, and the practices of cults.
+
+Wisdom (WIS)
+Animal Handling: For calming, influencing, or understanding animals.
+Insight: Used to determine the true intentions of a creature, such as detecting lies or predicting someone's next move.
+Medicine: For diagnosing illnesses, stabilizing dying creatures, and administering first aid.
+Perception: For detecting your surroundings, noticing hidden objects, hearing faint sounds, or spotting ambushes. This is often one of the most frequently rolled skills.
+Survival: For tracking, foraging for food and water, navigating wilderness, and identifying natural signs.
+
+Charisma (CHA)
+Deception: For convincingly hiding the truth, whether through lies, misleading actions, or disguises.
+Intimidation: Attempting to influence someone through overt threats, hostile actions, or displays of physical prowess.
+Performance: Used to entertain an audience through music, dance, acting, storytelling, or other forms of showmanship.
+Persuasion: For influencing someone or a group with tact, social graces, or good nature.
+
+In Dungeons & Dragons 5th Edition, DC stands for Difficulty Class. It's a target number that a player must meet or exceed with an ability check, saving throw, or attack roll to succeed at a task. The higher the DC, the harder the task.
+
+While there isn't a strictly defined list for every increment (like DC 1, DC 2, DC 3, etc.), the Dungeon Master's Guide (DMG) and Player's Handbook (PHB) provide guidelines for common DCs and what they represent. Here's a breakdown of the generally accepted DC tiers, their definitions, and examples:
+
+DC 0 (Automatic Success / Trivial)
+
+Definition: A task that is so simple it doesn't even require a roll. There's no real chance of failure unless an external factor interferes.
+Example: Opening an unlocked and unjammed door. Picking up a dropped coin. Taking a step forward.
+DC 1-4 (Very Easy / Trivial but Possible Failure)
+
+Definition: A task that almost anyone could succeed at with minimal effort, but a truly unlucky roll (a natural 1) might still lead to failure. Often used for basic actions where time isn't a factor.
+Example:
+DC 1: Remembering a very common historical fact.
+DC 3: Recognizing a common animal from a distance.
+DC 4: Keeping your balance on a wide, flat beam.
+
+DC 5 (Very Easy)
+Definition: A task that is very simple, and most characters with even a minimal bonus in the relevant ability can succeed without issue.
+Example:
+Recalling common knowledge about a local village.
+Climbing a knotted rope.
+Spotting a large, obvious trap.
+Following a very clear trail.
+
+DC 10 (Easy)
+Definition: A task that requires a bit of effort or focus but is generally achievable for someone with some training or natural aptitude. This is a very common default DC.
+Example:
+Persuading a guard to let you pass with a plausible story.
+Jumping across a 10-foot gap.
+Picking a simple lock.
+Disarming a basic, visible trap.
+Tracking a single creature through soft mud.
+Remembering details about a regional deity.
+
+DC 15 (Medium)
+Definition: A task that presents a noticeable challenge, requiring a character to be competent in the relevant skill or to get lucky. This is the typical DC for moderate challenges.
+Example:
+Convincing a reluctant merchant to give you a discount.
+Climbing a rough, crumbling wall.
+Picking a complex lock.
+Spotting a well-hidden tripwire in a dark hallway.
+Identifying a rare monster from its tracks.
+Recalling obscure lore about an ancient artifact.
+
+DC 20 (Hard)
+Definition: A task that is difficult and requires significant skill, specific training, or excellent luck. Only characters proficient in the relevant skill will consistently succeed.
+Example:
+Calming a panicked crowd during a riot.
+Leaping over a deep chasm.
+Picking a masterwork lock.
+Disarming a complex, magical trap.
+Tracking a ghost through a bustling city street.
+Identifying a rare magical disease.
+
+DC 25 (Very Hard)
+Definition: A task that is exceptionally challenging, often requiring highly specialized skill, extraordinary effort, or powerful magic. Even proficient characters will struggle.
+Example:
+Intimidating a powerful noble or king.
+Breaking free from adamantine manacles.
+Crafting a legendary magic item without proper tools.
+Deactivating a powerful arcane ward.
+Recalling the exact wording of a forgotten prophecy.
+
+DC 30 (Nearly Impossible / Legendary)
+Definition: A task that is incredibly difficult, bordering on the impossible without epic abilities, extreme preparation, or divine intervention. Success implies a truly heroic feat.
+Example:
+Persuading a high-ranking devil to betray its master.
+Single-handedly holding up a collapsing cavern roof.
+Picking a lock on a vault designed by a demigod.
+Disarming a trap that would devastate a small town.
+Reconstructing the true history of a long-lost civilization from fragments.
+
+Key Considerations for DMs:
+Context Matters: The same action can have different DCs depending on the circumstances. (e.g., swimming in calm water vs. swimming in a stormy sea).
+Player Creativity: Reward clever solutions. A good plan might lower the DC, or even negate the need for a roll entirely.
+Consequences of Failure: Failure should be interesting, not just a dead end. What happens if they fail the check?
+Proficiency and Expertise: Characters with proficiency in a skill add their proficiency bonus. Characters with Expertise double their proficiency bonus, making higher DCs more achievable for them.
+`;
+
+/**
+ * @function getChecksPrompt
+ * @description Constructs a prompt for the LLM to determine required checks for a given action.
+ * @param {string} action - The action for which to determine checks.
+ * @returns {Prompt} The constructed prompt.
+ */
+export function getChecksPrompt(action: string): Prompt {
+  return {
+    system: `You are an expert DM in Dungeons & Dragons 5th Edition. Your task is to analyze a given action and determine if a skill check is required and if so, what are the most appropriate D&D 5e skill checks required to resolve it. 
+    You must return an array of CheckDefinition objects in JSON format.
+
+Each CheckDefinition object must have the following properties:
+- 'type': A string representing the skill (e.g., "athletics", "stealth", "perception") or attribute (e.g., "strength", "dexterity", "intelligence", "wisdom", "charisma", "constitution") being checked.
+- 'difficultyClass': A number representing the target number to beat for a successful check.
+- 'modifiers': An optional array of strings representing the character attributes relevant to the check (e.g., ["strength", "dexterity"]).
+
+Your output must be a JSON array of CheckDefinition objects, and nothing else. For example:
+[
+  {
+    "type": "stealth",
+    "difficultyClass": 5,
+    "modifiers": ["dexterity"]
+  },
+  {
+    "type": "perception",
+    "difficultyClass": 10,
+    "modifiers": ["wisdom"]
+  }
+
+You should consider the context of the action and the typical challenges associated with it in a D&D 5e setting. If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array.
+
+Here are the D&D 5e core skills and guidelines for difficulty classes:
+${coreSkillsAndDifficultyCheckContent}
+
+]`, 
+    user: `Given the action: "${action}", what if any D&D 5e skill checks are required? If multiple checks are appropriate, list them all. 
+    If no specific check is needed, return an empty array. Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0. 
+    Provide your answer as a JSON array of CheckDefinition objects.`,
   };
 }

@@ -40,7 +40,7 @@ function getDefaultGameRuleLogic(): IGameRuleLogic {
     getAvailableClasses: () => [],
 
     // Default implementation for getActionChecks
-    getActionChecks: () => [],
+    getActionChecks: () => Promise.resolve([]),
 
     // Default implementation for resolveCheck
     resolveCheck: () => "",
@@ -234,8 +234,9 @@ export async function next(
       let checkResultStatements: string[] = [];
 
       if (action && gameRuleLogic.getActionChecks) {
+        // Call the game rule logic to determine checks for the action.
         console.log(`ENGINE: getActionChecks called with action: ${action}`);
-        const checkDefinitions = gameRuleLogic.getActionChecks(action, state);
+        const checkDefinitions = await gameRuleLogic.getActionChecks(action, state);
         console.log(`ENGINE: getActionChecks returned: ${JSON.stringify(checkDefinitions)}`);
         for (const check of checkDefinitions) {
           if (gameRuleLogic.resolveCheck) {
@@ -268,16 +269,16 @@ export async function next(
         console.log(`ENGINE: getCombatRoundNarration called.`);
         // Placeholder for combatLog and roundNumber. These would typically come from a combat system.
         narrationPromptContent = { system: "", user: gameRuleLogic.getCombatRoundNarration(1, ["Combat log entry 1", "Combat log entry 2"]) };
-        console.log(`ENGINE: getCombatRoundNarration returned: ${JSON.stringify(narrationPromptContent)}`);
+        console.log(`ENGINE: getCombatRoundNarration returned`); //debug logging - ${JSON.stringify(narrationPromptContent)}
       } else if (gameRuleLogic.getNarrationPrompt) {
         console.log(`ENGINE: getNarrationPrompt called.`);
         narrationPromptContent = gameRuleLogic.getNarrationPrompt("general", state, checkResultStatements);
-        console.log(`ENGINE: getNarrationPrompt returned: ${JSON.stringify(narrationPromptContent)}`);
+        console.log(`ENGINE: getNarrationPrompt returned`); //debug logging - ${JSON.stringify(narrationPromptContent)}
       } else {
         // This branch should ideally not be hit if getDefaultGameRuleLogic is correctly implemented
         console.log(`ENGINE: Falling back to narratePrompt from lib/prompts.ts.`);
         narrationPromptContent = narratePrompt(state, action, checkResultStatements);
-        console.log(`ENGINE: narratePrompt (fallback) returned: ${JSON.stringify(narrationPromptContent)}`);
+        console.log(`ENGINE: narratePrompt (fallback) returned`); //debug logging - ${JSON.stringify(narrationPromptContent)}
       }
 
       event.text = await backend.getNarration(narrationPromptContent, (token: string, count: number) => {
@@ -376,13 +377,13 @@ export async function next(
         // The generated character object is assigned to `state.protagonist`.
         const gameRuleLogic = getActiveGameRuleLogic();
         const initialProtagonistStats = gameRuleLogic.getInitialProtagonistStats ? await gameRuleLogic.getInitialProtagonistStats() : "";
-        console.log(`ENGINE: getInitialProtagonistStats returned: ${initialProtagonistStats}`); //Debug logging
+        console.log(`ENGINE: getInitialProtagonistStats returned value`); //Debug logging - ${initialProtagonistStats}
         let protagonistPrompt = generateProtagonistPrompt(state, initialProtagonistStats);
         if (gameRuleLogic.modifyProtagonistPrompt) {
           const originalPrompt = { ...protagonistPrompt }; // Capture original for logging
           protagonistPrompt = gameRuleLogic.modifyProtagonistPrompt(protagonistPrompt);
-          console.log(`ENGINE: modifyProtagonistPrompt called. Original system: ${originalPrompt.system}, user: ${originalPrompt.user}`);
-          console.log(`ENGINE: modifyProtagonistPrompt returned system: ${protagonistPrompt.system}, user: ${protagonistPrompt.user}`);
+          console.log(`ENGINE: modifyProtagonistPrompt called. Original prompt sent!`); //debug logging - system: ${originalPrompt.system}, user: ${originalPrompt.user}
+          console.log(`ENGINE: modifyProtagonistPrompt returned modified prompt!`); //debug logging - system: ${protagonistPrompt.system}, user: ${protagonistPrompt.user}
         }
         state.protagonist = await backend.getObject(protagonistPrompt, RawCharacter, onToken);
         // Initialize the protagonist's location to the first location (index 0).

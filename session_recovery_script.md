@@ -28,9 +28,7 @@ This script is written by the previous You before the session ended. It is desig
         *   Formulate a revised plan to address the new error, referencing this guide and the `Plugin best practice guide.md`.
         *   **Crucially, avoid getting stuck in loops.** If a `replace` operation fails, re-read the file immediately to get the exact `old_string`. If a solution leads to a new, complex error, consider reverting and trying a different approach as outlined in the best practice guide.
 
----
-
-## Phase 1: Context Refresh and Memory Reload
+---## Phase 1: Context Refresh and Memory Reload
 
 **Goal:** Load all relevant project documentation and recent changes into memory.
 
@@ -54,7 +52,7 @@ This script is written by the previous You before the session ended. It is desig
     *   `read_file` for `.Requirements/Current State/Application Design Spec.md` (core app design, plugin framework).
     *   `read_file` for `.Requirements/Current State/Plugin development guide.md` (summary of UI plugin development challenges and solutions).
     *   `read_file` for `.Requirements/Current State/Plugin best practice guide.md` (lessons learned, common pitfalls).
-    *   `read_file` for `.Requirements/User story/Dynamic Game Rule Selection.md` (detailed specification for dynamic game rule selection).
+    *   `read_file` for `.Requirements/User story/Dynamic Game Rule Selection - Refactored.md` (detailed specification for dynamic game rule selection, refactored).
 
 6.  **Review Core Configuration Files:**
     *   `read_file` for `package.json` (main app dependencies and scripts).
@@ -65,9 +63,7 @@ This script is written by the previous You before the session ended. It is desig
     *   `run_shell_command('git log -5 --pretty=format:"%h - %an, %ar : %s"', description='Reviewing last 5 git commits for recent changes.')`
     *   `run_shell_command('git status && git diff', description='Reviewing uncommitted changes and git status.')`
 
----
-
-## Phase 2: Current Problem and Plan Execution
+---## Phase 2: Current Problem and Plan Execution
 
 **Goal:** Understand the immediate problem and execute the next step of the current plan.
 
@@ -75,9 +71,7 @@ This script is written by the previous You before the session ended. It is desig
 2.  **Recall the Current Plan:** Access the plan that was approved just before the last error occurred.
 3.  **Execute the Next Step:** Perform the next action item in the approved plan.
 
----
-
-## Phase 3: Post-Execution Verification and Logging
+---## Phase 3: Post-Execution Verification and Logging
 
 **Goal:** Verify the outcome of the executed step and log the results.
 
@@ -90,9 +84,7 @@ This script is written by the previous You before the session ended. It is desig
 4.  **Await Runtime Feedback:** Wait for the user to provide console logs from the running application.
 5.  **Log Results:** Update `implementation_journal.md` in the directory where the main code base is (i.e. plug/test-ui-plugin) with the outcome of the step, including any new errors or successful progress. If file does not exist you must create it.
 
----
-
-## Resume Current Operation: Implement Dynamic Game Rule Selection
+---## Resume Current Operation: Implement Dynamic Game Rule Selection
 
 : stand by once all tasks has been executed and memory regained form previous session. DO NOT START on any task until human approved.
 
@@ -128,24 +120,9 @@ Before your actions to edit file, you must present your reasoning and approach f
     *   Moved D&D 5e specific data (schemas, default settings, class data) to `plugins/game-rule-dnd5e/src/pluginData.ts`.
     *   Moved prompt-related content and logic to `plugins/game-rule-dnd5e/src/pluginPrompt.ts`.
     *   Removed unused imports (`Character`, `ChangeEvent`, `Immer`) and unused props (`injectedImmer`) to clean up the file.
+    *   **`getActionChecks()` implemented (LLM-based).**
 *   **`plugins/game-rule-dnd5e/src/pluginData.ts` created:** Contains D&D 5e specific data structures and default value generation.
 *   **`plugins/game-rule-dnd5e/src/pluginPrompt.ts` created:** Contains prompt content and logic for generating protagonist prompts.
 *   All tests have passed, and there are no known issues.
 
-**Current Task:** Implement the remaining `IGameRuleLogic` methods in the `game-rule-dnd5e` plugin (`plugins/game-rule-dnd5e/src/main.tsx`) so that it will start passing customized prompts back to the main app. Specifically, the `getInitialProtagonistStats()` method has been updated to use the new `pluginPrompt.ts`, but other methods like `getActionChecks()`, `resolveCheck()`, `getNarrationPrompt()`, and `getCombatRoundNarration()` still need implementation.
-
-**Reasoning for Current Task:**
-The `game-rule-dnd5e` plugin is designed to provide D&D 5th Edition specific game rules. To integrate these rules with the main Waidrin application, the plugin needs to implement the `IGameRuleLogic` interface. This interface defines a contract for how a game rule can influence character generation, action resolution, and narration within the Waidrin engine. By implementing these methods, the D&D 5e plugin can inject its specific mechanics and flavor into the game flow.
-
-**Approach for Current Task:**
-1.  **Import necessary types:** Add imports for `IGameRuleLogic`, `Character`, and `Prompt` to `plugins/game-rule-dnd5e/src/main.tsx`.
-2.  **Declare `DndStatsPlugin` implements `IGameRuleLogic`:** Modify the class signature of `DndStatsPlugin` to explicitly state that it implements `IGameRuleLogic`.
-3.  **Implement `getGameRuleLogic()`:** This method will simply return `this` (the instance of `DndStatsPlugin`), as the plugin itself will be providing the game rule logic.
-4.  **Implement `getInitialProtagonistStats()`:** This method will generate a string summarizing the D&D 5e character's core attributes (Strength, Dexterity, etc.) based on the plugin's current settings. This string will be used by the main application to augment the protagonist generation prompt, ensuring that newly generated characters align with D&D 5e stat conventions.
-5.  **Implement `modifyProtagonistPrompt()`:** This method will allow the plugin to modify the system or user prompt for protagonist generation. Initially, it will return the original prompt, but it provides a clear extension point for future D&D 5e specific prompt modifications (e.g., emphasizing a fantasy setting, specific character roles).
-6.  **Implement `getActionChecks()`:** This method will analyze the user's action and the current game state to determine if any D&D 5e specific checks (e.g., skill checks, saving throws) are required. For a first pass, I will implement a simplified version that uses keyword matching to identify common D&D actions (e.g., "attack", "persuade", "sneak") and return predefined `CheckDefinition`s.
-7.  **Implement `resolveCheck()`:** This method will take a `CheckDefinition` (e.g., "Strength check, DC 15") and the protagonist's `Character` object. It will use the `rpg-dice-roller` (injected via `Context`) to simulate a D20 roll, apply relevant D&D 5e attribute modifiers (derived from the plugin's settings), and determine if the check succeeds or fails against the `difficultyClass`. It will then return a descriptive string summarizing the outcome of the check (e.g., "You succeeded on your Strength check!").
-8.  **Implement `getNarrationPrompt()`:** This method will construct a `Prompt` object for narration. It will incorporate the `checkResultStatements` (generated by `resolveCheck`) into the user prompt, ensuring that the narration reflects the outcomes of D&D 5e checks. It will also allow for D&D 5e specific narrative framing.
-9.  **Implement `getCombatRoundNarration()`:** This method will provide a D&D 5e flavored narration for combat rounds, taking `roundNumber` and `combatLog` as input.
-
-This will significantly enhance the `game-rule-dnd5e` plugin's functionality and its integration with the main application's dynamic game rule system.
+**Current Task:** Implement the remaining `IGameRuleLogic` methods in the `game-rule-dnd5e` plugin (`plugins/game-rule-dnd5e/src/main.tsx`) so that it will start passing customized prompts back to the main app. Specifically, the `getInitialProtagonistStats()` method has been updated to use the new `pluginPrompt.ts`, and `modifyProtagonistPrompt()` has been implemented. The next focus is on `resolveCheck()`, `getNarrationPrompt()`, and `getCombatRoundNarration()`.

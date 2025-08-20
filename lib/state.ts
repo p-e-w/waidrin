@@ -217,9 +217,9 @@ export interface IGameRuleLogic {
    * Its implementation will typically involve constructing an LLM prompt, making an API call, and parsing/validating the LLM's JSON response against the `CheckDefinition` schema.
    * @param {string} action - The raw action string performed by the protagonist.
    * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
-   * @returns {CheckDefinition[]} An array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
+   * @returns {Promise<CheckDefinition[]>} A promise that resolves to an array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
    */
-  getActionChecks?(action: string, context: WritableDraft<State>): CheckDefinition[];
+  getActionChecks?(action: string, context: WritableDraft<State>): Promise<CheckDefinition[]>;
 
   /**
    * @method resolveCheck

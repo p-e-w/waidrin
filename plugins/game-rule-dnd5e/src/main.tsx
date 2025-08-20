@@ -11,13 +11,15 @@
 // These imports are crucial for TypeScript type checking but are removed during the build process
 // to prevent bundling these libraries within the plugin, thus avoiding the "two Reacts" problem.
 import type { WritableDraft } from "immer";
-import type { Plugin, PluginWrapper, StoredState, IGameRuleLogic } from "@/lib/state";
+import type { Plugin, PluginWrapper, StoredState, IGameRuleLogic, CheckDefinition } from "@/lib/state";
 import type { Context } from "@/app/plugins";
+import type { Prompt } from "@/lib/prompts";
 
 import type * as RadixThemes from '@radix-ui/themes';
 import type { useShallow } from 'zustand/shallow';
 import { DndStatsSettings, generateDefaultDndStatsSettings, DND_CLASS_DATA, DndStatsSettingsSchema } from "./pluginData";
-import { getProtagonistGenerationPrompt } from "./pluginPrompt";
+import { getProtagonistGenerationPrompt, modifyProtagonistPromptForDnd, getChecksPrompt } from "./pluginPrompt";
+import * as z from "zod/v4";
 
 
 // Declare a module-level React variable.
@@ -208,5 +210,44 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
 
     const narration = await this.context!.getBackend().getNarration(prompt);
     return narration;
+  }
+
+  modifyProtagonistPrompt(originalPrompt: Prompt): Prompt {
+    return modifyProtagonistPromptForDnd(originalPrompt);
+  }
+
+  /**
+   * @method getActionChecks
+   * @description Specifies what checks are required for a given action, based on the action and current context.
+   * This method is triggered when an action is passed to `narratePrompt`.
+   * Its implementation will typically involve constructing an LLM prompt, making an API call, and parsing/validating the LLM's JSON response against the `CheckDefinition` schema.
+   * @param {string} action - The raw action string performed by the protagonist.
+   * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
+   * @returns {Promise<CheckDefinition[]>} A promise that resolves to an array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
+   */
+  async getActionChecks(action: string, context: WritableDraft<StoredState>): Promise<CheckDefinition[]> {
+    if (!this.context) {
+      console.error("Context not available for getActionChecks.");
+      return [];
+    }
+
+    const checksPrompt = getChecksPrompt(action);
+    //console.log("Generated checksPrompt:", checksPrompt);
+
+    try {
+      // Define a Zod schema for an array of CheckDefinition
+      const CheckDefinitionSchema = z.object({
+        type: z.string(),
+        difficultyClass: z.number().int(),
+        modifiers: z.array(z.string()).optional(),
+      });
+      const CheckDefinitionsArraySchema = z.array(CheckDefinitionSchema);
+
+      const checks = await this.context.getBackend().getObject(checksPrompt, CheckDefinitionsArraySchema);
+      return checks;
+    } catch (error) {
+      console.error("Error getting action checks from LLM:", error);
+      return []; // Graceful fallback
+    }
   }
 }
