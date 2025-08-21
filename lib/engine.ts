@@ -46,12 +46,10 @@ function getDefaultGameRuleLogic(): IGameRuleLogic {
     resolveCheck: () => "",
 
     // Default implementation for getNarrationPrompt
-    getNarrationPrompt: (eventType: string, context: WritableDraft<StoredState>, checkResultStatements?: string[]) => {
+    getNarrationPrompt: async (eventType: string, context: WritableDraft<StoredState>, checkResultStatements?: string[], action?: string) => {
       // Call the comprehensive narratePrompt from lib/prompts.ts
-      // The 'action' parameter for narratePrompt is not directly available here,
-      // as getNarrationPrompt is called with eventType and context.
-      // We pass undefined for action, as narratePrompt handles it.
-      return narratePrompt(context, undefined, checkResultStatements);
+      const prompt = narratePrompt(context, action, checkResultStatements);
+      return [prompt.user]; // Return the user part of the prompt as a string array
     },
 
     // Default implementation for getCombatRoundNarration
@@ -272,13 +270,14 @@ export async function next(
         console.log(`ENGINE: getCombatRoundNarration returned`); //debug logging - ${JSON.stringify(narrationPromptContent)}
       } else if (gameRuleLogic.getNarrationPrompt) {
         console.log(`ENGINE: getNarrationPrompt called.`);
-        narrationPromptContent = gameRuleLogic.getNarrationPrompt("general", state, checkResultStatements);
-        console.log(`ENGINE: getNarrationPrompt returned`); //debug logging - ${JSON.stringify(narrationPromptContent)}
+        const consequences = await gameRuleLogic.getNarrationPrompt("general", state, checkResultStatements, action); // Pass action here and await
+        narrationPromptContent = narratePrompt(state, action, consequences);
+        console.log(`ENGINE: getNarrationPrompt returned: `); //debug logging - ${JSON.stringify(narrationPromptContent)}
       } else {
         // This branch should ideally not be hit if getDefaultGameRuleLogic is correctly implemented
         console.log(`ENGINE: Falling back to narratePrompt from lib/prompts.ts.`);
-        narrationPromptContent = narratePrompt(state, action, checkResultStatements);
-        console.log(`ENGINE: narratePrompt (fallback) returned`); //debug logging - ${JSON.stringify(narrationPromptContent)}
+        narrationPromptContent = narratePrompt(state, action);
+        console.log(`ENGINE: narratePrompt (fallback) returned: `); //debug logging - ${JSON.stringify(narrationPromptContent)}
       }
 
       event.text = await backend.getNarration(narrationPromptContent, (token: string, count: number) => {

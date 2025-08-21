@@ -239,9 +239,10 @@ export interface IGameRuleLogic {
    * @param {string} eventType - The type of event triggering narration.
    * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
    * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
-   * @returns {Prompt} The generated narration prompt.
+   * @param {string} [action] - Optional: The action that triggered the narration.
+   * @returns {Promise<string[]>} The generated narration prompt.
    */
-  getNarrationPrompt?(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[]): Prompt;
+  getNarrationPrompt?(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[], action?: string): Promise<string[]>;
 
   /**
    * @method getCombatRoundNarration

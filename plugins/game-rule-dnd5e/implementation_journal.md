@@ -122,3 +122,115 @@
 **Outcome:** The `getActionChecks` method has been successfully implemented and refactored, improving code organization and ensuring type safety. The LLM-based approach for determining skill checks is now integrated.
 
 **Next Steps:** The next focus is on `resolveCheck()`, followed by `getNarrationPrompt()`, and `getCombatRoundNarration()`.
+
+## Detailed Plan: Dynamic Narrative Guidance Enhancement
+
+**Date:** August 20, 2025
+
+**Goal:** Implement the dynamic narrative guidance as per the user's clarified flow, with LLM handling check result interpretation.
+
+**Phase 1: Prepare `pluginPrompt.ts` for new guidance functions.
+
+**Step 1: Add `getConsequenceGuidancePrompt` to `plugins/game-rule-dnd5e/src/pluginPrompt.ts`**
+
+*   **Action:** Add the new function `export function getConsequenceGuidancePrompt(sceneNarration: string, actionText: string, originalCheckResultStatements: string[]): Prompt` to `plugins/game-rule-dnd5e/src/pluginPrompt.ts`.
+*   **Code Snippet to Add:**
+    ```typescript
+    /**
+     * Generates a prompt for an LLM to interpret check results and provide narrative guidance.
+     * The LLM is instructed to consider proximity to DC and critical rolls.
+     * @param sceneNarration The current scene narration text.
+     * @param actionText The action text that led to the checks.
+     * @param originalCheckResultStatements An array of strings describing the check outcomes.
+     * @returns A Prompt object for the internal LLM call.
+     */
+    export function getConsequenceGuidancePrompt(sceneNarration: string, actionText: string, originalCheckResultStatements: string[]): Prompt {
+      const checkResultsFormatted = originalCheckResultStatements.length > 0
+        ? `Check Results:\n${originalCheckResultStatements.join('\n')}`
+        : "No specific checks were performed or their results are not available.";
+
+      return {
+        system: `You are an expert D&D 5e Game Master. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.\n    Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.\n    Based on your interpretation, provide concise narrative guidance for the next scene. Focus on the immediate consequences of the action and how the story should unfold, including any twists or unexpected developments.`,
+        user: `Current scene:\n    ${sceneNarration}\n\n    Action taken:\n    ${actionText}\n\n    ${checkResultsFormatted}\n\n    Provide narrative guidance for the next scene based on these inputs.`
+      };
+    }
+    ```
+*   **Reasoning:** This directly implements the user's latest refinement, offloading the interpretation of check results to the LLM.
+*   **Approach:** Plugin-level, structural and functional change (full implementation).
+
+**Step 2: Add `getDndNarrationGuidance` to `plugins/game-rule-dnd5e/src/pluginPrompt.ts`**
+
+*   **Action:** Add the new function `export function getDndNarrationGuidance(eventType: string): string` to `plugins/game-rule-dnd5e/src/pluginPrompt.ts`.
+*   **Code Snippet to Add:**
+    ```typescript
+    /**
+     * Provides general D&D narrative style guidance.
+     * @param eventType The type of event triggering narration (e.g., "combat", "general").
+     * @returns A string containing general D&D narrative instructions.
+     */
+    export function getDndNarrationGuidance(eventType: string): string {
+      let guidance = "";
+      if (eventType === "combat") {
+        guidance += "Narrate this as a dynamic combat scene, focusing on action and character reactions, adhering to D&D 5e combat rules.";
+      } else {
+        guidance += "Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios.";
+      }
+      return guidance;
+    }
+    ```
+*   **Reasoning:** This provides the general D&D narrative style guidance as required by the user's flow.
+*   **Approach:** Plugin-level, structural and functional change (stub implementation).
+
+**Phase 2: Modify `main.tsx` to use the new guidance functions.**
+
+**Step 3: Modify `getNarrationPrompt` in `plugins/game-rule-dnd5e/src/main.tsx`**
+
+*   **Action:** Update the `getNarrationPrompt` method.
+*   **Code Snippet to Replace/Modify:**
+    *   **Imports (to be added/modified at the top of the file):**
+        ```typescript
+        import { getProtagonistGenerationPrompt, modifyProtagonistPromptForDnd, getChecksPrompt, getConsequenceGuidancePrompt, getDndNarrationGuidance } from "./pluginPrompt";
+        ```
+    *   **`getNarrationPrompt` method:**
+        ```typescript
+          async getNarrationPrompt(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[]): Promise<Prompt> {
+            if (!this.context) {
+              console.error("Context not available for getNarrationPrompt.");
+              // Fallback to default narration prompt if context is missing
+              return narratePrompt(context, undefined, checkResultStatements);
+            }
+
+            // Extract sceneNarration and actionText from context.events
+            let sceneNarration = "";
+            let actionText = "";
+
+            // Find the most recent narration and action events
+            for (let i = context.events.length - 1; i >= 0; i--) {
+              const event = context.events[i];
+              if (event.type === "narration" && !sceneNarration) {
+                sceneNarration = event.text;
+              } else if (event.type === "action" && !actionText) {
+                actionText = event.action;
+              }
+              if (sceneNarration && actionText) {
+                break; // Found both, no need to continue
+              }
+            }
+
+            // 1. Get consequence guidance from internal LLM call
+            const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, actionText, checkResultStatements || []);
+            const consequenceGuidance = await this.context.getBackend().getNarration(internalGuidancePrompt);
+
+            // 2. Get general D&D style guidance
+            const dndStyleGuidance = getDndNarrationGuidance(eventType);
+
+            // 3. Combine guidance into a single string
+            const consolidatedGuidance = `${consequenceGuidance}\n\n${dndStyleGuidance}`;
+
+            // 4. Call core narratePrompt with consolidated guidance as checkResultStatements
+            // The core narratePrompt will then embed this consolidated guidance into its user prompt.
+            return narratePrompt(context, undefined, [consolidatedGuidance]);
+          }
+        ```
+*   **Reasoning:** Implements the core logic for dynamic narrative guidance as per the latest user clarification, including extracting context from `state.events` and performing the internal LLM call.
+*   **Approach:** Plugin-level, functional and structural change.

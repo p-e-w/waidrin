@@ -104,7 +104,7 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
 
 **Wisdom** measures perception, intuition, insight, and common sense.
 
-* **3 (Mod. -4)::** **Oblivious/Barely Aware.** You are seemingly incapable of thought or barely aware of your surroundings. You might stare blankly or miss obvious threats.
+* **3 (Mod. -4):** **Oblivious/Barely Aware.** You are seemingly incapable of thought or barely aware of your surroundings. You might stare blankly or miss obvious threats.
 * **4-5 (Mod. -3):** **Unobservant.** You rarely notice important or prominent items, people, or occurrences. You seem incapable of forethought and are easily surprised or misled.
 * **6-7 (Mod. -2):** **Foolish.** You often fail to exert common sense, make rash decisions, and are prone to overlooking crucial details. You're easily tricked or caught off guard.
 * **8-9 (Mod. -1):** **Inattentive.** You might forget or opt not to consider all options before taking action. You're generally well-meaning but prone to errors in judgment and perception.
@@ -112,7 +112,7 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
 * **12-13 (Mod. +1):** **Perceptive.** You have a good eye for detail and are capable of reading people fairly well. You can often tell when a person is upset or lying.
 * **14-15 (Mod. +2):** **Insightful.** You read people and situations very well and often get strong hunches about a situation that doesn't feel right. You're rarely surprised and notice subtle clues others miss.
 * **16-17 (Mod. +3):** **Keen-witted.** You are keenly aware of your environment and changes within it, seldom missing a clue, insinuation, or lie. You possess excellent judgment and intuition.
-* **18-19 (Mod. +4)::** **Profoundly Wise/Preternatural Awareness.** You are often sought out for your wisdom and are a natural leader in difficult situations. You seem to anticipate events before they happen and possess an almost preternatural awareness.
+* **18-19 (Mod. +4):** **Profoundly Wise/Preternatural Awareness.** You are often sought out for your wisdom and are a natural leader in difficult situations. You seem to anticipate events before they happen and possess an almost preternatural awareness.
 * **20-21 (Mod. +5):** **Sage-like.** Your wisdom is legendary. You possess perfect awareness of surroundings, context, and implications, making it extremely hard to get anything past you. You are a fount of practical knowledge.
 * **22-23 (Mod. +6):** **Superhuman Perception.** Your senses are incredibly acute, and your intuition is infallible. You can perceive hidden truths and insights others can't even fathom.
 * **24-25 (Mod. +7):** **Mythic Awareness.** Your perception extends beyond the mundane, allowing you to sense magic, spirits, or even faint echoes of past events. You are rarely truly surprised.
@@ -129,7 +129,7 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
 * **6-7 (Mod. -2):** **Unlikable.** You are terribly reticent, uninteresting, or rude. You frequently make gaffes and have difficulty connecting with others.
 * **8-9 (Mod. -1):** **Awkward.** You're somewhat socially inept or dull. You might make people mildly uncomfortable or struggle to find the right words in conversation.
 * **10-11 (Mod. 0):** **Average.** You are capable of polite conversation and can generally navigate social situations without major issues. You're neither particularly charming nor particularly off-putting. This is the common human average.
-* **12-13 (Mod. +1)::** **Personable.** You are mildly interesting and know what to say to the right people. You can make a good first impression and hold your own in a debate.
+* **12-13 (Mod. +1):** **Personable.** You are mildly interesting and know what to say to the right people. You can make a good first impression and hold your own in a debate.
 * **14-15 (Mod. +2):** **Charming.** You are often popular or infamous, possessing assured social skills. You know what to say to most people and can confidently lead a conversation or argument.
 * **16-17 (Mod. +3):** **Compelling.** You are quickly likeable, respected, or feared by many. You are very eloquent, persuasive, and possess a strong force of personality that draws others to you (or makes them wary).
 * **18-19 (Mod. +4):** **Magnetic/Peak Human Presence.** Your presence lights up a room, and people are immediately drawn to you. Even your worst enemies can't help but respond to your words. You are a natural leader, orator, or performer.
@@ -310,6 +310,7 @@ Your output must be a JSON array of CheckDefinition objects, and nothing else. F
     "modifiers": ["wisdom"]
   }
 
+]
 You should consider the context of the action and the typical challenges associated with it in a D&D 5e setting. If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array.
 
 Here are the D&D 5e core skills and guidelines for difficulty classes:
@@ -318,6 +319,52 @@ ${coreSkillsAndDifficultyCheckContent}
 ]`, 
     user: `Given the action: "${action}", what if any D&D 5e skill checks are required? If multiple checks are appropriate, list them all. 
     If no specific check is needed, return an empty array. Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0. 
-    Provide your answer as a JSON array of CheckDefinition objects.`,
+    Provide your answer as a JSON array of CheckDefinition objects.`, 
   };
+}
+
+/**
+ * Generates a prompt for an LLM to interpret check results and provide narrative guidance.
+ * The LLM is instructed to consider proximity to DC and critical rolls.
+ * @param sceneNarration The current scene narration text.
+ * @param actionText The action text that led to the checks.
+ * @param checkResult An array of strings describing the check outcomes.
+ * @returns A Prompt object for the internal LLM call.
+ */
+export function getConsequenceGuidancePrompt(sceneNarration: string, actionText: string, checkResult: string[]): Prompt {
+  const allCheckResults = checkResult.length > 0
+    ? `Check Results:\n${checkResult.join('\n')}`
+    : "No specific checks were needed for this action.";
+
+  return {
+    system: `You are an expert D&D 5e Game Master. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.\n    Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.\n    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
+    user: `Current scene:
+    ${sceneNarration}
+
+    Action taken:
+    ${actionText}
+
+    ${allCheckResults}
+
+    Action to accept a task, quest or acknowledge someone's point of view is auto success regardless of the DC check results (disregard the result text favoring the story progression), you may add flavor to the guidance but it should not impact the automatic nature of trivial tasks. Provide narrative guidance for the action's possible consequences based on these inputs. Focus on the immediate consequences of the action and how the story could unfold, including any twists or unexpected developments in bullet points, DO NOT narrate, or write story paragraphs, these are meant to be clear and concise possible ideas based on the situation. The guidance should be concise and focused on the action's outcome, like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc... It must NOT broader on context of the story. Avoid repeating information already present in the scene or action text.`,
+  };
+}
+
+//Player may specify the D&D 5e rules to include in the narration. or perhaps the DM may want to specify the style of narration.
+const dndRulesDMStyle = "Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.";
+const dndRulesCombat = "Narrate this as a dynamic combat scene, focusing on action and character reactions, adhering to D&D 5e combat rules.";
+
+/**
+ * Provides general D&D narrative style guidance.
+ * @param eventType The type of event triggering narration (e.g., "combat", "general").
+ * @returns A string containing general D&D narrative instructions.
+ */
+export function getDndNarrationGuidance(eventType: string): string {
+  let guidance = "";
+  if (eventType === "combat") {
+    guidance += dndRulesCombat;
+  } else {
+    guidance += dndRulesDMStyle;
+  }
+  return guidance;
 }

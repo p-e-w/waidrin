@@ -122,11 +122,15 @@ Before your actions to edit file, you must present your reasoning and approach f
     *   Removed unused imports (`Character`, `ChangeEvent`, `Immer`) and unused props (`injectedImmer`) to clean up the file.
     *   `getActionChecks()` implemented (LLM-based).
     *   `resolveCheck()`: Implemented. Calls `resolveCheck` from `pluginData.ts`.
-    *   `getNarrationPrompt()`: Implemented. Leverages `narratePrompt` from `lib/prompts.ts`.
+    *   `getNarrationPrompt()`: **Implemented and fully integrated to perform internal LLM calls for narrative guidance, combining consequence-based and general D&D style guidance. It now returns `Promise<string[]>` as per the updated `IGameRuleLogic` interface.**
     *   `getCombatRoundNarration()`: Implemented. Provides a basic narration string.
 *   **`plugins/game-rule-dnd5e/src/pluginData.ts`:**
     *   Created: Contains D&D 5e specific data structures and default value generation.
     *   `getAbilityModifier()`: Implemented and exported.
     *   `resolveCheck()`: Implemented and exported. This function now takes `dndStats` and `rpgDiceRoller` as arguments.
-*   **`plugins/game-rule-dnd5e/src/pluginPrompt.ts` created:** Contains prompt content and logic for generating protagonist prompts.
+*   **`plugins/game-rule-dnd5e/src/pluginPrompt.ts`:**
+    *   Created: Contains prompt content and logic for generating protagonist prompts.
+    *   **`getConsequenceGuidancePrompt()`: Implemented to generate a prompt for an internal LLM call to interpret check results and provide narrative guidance.**
+    *   **`getDndNarrationGuidance()`: Implemented to provide general D&D narrative style guidance, using customizable constants.**
+*   **Dynamic Game Rule Selection Feature:** The core implementation for dynamic game rule selection, including LLM-based narrative guidance, is now complete.
 *   All tests have passed, and there are no known issues.

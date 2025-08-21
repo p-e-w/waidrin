@@ -18,7 +18,7 @@ import type { Prompt } from "@/lib/prompts";
 import type * as RadixThemes from '@radix-ui/themes';
 import type { useShallow } from 'zustand/shallow';
 import { DndStatsSettings, generateDefaultDndStatsSettings, DND_CLASS_DATA, DndStatsSettingsSchema, resolveCheck as resolveCheckFromPluginData } from "./pluginData";
-import { getProtagonistGenerationPrompt, modifyProtagonistPromptForDnd, getChecksPrompt } from "./pluginPrompt";
+import { getProtagonistGenerationPrompt, modifyProtagonistPromptForDnd, getChecksPrompt, getConsequenceGuidancePrompt, getDndNarrationGuidance } from "./pluginPrompt";
 import * as z from "zod/v4";
 import { narratePrompt } from "@/lib/prompts"; // Import narratePrompt
 import type { Character, State } from "@/lib/state"; // Import Character and State
@@ -277,12 +277,44 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
    * @param {string} eventType - The type of event triggering narration.
    * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
    * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
-   * @returns {Prompt} The generated narration prompt.
+   * @param {string} [action] - Optional: The action that triggered the narration.
+   * @returns {Promise<string[]>} The generated narration prompt.
    */
-  getNarrationPrompt(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[]): Prompt {
-    // For now, we'll just leverage the existing narratePrompt from lib/prompts.ts
-    // and pass the checkResultStatements.
-    return narratePrompt(context, undefined, checkResultStatements);
+  async getNarrationPrompt(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[], action?: string): Promise<string[]> {
+    if (!this.context) {
+      console.error("Context not available for getNarrationPrompt.");
+      // Fallback to an empty array if context is missing
+      return [];
+    }
+
+    // Extract sceneNarration from context.events
+    let sceneNarration = "";
+
+    // Find the most recent narration event
+    for (let i = context.events.length - 1; i >= 0; i--) {
+      const event = context.events[i];
+      if (event.type === "narration") {
+        sceneNarration = event.text;
+        break; // Found, no need to continue
+      }
+    }
+
+    // 1. Get consequence guidance from internal LLM call
+    const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements || []);
+    const consequenceGuidance = await this.context.getBackend().getNarration(internalGuidancePrompt);
+
+    // 2. Get general D&D style guidance
+    //To-Do: add rules for timing
+    const dndStyleGuidance = getDndNarrationGuidance(eventType);
+
+    // 3. Combine guidance into a single string array
+    const consolidatedGuidance = `${consequenceGuidance}
+
+${dndStyleGuidance}`;
+    console.log ("Consolidated Guidance for Narration Prompt:", consolidatedGuidance);
+
+    // Return the consolidated guidance as a string array
+    return [consolidatedGuidance];
   }
 
   /**

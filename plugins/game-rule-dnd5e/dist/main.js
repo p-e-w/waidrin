@@ -4089,7 +4089,7 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
 
 **Wisdom** measures perception, intuition, insight, and common sense.
 
-* **3 (Mod. -4)::** **Oblivious/Barely Aware.** You are seemingly incapable of thought or barely aware of your surroundings. You might stare blankly or miss obvious threats.
+* **3 (Mod. -4):** **Oblivious/Barely Aware.** You are seemingly incapable of thought or barely aware of your surroundings. You might stare blankly or miss obvious threats.
 * **4-5 (Mod. -3):** **Unobservant.** You rarely notice important or prominent items, people, or occurrences. You seem incapable of forethought and are easily surprised or misled.
 * **6-7 (Mod. -2):** **Foolish.** You often fail to exert common sense, make rash decisions, and are prone to overlooking crucial details. You're easily tricked or caught off guard.
 * **8-9 (Mod. -1):** **Inattentive.** You might forget or opt not to consider all options before taking action. You're generally well-meaning but prone to errors in judgment and perception.
@@ -4097,7 +4097,7 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
 * **12-13 (Mod. +1):** **Perceptive.** You have a good eye for detail and are capable of reading people fairly well. You can often tell when a person is upset or lying.
 * **14-15 (Mod. +2):** **Insightful.** You read people and situations very well and often get strong hunches about a situation that doesn't feel right. You're rarely surprised and notice subtle clues others miss.
 * **16-17 (Mod. +3):** **Keen-witted.** You are keenly aware of your environment and changes within it, seldom missing a clue, insinuation, or lie. You possess excellent judgment and intuition.
-* **18-19 (Mod. +4)::** **Profoundly Wise/Preternatural Awareness.** You are often sought out for your wisdom and are a natural leader in difficult situations. You seem to anticipate events before they happen and possess an almost preternatural awareness.
+* **18-19 (Mod. +4):** **Profoundly Wise/Preternatural Awareness.** You are often sought out for your wisdom and are a natural leader in difficult situations. You seem to anticipate events before they happen and possess an almost preternatural awareness.
 * **20-21 (Mod. +5):** **Sage-like.** Your wisdom is legendary. You possess perfect awareness of surroundings, context, and implications, making it extremely hard to get anything past you. You are a fount of practical knowledge.
 * **22-23 (Mod. +6):** **Superhuman Perception.** Your senses are incredibly acute, and your intuition is infallible. You can perceive hidden truths and insights others can't even fathom.
 * **24-25 (Mod. +7):** **Mythic Awareness.** Your perception extends beyond the mundane, allowing you to sense magic, spirits, or even faint echoes of past events. You are rarely truly surprised.
@@ -4114,7 +4114,7 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
 * **6-7 (Mod. -2):** **Unlikable.** You are terribly reticent, uninteresting, or rude. You frequently make gaffes and have difficulty connecting with others.
 * **8-9 (Mod. -1):** **Awkward.** You're somewhat socially inept or dull. You might make people mildly uncomfortable or struggle to find the right words in conversation.
 * **10-11 (Mod. 0):** **Average.** You are capable of polite conversation and can generally navigate social situations without major issues. You're neither particularly charming nor particularly off-putting. This is the common human average.
-* **12-13 (Mod. +1)::** **Personable.** You are mildly interesting and know what to say to the right people. You can make a good first impression and hold your own in a debate.
+* **12-13 (Mod. +1):** **Personable.** You are mildly interesting and know what to say to the right people. You can make a good first impression and hold your own in a debate.
 * **14-15 (Mod. +2):** **Charming.** You are often popular or infamous, possessing assured social skills. You know what to say to most people and can confidently lead a conversation or argument.
 * **16-17 (Mod. +3):** **Compelling.** You are quickly likeable, respected, or feared by many. You are very eloquent, persuasive, and possess a strong force of personality that draws others to you (or makes them wary).
 * **18-19 (Mod. +4):** **Magnetic/Peak Human Presence.** Your presence lights up a room, and people are immediately drawn to you. Even your worst enemies can't help but respond to your words. You are a natural leader, orator, or performer.
@@ -4280,6 +4280,7 @@ Your output must be a JSON array of CheckDefinition objects, and nothing else. F
     "modifiers": ["wisdom"]
   }
 
+]
 You should consider the context of the action and the typical challenges associated with it in a D&D 5e setting. If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array.
 
 Here are the D&D 5e core skills and guidelines for difficulty classes:
@@ -4290,6 +4291,35 @@ ${coreSkillsAndDifficultyCheckContent}
     If no specific check is needed, return an empty array. Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0. 
     Provide your answer as a JSON array of CheckDefinition objects.`
   };
+}
+function getConsequenceGuidancePrompt(sceneNarration, actionText, checkResult) {
+  const allCheckResults = checkResult.length > 0 ? `Check Results:
+${checkResult.join("\n")}` : "No specific checks were needed for this action.";
+  return {
+    system: `You are an expert D&D 5e Game Master. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.
+    Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.
+    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
+    user: `Current scene:
+    ${sceneNarration}
+
+    Action taken:
+    ${actionText}
+
+    ${allCheckResults}
+
+    Provide narrative guidance for the action's possible consequences based on these inputs. Focus on the immediate consequences of the action and how the story could unfold, including any twists or unexpected developments in bullet points, DO NOT narrate, or write story paragraphs, these are meant to be clear and concise possible ideas based on the situation. The guidance should be concise and focused on the action's outcome, like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc... It must NOT broader on context of the story. Avoid repeating information already present in the scene or action text.`
+  };
+}
+var dndRulesDMStyle = "Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.";
+var dndRulesCombat = "Narrate this as a dynamic combat scene, focusing on action and character reactions, adhering to D&D 5e combat rules.";
+function getDndNarrationGuidance(eventType) {
+  let guidance = "";
+  if (eventType === "combat") {
+    guidance += dndRulesCombat;
+  } else {
+    guidance += dndRulesDMStyle;
+  }
+  return guidance;
 }
 
 // ../../node_modules/zod/dist/esm/v4/core/index.js
@@ -6161,10 +6191,10 @@ var $ZodURL = /* @__PURE__ */ $constructor("$ZodURL", (inst, def) => {
   $ZodStringFormat.init(inst, def);
   inst._zod.check = (payload) => {
     try {
-      const url2 = new URL(payload.value);
+      const url = new URL(payload.value);
       if (def.hostname) {
         def.hostname.lastIndex = 0;
-        if (!def.hostname.test(url2.hostname)) {
+        if (!def.hostname.test(url.hostname)) {
           payload.issues.push({
             code: "invalid_format",
             format: "url",
@@ -6178,7 +6208,7 @@ var $ZodURL = /* @__PURE__ */ $constructor("$ZodURL", (inst, def) => {
       }
       if (def.protocol) {
         def.protocol.lastIndex = 0;
-        if (!def.protocol.test(url2.protocol.endsWith(":") ? url2.protocol.slice(0, -1) : url2.protocol)) {
+        if (!def.protocol.test(url.protocol.endsWith(":") ? url.protocol.slice(0, -1) : url.protocol)) {
           payload.issues.push({
             code: "invalid_format",
             format: "url",
@@ -14217,9 +14247,6 @@ var ZodURL = /* @__PURE__ */ $constructor("ZodURL", (inst, def) => {
   $ZodURL.init(inst, def);
   ZodStringFormat.init(inst, def);
 });
-function url(params) {
-  return _url(ZodURL, params);
-}
 var ZodEmoji = /* @__PURE__ */ $constructor("ZodEmoji", (inst, def) => {
   $ZodEmoji.init(inst, def);
   ZodStringFormat.init(inst, def);
@@ -14320,9 +14347,6 @@ var ZodBoolean2 = /* @__PURE__ */ $constructor("ZodBoolean", (inst, def) => {
   $ZodBoolean.init(inst, def);
   ZodType2.init(inst, def);
 });
-function boolean2(params) {
-  return _boolean(ZodBoolean2, params);
-}
 var ZodBigInt2 = /* @__PURE__ */ $constructor("ZodBigInt", (inst, def) => {
   var _a, _b, _c;
   $ZodBigInt.init(inst, def);
@@ -14421,17 +14445,6 @@ function union(options, params) {
     options
   }, util_exports.normalizeParams(params)));
 }
-var ZodDiscriminatedUnion2 = /* @__PURE__ */ $constructor("ZodDiscriminatedUnion", (inst, def) => {
-  ZodUnion2.init(inst, def);
-  $ZodDiscriminatedUnion.init(inst, def);
-});
-function discriminatedUnion(discriminator, options, params) {
-  return new ZodDiscriminatedUnion2(__spreadValues({
-    type: "union",
-    options,
-    discriminator
-  }, util_exports.normalizeParams(params)));
-}
 var ZodIntersection2 = /* @__PURE__ */ $constructor("ZodIntersection", (inst, def) => {
   $ZodIntersection.init(inst, def);
   ZodType2.init(inst, def);
@@ -14442,19 +14455,6 @@ function intersection(left, right) {
     left,
     right
   });
-}
-var ZodRecord2 = /* @__PURE__ */ $constructor("ZodRecord", (inst, def) => {
-  $ZodRecord.init(inst, def);
-  ZodType2.init(inst, def);
-  inst.keyType = def.keyType;
-  inst.valueType = def.valueType;
-});
-function record(keyType, valueType, params) {
-  return new ZodRecord2(__spreadValues({
-    type: "record",
-    keyType,
-    valueType
-  }, util_exports.normalizeParams(params)));
 }
 var ZodEnum2 = /* @__PURE__ */ $constructor("ZodEnum", (inst, def) => {
   $ZodEnum.init(inst, def);
@@ -14496,25 +14496,6 @@ function _enum2(values, params) {
   return new ZodEnum2(__spreadValues({
     type: "enum",
     entries
-  }, util_exports.normalizeParams(params)));
-}
-var ZodLiteral2 = /* @__PURE__ */ $constructor("ZodLiteral", (inst, def) => {
-  $ZodLiteral.init(inst, def);
-  ZodType2.init(inst, def);
-  inst.values = new Set(def.values);
-  Object.defineProperty(inst, "value", {
-    get() {
-      if (def.values.length > 1) {
-        throw new Error("This schema contains multiple valid literal values. Use `.values` instead.");
-      }
-      return def.values[0];
-    }
-  });
-});
-function literal(value, params) {
-  return new ZodLiteral2(__spreadValues({
-    type: "literal",
-    values: Array.isArray(value) ? value : [value]
   }, util_exports.normalizeParams(params)));
 }
 var ZodTransform = /* @__PURE__ */ $constructor("ZodTransform", (inst, def) => {
@@ -14697,7 +14678,7 @@ var INVALID2 = Object.freeze({
 var coerce_exports = {};
 __export(coerce_exports, {
   bigint: () => bigint2,
-  boolean: () => boolean3,
+  boolean: () => boolean2,
   date: () => date3,
   number: () => number3,
   string: () => string3
@@ -14708,7 +14689,7 @@ function string3(params) {
 function number3(params) {
   return _coercedNumber(ZodNumber2, params);
 }
-function boolean3(params) {
+function boolean2(params) {
   return _coercedBoolean(ZodBoolean2, params);
 }
 function bigint2(params) {
@@ -14720,167 +14701,6 @@ function date3(params) {
 
 // ../../node_modules/zod/dist/esm/v4/classic/external.js
 config(en_default2());
-
-// ../../lib/schemas.ts
-var Text = string2().trim().nonempty();
-var Name = Text.max(100);
-var Description = Text.max(2e3);
-var Action = Text.max(200);
-var Index = int();
-var RequestParams = record(string2(), unknown());
-var View = _enum2(["welcome", "connection", "genre", "character", "scenario", "chat"]);
-var World = object({
-  name: Name,
-  description: Description
-});
-var Gender = _enum2(["male", "female"]);
-var Race = _enum2(["human", "elf", "dwarf"]);
-var Character = object({
-  name: Name,
-  gender: Gender,
-  race: Race,
-  biography: Description,
-  locationIndex: Index
-});
-var LocationType = _enum2(["tavern", "market", "road"]);
-var Location = object({
-  name: Name,
-  type: LocationType,
-  description: Description
-});
-var SexualContentLevel = _enum2(["regular", "explicit", "actively_explicit"]);
-var ViolentContentLevel = _enum2(["regular", "graphic", "pervasive"]);
-var ActionEvent = object({
-  type: literal("action"),
-  action: Action
-});
-var NarrationEvent = object({
-  type: literal("narration"),
-  text: Text.max(5e3),
-  locationIndex: Index,
-  referencedCharacterIndices: Index.array()
-});
-var CharacterIntroductionEvent = object({
-  type: literal("character_introduction"),
-  characterIndex: Index
-});
-var LocationChangeEvent = object({
-  type: literal("location_change"),
-  locationIndex: Index,
-  presentCharacterIndices: Index.array()
-});
-var Event = discriminatedUnion("type", [
-  ActionEvent,
-  NarrationEvent,
-  CharacterIntroductionEvent,
-  LocationChangeEvent
-]);
-var State = object({
-  apiUrl: url(),
-  apiKey: string2().trim(),
-  model: string2().trim(),
-  generationParams: RequestParams,
-  narrationParams: RequestParams,
-  updateInterval: int(),
-  logPrompts: boolean2(),
-  logParams: boolean2(),
-  logResponses: boolean2(),
-  activeGameRule: string2(),
-  view: View,
-  world: World,
-  locations: Location.array(),
-  characters: Character.array(),
-  protagonist: Character,
-  hiddenDestiny: boolean2(),
-  betrayal: boolean2(),
-  oppositeSexMagnet: boolean2(),
-  sameSexMagnet: boolean2(),
-  sexualContentLevel: SexualContentLevel,
-  violentContentLevel: ViolentContentLevel,
-  isCombat: boolean2(),
-  events: Event.array(),
-  actions: Action.array()
-});
-
-// ../../lib/prompts.ts
-function normalize(text) {
-  const singleNewline = new RegExp("(?<!\\n)\\n(?!\\n)", "g");
-  return text.replaceAll(singleNewline, " ").trim();
-}
-function makePrompt(userPrompt) {
-  return {
-    system: "You are the game master of a text-based fantasy role-playing game.",
-    user: normalize(userPrompt)
-  };
-}
-var generateWorldPrompt = makePrompt(`
-Create a fictional world for a fantasy adventure RPG and return its name
-and a short description (100 words maximum) as a JSON object.
-Do not use a cliched name like 'Eldoria'.
-The world is populated by humans, elves, and dwarves.
-`);
-function makeMainPrompt(prompt, state) {
-  const context = state.events.map((event) => {
-    if (event.type === "narration") {
-      return event.text;
-    } else if (event.type === "character_introduction") {
-      return null;
-    } else if (event.type === "location_change") {
-      const location = state.locations[event.locationIndex];
-      return normalize(`
------
-
-LOCATION CHANGE
-
-${state.protagonist.name} is entering ${location.name}. ${location.description}
-
-The following characters are present at ${location.name}:
-
-${event.presentCharacterIndices.map((index) => {
-        const character = state.characters[index];
-        return `${character.name}: ${character.biography}`;
-      }).join("\n\n")}
-
------
-`);
-    }
-  }).filter((text) => !!text).join("\n\n");
-  return makePrompt(`
-This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
-
-The protagonist (who you should refer to as "you" in your narration, as the adventure happens from their perspective)
- is ${state.protagonist.name}. ${state.protagonist.biography}
-
-Here is what has happened so far:
-
-${context}
-
-
-
-${normalize(prompt)}
-`);
-}
-function narratePrompt(state, action, checkResultStatements) {
-  const checkResultsText = checkResultStatements && checkResultStatements.length > 0 ? `
-
-Check Results:
-${checkResultStatements.join("\n")}` : "";
-  return makeMainPrompt(
-    `
-${action ? `The protagonist (${state.protagonist.name}) has chosen to do the following: ${action}.` : ""}${checkResultsText}
-Narrate what happens next, using novel-style prose, in the present tense.
-Prioritize dialogue over descriptions.
-Do not mention more than 2 different characters in your narration.
-Refer to characters using their first names.
-Make all character names bold by surrounding them with double asterisks (**Name**).
-Write 2-3 paragraphs (no more than 200 words in total).
-Stop when it is the protagonist's turn to speak or act.
-Remember to refer to the protagonist (${state.protagonist.name}) as "you" in your narration.
-Do not explicitly ask the protagonist for a response at the end; they already know what is expected of them.
-`,
-    state
-  );
-}
 
 // src/main.tsx
 var React;
@@ -15047,10 +14867,30 @@ var DndStatsPlugin = class {
    * @param {string} eventType - The type of event triggering narration.
    * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
    * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
-   * @returns {Prompt} The generated narration prompt.
+   * @param {string} [action] - Optional: The action that triggered the narration.
+   * @returns {Promise<string[]>} The generated narration prompt.
    */
-  getNarrationPrompt(eventType, context, checkResultStatements) {
-    return narratePrompt(context, void 0, checkResultStatements);
+  async getNarrationPrompt(eventType, context, checkResultStatements, action) {
+    if (!this.context) {
+      console.error("Context not available for getNarrationPrompt.");
+      return [];
+    }
+    let sceneNarration = "";
+    for (let i = context.events.length - 1; i >= 0; i--) {
+      const event = context.events[i];
+      if (event.type === "narration") {
+        sceneNarration = event.text;
+        break;
+      }
+    }
+    const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements || []);
+    const consequenceGuidance = await this.context.getBackend().getNarration(internalGuidancePrompt);
+    const dndStyleGuidance = getDndNarrationGuidance(eventType);
+    const consolidatedGuidance = `${consequenceGuidance}
+
+${dndStyleGuidance}`;
+    console.log("Consolidated Guidance for Narration Prompt:", consolidatedGuidance);
+    return [consolidatedGuidance];
   }
   /**
    * @method getCombatRoundNarration
