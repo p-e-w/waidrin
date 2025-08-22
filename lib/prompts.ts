@@ -70,7 +70,7 @@ ${state.world.description}
 
 ${initialProtagonistStats}
 
-Return the character description as a JSON object. Include a short biography (100 words maximum).
+Return the character description as a JSON object. Include a short biography (250 words maximum).
 `);
 }
 

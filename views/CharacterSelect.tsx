@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025  Philipp Emanuel Weidmann <pew@worldwidemann.com>
 
+import * as React from "react"; // Import React
 import { Box, RadioCards, SegmentedControl, Text, Tabs, Switch, Flex } from "@radix-ui/themes"; // Added Switch and Flex
 import { GiFemale, GiMale } from "react-icons/gi";
 import { useShallow } from "zustand/shallow";
@@ -16,13 +17,15 @@ import { type Gender, type Race, useStateStore } from "@/lib/state";
  * before starting a new game. It integrates with plugin like manage and persist D&D-specific settings.
  */
 export default function CharacterSelect({ onNext, onBack }: { onNext?: () => void; onBack?: () => void }) {
+  // Introduce local state for tab management
+  const [activeTabKey, setActiveTabKey] = React.useState('default'); // 'default' for Appearance tab
+
   // Destructure gender, race, and setState from the Zustand state store.
-  const { gender, race, setState, activeGameRule, plugins, protagonist } = useStateStore( // Added plugins and protagonist
+  const { gender, race, setState, plugins, protagonist } = useStateStore( // Removed activeGameRule
     useShallow((state) => ({
       gender: state.protagonist.gender,
       race: state.protagonist.race,
       setState: state.set,
-      activeGameRule: state.activeGameRule,
       plugins: state.plugins, // Get plugins from global state
       protagonist: state.protagonist, // Get protagonist for ImageOption
     })),
@@ -48,23 +51,9 @@ export default function CharacterSelect({ onNext, onBack }: { onNext?: () => voi
     getBackend,
   );
 
-  const handleTabChange = (value: string) => {
-    setState((state) => {
-      state.activeGameRule = value;
-    });
-  };
-
   const handlePluginSelectionToggle = (pluginName: string, isSelected: boolean) => {
     context.setPluginSelected(pluginName, isSelected);
-    setState((state) => {
-      if (isSelected) {
-        state.activeGameRule = pluginName;
-      } else if (state.activeGameRule === pluginName) {
-        state.activeGameRule = "default";
-      }
-    });
   };
-
   // Find all currently selected plugins' names for display
   const currentlySelectedPlugins = plugins.filter(p => p.selectedPlugin);
   const activeGameRuleDisplay = currentlySelectedPlugins.length > 0
@@ -78,7 +67,7 @@ export default function CharacterSelect({ onNext, onBack }: { onNext?: () => voi
       </Flex>
 
       {/* Tabs for Character Appearance and Rules plugin */}
-      <Tabs.Root value={activeGameRule} onValueChange={handleTabChange}>
+      <Tabs.Root value={activeTabKey} onValueChange={setActiveTabKey}>
         <Tabs.List>
           <Tabs.Trigger value="default">
             <Text size="6">Appearance</Text>

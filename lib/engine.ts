@@ -67,8 +67,7 @@ function getDefaultGameRuleLogic(): IGameRuleLogic {
 function getActiveGameRuleLogic(): IGameRuleLogic {
   const state = getState();
 
-  // First, check if any plugin is explicitly selected via the new 'selectedPlugin' flag.
-  // This allows a plugin's game rule logic to be active regardless of the currently activeGameRule (tab selection).
+  // Check if any plugin is explicitly selected via the 'selectedPlugin' flag.
   for (const pluginWrapper of state.plugins) {
     if (pluginWrapper.enabled && pluginWrapper.selectedPlugin && pluginWrapper.plugin?.getGameRuleLogic) {
       console.log(`ENGINE: Using game rule logic from explicitly selected plugin: ${pluginWrapper.name}`);
@@ -76,18 +75,8 @@ function getActiveGameRuleLogic(): IGameRuleLogic {
     }
   }
 
-  // If no plugin is explicitly selected, fall back to the logic based on activeGameRule (tab selection).
-  // This preserves the previous behavior where the active tab determined the game rule.
-  const activeGameRuleName = state.activeGameRule;
-  for (const pluginWrapper of state.plugins) {
-    if (pluginWrapper.enabled && pluginWrapper.name === activeGameRuleName && pluginWrapper.plugin?.getGameRuleLogic) {
-      console.log(`ENGINE: Using game rule logic from active tab plugin: ${pluginWrapper.name}`);
-      return pluginWrapper.plugin.getGameRuleLogic();
-    }
-  }
-
   console.log("ENGINE: Using default game rule logic.");
-  // If no matching plugin is found or activeGameRule is "default", return the default logic
+  // If no matching plugin is found, return the default logic
   return getDefaultGameRuleLogic();
 }
 

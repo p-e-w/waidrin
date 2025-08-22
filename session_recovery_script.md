@@ -95,18 +95,18 @@ Before your actions to edit file, you must present your reasoning and approach f
 **Last Task:** Implementing the "Dynamic Game Rule Selection" feature.
 
 **Completed Changes:**
-*   **`lib/schemas.ts`:** Added `activeGameRule: z.string()` and `isCombat: z.boolean()` to the `State` schema.
+*   **`lib/schemas.ts`:** Added `activeGameRule: z.string()` to the `State` schema. (Note: `isCombat: z.boolean()` was previously added but will be removed as part of the combat mechanics refinement).
 *   **`lib/state.ts`:**
-    *   Initialized `activeGameRule` to `"default"` in `initialState`.
+    *   Initialized `activeGameRule` to `"default"` in `initialState`. (Note: `isCombat: false` was previously initialized but will be removed as part of the combat mechanics refinement).
     *   Defined `CheckDefinition`, `CheckResult`, `RaceDefinition`, `ClassDefinition`, and the `IGameRuleLogic` interface.
     *   Extended the `Plugin` interface with `getGameRuleLogic?(): IGameRuleLogic;`.
     *   Added `selectedPlugin?: boolean;` to the `PluginWrapper` interface.
 *   **`lib/engine.ts`:**
     *   Implemented `getDefaultGameRuleLogic()` and `getActiveGameRuleLogic()`.
-    *   Modified the `next()` function to use `getActiveGameRuleLogic()` for protagonist generation, action resolution, and combat narration.
+    *   Modified the `next()` function to use `getActiveGameRuleLogic()` for protagonist generation, action resolution, and combat narration. (Note: Combat logic in `next()` still relies on `state.isCombat` and will be further refined to rely on the plugin's internal state).
 *   **`lib/prompts.ts`:**
     *   Modified `generateProtagonistPrompt` to accept `initialProtagonistStats`.
-    *   Modified `narratePrompt` to accept `checkResultStatements`.
+    *   Modified `narratePrompt` to accept `checkResultStatements`. (Note: `generateActionsPrompt` does not yet call `gameRuleLogic.getActions()` and will be updated as part of the combat mechanics refinement).
 *   **`app/plugins.ts`:** Added the `setPluginSelected` method to `Context`.
 *   **`views/CharacterSelect.tsx`:**
     *   Updated to include UI for game rule selection, including `activeGameRule`, `plugins`, `protagonist` in `useStateStore`.
@@ -122,15 +122,45 @@ Before your actions to edit file, you must present your reasoning and approach f
     *   Removed unused imports (`Character`, `ChangeEvent`, `Immer`) and unused props (`injectedImmer`) to clean up the file.
     *   `getActionChecks()` implemented (LLM-based).
     *   `resolveCheck()`: Implemented. Calls `resolveCheck` from `pluginData.ts`.
-    *   `getNarrationPrompt()`: **Implemented and fully integrated to perform internal LLM calls for narrative guidance, combining consequence-based and general D&D style guidance. It now returns `Promise<string[]>` as per the updated `IGameRuleLogic` interface.**
-    *   `getCombatRoundNarration()`: Implemented. Provides a basic narration string.
+    *   `getNarrationPrompt()`: Implemented and fully integrated to perform internal LLM calls for narrative guidance, combining consequence-based and general D&D style guidance. It now returns `Promise<string[]>` as per the updated `IGameRuleLogic` interface.
+    *   `getCombatRoundNarration()`: Implemented as a basic placeholder.
+    *   **Not Implemented:** `getAvailableRaces()`, `getAvailableClasses()`, and `getActions()`.
 *   **`plugins/game-rule-dnd5e/src/pluginData.ts`:**
     *   Created: Contains D&D 5e specific data structures and default value generation.
     *   `getAbilityModifier()`: Implemented and exported.
     *   `resolveCheck()`: Implemented and exported. This function now takes `dndStats` and `rpgDiceRoller` as arguments.
+    *   **Not Implemented:** `PlotType`, `CombatantSchema`, `BattleSchema`, and the `plotType` and `encounter` properties in `DndStatsSettingsSchema`.
 *   **`plugins/game-rule-dnd5e/src/pluginPrompt.ts`:**
     *   Created: Contains prompt content and logic for generating protagonist prompts.
-    *   **`getConsequenceGuidancePrompt()`: Implemented to generate a prompt for an internal LLM call to interpret check results and provide narrative guidance.**
-    *   **`getDndNarrationGuidance()`: Implemented to provide general D&D narrative style guidance, using customizable constants.**
-*   **Dynamic Game Rule Selection Feature:** The core implementation for dynamic game rule selection, including LLM-based narrative guidance, is now complete.
-*   All tests have passed, and there are no known issues.
+    *   `getConsequenceGuidancePrompt()`: Implemented to generate a prompt for an internal LLM call to interpret check results and provide narrative guidance.
+    *   `getDndNarrationGuidance()`: Implemented to provide general D&D narrative style guidance, using customizable constants.
+*   **Dynamic Game Rule Selection Feature:** The core implementation for dynamic game rule selection, including LLM-based narrative guidance, is largely complete.
+*   All tests have passed, and there are no known issues with the implemented features.
+
+## Next Steps: Combat Mechanics Refinement
+
+The next major task is to implement the refined combat mechanics as outlined in `plugins/game-rule-dnd5e/Combat mechanics change request.md`. This document is currently a draft and in the planning phase.
+
+The plan includes:
+1.  **Remove `isCombat` from Core State:**
+    *   `lib/schemas.ts`: Remove `isCombat: z.boolean()` from the `State` schema.
+    *   `lib/state.ts`: Remove `isCombat: false` from `initialState`.
+2.  **Modify `lib/state.ts`:**
+    *   Add `getActions?(context: WritableDraft<StoredState>): Promise<string[]>;` to `IGameRuleLogic`.
+3.  **Modify `lib/engine.ts`:**
+    *   Remove reliance on `isCombat` flag.
+    *   Logic will rely entirely on the plugin's `getNarrationPrompt` and `generateActionsPrompt` (which will call `gameRuleLogic.getActions()`) to determine combat-related behavior.
+    *   Detection of `type: "initiative"` `CheckDefinition` will still occur to trigger the plugin’s internal `plotType` transition to "combat" and combat state initialization.
+4.  **Modify `lib/prompts.ts`:**
+    *   `generateActionsPrompt`: Modify to call `gameRuleLogic.getActions()` if the plugin's `getGameRuleLogic` method exists and has a `getActions` method. It will *not* check any global `isCombat` flag or `plotType`.
+5.  **Modify `plugins/game-rule-dnd5e/src/pluginData.ts`:**
+    *   Define `PlotType` Enum/Schema.
+    *   Define `CombatantSchema`.
+    *   Define `BattleSchema`.
+    *   Add `plotType: PlotType.default("general")` and `encounter: BattleSchema.optional()` to `DndStatsSettingsSchema`.
+6.  **Modify `plugins/game-rule-dnd5e/src/main.tsx`:**
+    *   `getActionChecks()`: Will return `CheckDefinition`s, including `type: "initiative"` when combat is triggered.
+    *   `resolveCheck()`: If `type: "initiative"`, the plugin will set `this.settings.plotType = "combat"` and initialize `this.settings.encounter`.
+    *   `getNarrationPrompt()`: Will check its *own internal* `this.settings.plotType`. If "combat", it will call `getCombatRoundNarration()`. This is also where the plugin will decide to transition *out* of combat.
+    *   `getCombatRoundNarration()`: Read/update `this.settings.encounter`, generate narration, advance combat state.
+    *   `getActions()`: Will check `this.settings.plotType`. If "combat", it will return combat-specific actions; otherwise, general actions.

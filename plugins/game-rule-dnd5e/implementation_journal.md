@@ -52,7 +52,7 @@
 **Details:**
 
 1.  **Identified Conflict:** The `IGameRuleLogic` interface's `getActionChecks` method is currently synchronous, but the planned LLM-based implementation requires it to be asynchronous.
-2.  **Proposed Resolution:** Modify `lib/state.ts` to update the `IGameRuleLogic` interface, making `getActionChecks` return a `Promise<CheckDefinition[]>`.
+2.  **Proposed Resolution:** Modify `lib/state.ts` to update the `IGameRuleLogic` interface, making `getActionChecks` return a `Promise<CheckDefinition[]>`. 
 3.  **LLM-based `getActionChecks` Plan:**
     *   Read `.Requirements/Source/Core Skills and Difficulty Check.txt` for LLM guidance.
     *   Create `getChecksPrompt` in `plugins/game-rule-dnd5e/src/pluginPrompt.ts` to construct the LLM prompt.
@@ -98,7 +98,7 @@
 
 **Changes Made:**
 
-1.  **`lib/state.ts`:** Updated the `IGameRuleLogic` interface to make `getActionChecks` return a `Promise<CheckDefinition[]>`.
+1.  **`lib/state.ts`:** Updated the `IGameRuleLogic` interface to make `getActionChecks` return a `Promise<CheckDefinition[]>`. 
 2.  **`lib/engine.ts`:**
     *   Modified the default `getActionChecks` to return `Promise.resolve([])`.
     *   Updated the call to `gameRuleLogic.getActionChecks` to `await` its result.
@@ -234,3 +234,11 @@
         ```
 *   **Reasoning:** Implements the core logic for dynamic narrative guidance as per the latest user clarification, including extracting context from `state.events` and performing the internal LLM call.
 *   **Approach:** Plugin-level, functional and structural change.
+
+### CharacterUI Tab Management Change Rollout Status
+
+**Date:** August 22, 2025
+
+**Objective:** Verify the successful rollout of changes related to eliminating `activeGameRule` from global state and implementing UI-only local state for tab management.
+
+**Outcome:** The changes outlined in `plugins/game-rule-dnd5e/CharacterUI Tab management change request.md` have been successfully implemented and deployed. All compilation and type checks passed without issues. Initial runtime testing indicates that the changes behave as expected, and no new issues have been observed.

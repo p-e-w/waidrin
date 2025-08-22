@@ -22,7 +22,7 @@ The implementation will involve:
 2.  **Rule Logic Abstraction (`IGameRuleLogic`):** Defining a clear and comprehensive `IGameRuleLogic` interface. This interface will specify methods for:
     *   Influencing **character generation** (e.g., `getInitialProtagonistStats`, `modifyProtagonistPrompt`, `getAvailableRaces`, `getAvailableClasses`).
     *   Defining and resolving **action checks** (e.g., `getActionChecks`, `resolveCheck` using `CheckDefinition` and `CheckResult` types).
-    *   Customizing **narration** based on events and check outcomes (e.g., `getNarrationPrompt`, `getCombatRoundNarration`).
+    *   Customizing **narration** based on events and check outcomes (e.g., `getNarrationPrompt(eventType, state, checkResultStatements, action)`, `getCombatRoundNarration`).
 3.  **Dynamic Rule Application:** Modifying the core game engine (`lib/engine.ts`) to:
     *   Retrieve the active `IGameRuleLogic` implementation (either from a plugin or the default).
     *   Dynamically apply the selected game rule's logic during key game phases, such as protagonist generation, action processing, and narrative generation.
@@ -66,9 +66,9 @@ This feature introduces a robust system for dynamic game rule selection, allowin
     *   `getActiveGameRuleLogic()` centralizes the logic for selecting the appropriate `IGameRuleLogic` implementation (prioritizing explicitly selected plugins, then the `activeGameRule`, and finally the default).
     *   The `next()` function's integration with `getActiveGameRuleLogic()` enables dynamic behavior across the game loop:
         *   **Character Generation:** `gameRuleLogic.getInitialProtagonistStats()` and `gameRuleLogic.modifyProtagonistPrompt()` are called to allow game rules to influence protagonist creation. (Implemented in D&D 5e plugin).
-        *   **Action Resolution:** `gameRuleLogic.getActionChecks(action, state)` is called to determine required checks. This method is now `async` and leverages the LLM to interpret actions and return `CheckDefinition`s. (Implemented in D&D 5e plugin). For each `CheckDefinition`, `gameRuleLogic.resolveCheck(check, characterStats)` is called. (**Pending implementation in D&D 5e plugin**).
-        *   **Narration Generation:** `gameRuleLogic.getNarrationPrompt(eventType, state, checkResultStatements)` is called to generate narrative. (**Pending implementation in D&D 5e plugin**).
-        *   **Combat Narration:** If `state.isCombat` is true, `gameRuleLogic.getCombatRoundNarration(roundNumber, combatLog)` is called for combat-specific narration. (**Pending implementation in D&D 5e plugin**).
+        *   **Action Resolution:** `gameRuleLogic.getActionChecks(action, state)` is called to determine required checks. This method is now `async` and leverages the LLM to interpret actions and return `CheckDefinition`s. (Implemented in D&D 5e plugin). For each `CheckDefinition`, `gameRuleLogic.resolveCheck(check, characterStats)` is called. (Implemented in D&D 5e plugin).
+        *   **Narration Generation:** `gameRuleLogic.getNarrationPrompt(eventType, state, checkResultStatements)` is called to generate narrative. (Implemented in D&D 5e plugin).
+        *   **Combat Narration:** If `state.isCombat` is true, `gameRuleLogic.getCombatRoundNarration(roundNumber, combatLog)` is called for combat-specific narration. (Implemented in D&D 5e plugin).
 
 ### 4. Update `views/CharacterSelect.tsx`
 
@@ -92,8 +92,8 @@ For a plugin developer to create a custom game rule:
         *   `resolveCheck()`: **Implemented**. Calls `resolveCheck` from `pluginData.ts`.
         *   `getNarrationPrompt()`: **Implemented**. Leverages `narratePrompt` from `lib/prompts.ts`.
         *   `getCombatRoundNarration()`: **Implemented**. Provides a basic narration string.
-        *   `getAvailableRaces()`: **Pending Implementation**.
-        *   `getAvailableClasses()`: **Pending Implementation**.
+        *   `getAvailableRaces()`: **TODO: Pending Implementation**.
+        *   `getAvailableClasses()`: **TODO: Pending Implementation**.
 2.  **Expose via `Plugin` Interface:** The plugin's main class must return an instance of its `IGameRuleLogic` implementation via the `getGameRuleLogic()` method in its `Plugin` interface.
 3.  **Register UI (Optional but Recommended):** To make the game rule selectable in the UI, the plugin should use `context.addCharacterUI()` to register a `CharacterUI` component. The `GameRuleName` provided during this registration should match the name used to identify the game rule (which will be stored in `state.activeGameRule`). Additionally, the `PluginWrapper` now includes a `selectedPlugin?: boolean` flag, which can be set via `context.setPluginSelected` to explicitly activate a plugin's game rule logic, overriding the `activeGameRule` based on tab selection.
 
@@ -106,15 +106,15 @@ For a plugin developer to create a custom game rule:
 *   **Maintainability:** Centralizes game rule selection and application, simplifying future updates and additions.
 
 ### 7. Risks/Considerations
- 
+
 *   **Plugin Compatibility:** Ensuring that plugin-provided `IGameRuleLogic` implementations are compatible with the core engine's expectations.
 *   **Error Handling:** Robust error handling within `getActiveGameRuleLogic()` and `next()` to gracefully manage cases where a plugin's `IGameRuleLogic` might be malformed or throw errors.
     *   **Error Handling Strategy:**
         *   **Centralized State Rollback (`lib/state.ts`):** The `setAsync` mechanism in `lib/state.ts` provides a robust `try...catch` block for all state updates. If an error occurs during a state update (including those triggered by plugin logic), the state will be rolled back to its last valid committed state, ensuring data consistency. Errors are then re-thrown for higher-level handling.
         *   **Plugin-Internal LLM Error Handling:** For LLM interactions within plugin methods (e.g., `getActionChecks`), the plugin itself is responsible for implementing `try...catch` blocks around LLM API calls and JSON parsing/validation.
-             *   If the LLM response is invalid, unparseable, or does not conform to the expected schema, the plugin should **not** throw an error. Instead, it should return a "safe" default (e.g., an empty array for `CheckDefinition[]` from `getActionChecks`).
-             *   This allows the core application to continue gracefully without interruption.
-             *   Plugins should log these internal errors for debugging purposes.
+            *   If the LLM response is invalid, unparseable, or does not conform to the expected schema, the plugin should **not** throw an error. Instead, it should return a "safe" default (e.g., an empty array for `CheckDefinition[]` from `getActionChecks`).
+            *   This allows the core application to continue gracefully without interruption.
+            *   Plugins should log these internal errors for debugging purposes.
         *   **Core Application Expectation:** The core application (e.g., in `lib/engine.ts`) will call plugin methods expecting these "safe" defaults in case of internal plugin errors.
         *   **Propagated Errors:** Errors that *do* propagate out of `next()` (e.g., unhandled exceptions from plugin logic, Zod validation failures) will be caught by the top-level `setAsync` mechanism and re-thrown. These should be caught and displayed to the user by the UI.
 *   **Performance:** The impact of dynamically looking up and applying game rule logic on performance, especially if many plugins are loaded or logic is complex.

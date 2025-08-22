@@ -107,7 +107,6 @@ export const initialState: State = schemas.State.parse({
   logPrompts: false,
   logParams: false,
   logResponses: false,
-  activeGameRule: "default",
   view: "welcome",
   world: {
     name: "[name]",
