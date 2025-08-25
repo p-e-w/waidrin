@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js build output
+.next/
+out/
+
+# Environment variables
+.env*
+!.env.example
+
+# Development files
+.git/
+.gitignore
+README.md
+CHANGELOG.md
+*.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Testing
+coverage/
+.nyc_output
+
+# Misc
+*.log
+.eslintcache
