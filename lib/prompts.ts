@@ -3,7 +3,7 @@
 
 import { convertLocationChangeEventToText, getApproximateTokenCount, getContext } from "./context";
 import * as schemas from "./schemas";
-import type { LocationChangeEvent, NarrationEvent, State } from "./state";
+import type { LocationChangeEvent, State } from "./state";
 
 export interface Prompt {
   system: string;
@@ -70,7 +70,9 @@ Include a short biography (100 words maximum) for each character.
 `);
 }
 
-const makeMainPromptPreamble = (state: State): string => `This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
+const makeMainPromptPreamble = (
+  state: State,
+): string => `This is a fantasy adventure RPG set in the world of ${state.world.name}. ${state.world.description}
 
 The protagonist (who you should refer to as "you" in your narration, as the adventure happens from their perspective)
 is ${state.protagonist.name}. ${state.protagonist.biography}`;
@@ -154,7 +156,11 @@ Also include the names of the characters that are going to accompany ${state.pro
 }
 
 // Must be called *before* adding the location change event to the state!
-export function generateNewCharactersPrompt(state: State, accompanyingCharacters: string[], tokenBudget: number): Prompt {
+export function generateNewCharactersPrompt(
+  state: State,
+  accompanyingCharacters: string[],
+  tokenBudget: number,
+): Prompt {
   const location = state.locations[state.protagonist.locationIndex];
 
   return makeMainPrompt(

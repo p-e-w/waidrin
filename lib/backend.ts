@@ -187,18 +187,18 @@ export class DefaultBackend implements Backend {
 
     const client = this.getClient();
     const modelName = settings.model;
-    
+
     let models = await client.models.list();
-    
+
     while (true) {
-      const found = models.data.find((m) => m.id === modelName) as { context_length?: number; } | undefined;
+      const found = models.data.find((m) => m.id === modelName) as { context_length?: number } | undefined;
       if (found) {
         if (typeof found.context_length !== "number") {
           throw new Error("Model does not have a valid context length");
         }
         return found.context_length;
       }
-      
+
       // Try to get the next page
       if (models.hasNextPage()) {
         models = await models.getNextPage();
@@ -207,7 +207,7 @@ export class DefaultBackend implements Backend {
       }
     }
     // If the model was not found, throw an error
-    throw new Error("Model not found")
+    throw new Error("Model not found");
   }
 
   abort(): void {
