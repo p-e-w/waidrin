@@ -22,15 +22,15 @@ interface Scene {
 export function getContext(state: State, tokenBudget: number): string {
   // we filter down to only narration and location change events,
   // because the other event types like character_introduction are implied in the narration
-  const events = state.events.filter(event => event.type === "narration" || event.type === "location_change");
-  
+  const events = state.events.filter((event) => event.type === "narration" || event.type === "location_change");
+
   if (events.length === 0) {
     return "";
   }
 
   // Create initial context
   let context = createInitialContext(events, state);
-  
+
   // Step 1: Try full text without summaries
   if (isContextWithinBudget(context, tokenBudget)) {
     return convertContextToText(context);
@@ -56,7 +56,7 @@ export function getContext(state: State, tokenBudget: number): string {
  * Create the initial context without any compression.
  * @param events events that should go in the context
  * @param state current state
- * @returns 
+ * @returns
  */
 function createInitialContext(events: (NarrationEvent | LocationChangeEvent)[], state: State): Scene[] {
   const scenes: Scene[] = [];
@@ -76,7 +76,7 @@ function createInitialContext(events: (NarrationEvent | LocationChangeEvent)[], 
         scenes.push({
           text: sceneText,
           summary: event.summary, // the summary for the previous scene is stored in this location change event
-          summarize: false // Initially all scenes use full text
+          summarize: false, // Initially all scenes use full text
         });
       }
 
@@ -94,7 +94,7 @@ function createInitialContext(events: (NarrationEvent | LocationChangeEvent)[], 
     scenes.push({
       text: sceneText,
       summary: undefined, // The last scene doesn't have a summary yet
-      summarize: false
+      summarize: false,
     });
   }
 
@@ -127,24 +127,21 @@ function createSceneText(events: (NarrationEvent | LocationChangeEvent)[], state
  * @param tokenBudget The token budget.
  * @returns Updated context.
  */
-function replaceScenesWithSummaries(
-  context: Scene[], 
-  tokenBudget: number
-): Scene[] {
+function replaceScenesWithSummaries(context: Scene[], tokenBudget: number): Scene[] {
   const scenes = [...context];
-  
+
   // Go through each scene (except the last one) and switch to summary if available
   for (let i = 0; i < scenes.length - 1; i++) {
     if (scenes[i].summary && !scenes[i].summarize) {
       scenes[i] = { ...scenes[i], summarize: true };
-      
+
       // Check if we're now within budget
       if (isContextWithinBudget(scenes, tokenBudget)) {
         break;
       }
     }
   }
-  
+
   return scenes;
 }
 
@@ -175,8 +172,9 @@ function removeOldestScenes(context: Scene[], tokenBudget: number): Scene[] {
  */
 function isContextWithinBudget(context: Scene[], tokenBudget: number): boolean {
   const totalTokens = context.reduce(
-    (sum: number, scene) => sum + getApproximateTokenCount((scene.summarize && scene.summary) ? scene.summary : scene.text),
-    0
+    (sum: number, scene) =>
+      sum + getApproximateTokenCount(scene.summarize && scene.summary ? scene.summary : scene.text),
+    0,
   );
   return totalTokens <= tokenBudget;
 }
@@ -190,12 +188,12 @@ function isContextWithinBudget(context: Scene[], tokenBudget: number): boolean {
 export function convertLocationChangeEventToText(event: LocationChangeEvent, state: State): string {
   const location = state.locations[event.locationIndex];
   const cast = event.presentCharacterIndices
-  .map((index) => {
-    const character = state.characters[index];
-    return `${character.name}: ${character.biography}`;
-  })
-  .join("\n\n")
-  
+    .map((index) => {
+      const character = state.characters[index];
+      return `${character.name}: ${character.biography}`;
+    })
+    .join("\n\n");
+
   return `-----
 
 LOCATION CHANGE
@@ -215,7 +213,7 @@ ${cast}
  * @returns A string representation of the context.
  */
 function convertContextToText(scenes: Scene[]): string {
-  return scenes.map(scene => (scene.summarize && scene.summary) ? scene.summary : scene.text).join("\n\n");
+  return scenes.map((scene) => (scene.summarize && scene.summary ? scene.summary : scene.text)).join("\n\n");
 }
 
 /**

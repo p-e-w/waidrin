@@ -15,8 +15,8 @@ import {
   generateStartingLocationPrompt,
   generateWorldPrompt,
   narratePrompt,
-  summarizeScenePrompt,
   type Prompt,
+  summarizeScenePrompt,
 } from "./prompts";
 import * as schemas from "./schemas";
 import { getState, initialState, type Location, type LocationChangeEvent, type NarrationEvent } from "./state";
@@ -75,11 +75,14 @@ export async function next(
       state.events.push(event);
 
       step = ["Narrating", ""];
-      event.text = await backend.getNarration(narratePrompt(state, tokenBudget, action), (token: string, count: number) => {
-        event.text += token;
-        onToken(token, count);
-        updateState();
-      });
+      event.text = await backend.getNarration(
+        narratePrompt(state, tokenBudget, action),
+        (token: string, count: number) => {
+          event.text += token;
+          onToken(token, count);
+          updateState();
+        },
+      );
 
       const referencedCharacterIndices = new Set<number>();
 
@@ -195,7 +198,11 @@ export async function next(
           });
 
           step = ["Generating location", "This typically takes between 10 and 30 seconds"];
-          const newLocationInfo = await backend.getObject(generateNewLocationPrompt(state, tokenBudget), schema, onToken);
+          const newLocationInfo = await backend.getObject(
+            generateNewLocationPrompt(state, tokenBudget),
+            schema,
+            onToken,
+          );
 
           await onLocationChange(newLocationInfo.newLocation);
 
@@ -212,7 +219,11 @@ export async function next(
           }
 
           // Must be called *before* adding the location change event to the state!
-          const generateCharactersPrompt = generateNewCharactersPrompt(state, newLocationInfo.accompanyingCharacters, tokenBudget);
+          const generateCharactersPrompt = generateNewCharactersPrompt(
+            state,
+            newLocationInfo.accompanyingCharacters,
+            tokenBudget,
+          );
 
           const event: LocationChangeEvent = {
             type: "location_change",
