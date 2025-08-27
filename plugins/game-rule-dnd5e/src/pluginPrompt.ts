@@ -293,8 +293,8 @@ export function getChecksPrompt(action: string): Prompt {
     You must return an array of CheckDefinition objects in JSON format.
 
 Each CheckDefinition object must have the following properties:
-- 'type': A string representing the skill (e.g., "athletics", "stealth", "perception") or attribute (e.g., "strength", "dexterity", "intelligence", "wisdom", "charisma", "constitution") being checked.
-- 'difficultyClass': A number representing the target number to beat for a successful check.
+- 'type': A string representing the skill (e.g., "athletics", "stealth", "perception") or attribute (e.g., "strength", "dexterity", "intelligence", "wisdom", "charisma", "constitution") being checked, or "to-hit" for attack rolls.
+- 'difficultyClass': A number representing the target number to beat for a successful check, or the AC of the target if this is an attack roll "to-hit".
 - 'modifiers': An optional array of strings representing the character attributes relevant to the check (e.g., ["strength", "dexterity"]).
 
 Your output must be a JSON array of CheckDefinition objects, and nothing else. For example:
@@ -318,7 +318,7 @@ ${coreSkillsAndDifficultyCheckContent}
 
 ]`, 
     user: `Given the action: "${action}", what if any D&D 5e skill checks are required? If multiple checks are appropriate, list them all. 
-    If no specific check is needed, return an empty array. Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0. 
+    Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0, otherwise if you determined that no specific check is needed, return an empty array.
     Provide your answer as a JSON array of CheckDefinition objects.`, 
   };
 }
