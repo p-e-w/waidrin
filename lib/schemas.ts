@@ -67,6 +67,7 @@ export const LocationChangeEvent = z.object({
   type: z.literal("location_change"),
   locationIndex: Index,
   presentCharacterIndices: Index.array(),
+  summary: Text.max(5000).optional(),
 });
 
 export const Event = z.discriminatedUnion("type", [

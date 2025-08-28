@@ -16,6 +16,7 @@ import {
   generateWorldPrompt,
   narratePrompt,
   type Prompt,
+  summarizeScenePrompt,
 } from "./prompts";
 import * as schemas from "./schemas";
 import { getState, initialState, type Location, type LocationChangeEvent, type NarrationEvent } from "./state";
@@ -63,7 +64,7 @@ export async function next(
       }
     };
 
-    const narrate = async (action?: string) => {
+    const narrate = async (tokenBudget: number, action?: string) => {
       const event: NarrationEvent = {
         type: "narration",
         text: "",
@@ -74,11 +75,14 @@ export async function next(
       state.events.push(event);
 
       step = ["Narrating", ""];
-      event.text = await backend.getNarration(narratePrompt(state, action), (token: string, count: number) => {
-        event.text += token;
-        onToken(token, count);
-        updateState();
-      });
+      event.text = await backend.getNarration(
+        narratePrompt(state, tokenBudget, action),
+        (token: string, count: number) => {
+          event.text += token;
+          onToken(token, count);
+          updateState();
+        },
+      );
 
       const referencedCharacterIndices = new Set<number>();
 
@@ -166,6 +170,13 @@ export async function next(
 
         state.view = "chat";
       } else if (state.view === "chat") {
+        const contextLength = await backend.getContextLength();
+        // Set token budget to 90% of context length
+        // This is because context length includes both input and output tokens
+        // so we need to allow space for output. Also some models have a fixed max input length
+        // that's less than the context length. This should help mitigate those issues.
+        const tokenBudget = Math.floor(contextLength * 0.9);
+
         state.actions = [];
         updateState();
 
@@ -177,17 +188,21 @@ export async function next(
           updateState();
         }
 
-        await narrate(action);
+        await narrate(tokenBudget, action);
 
         step = ["Checking for location change", "This typically takes a few seconds"];
-        if (!(await getBoolean(checkIfSameLocationPrompt(state), onToken))) {
+        if (!(await getBoolean(checkIfSameLocationPrompt(state, tokenBudget), onToken))) {
           const schema = z.object({
             newLocation: schemas.Location,
             accompanyingCharacters: z.enum(state.characters.map((character) => character.name)).array(),
           });
 
           step = ["Generating location", "This typically takes between 10 and 30 seconds"];
-          const newLocationInfo = await backend.getObject(generateNewLocationPrompt(state), schema, onToken);
+          const newLocationInfo = await backend.getObject(
+            generateNewLocationPrompt(state, tokenBudget),
+            schema,
+            onToken,
+          );
 
           await onLocationChange(newLocationInfo.newLocation);
 
@@ -204,13 +219,25 @@ export async function next(
           }
 
           // Must be called *before* adding the location change event to the state!
-          const generateCharactersPrompt = generateNewCharactersPrompt(state, newLocationInfo.accompanyingCharacters);
+          const generateCharactersPrompt = generateNewCharactersPrompt(
+            state,
+            newLocationInfo.accompanyingCharacters,
+            tokenBudget,
+          );
 
           const event: LocationChangeEvent = {
             type: "location_change",
             locationIndex,
             presentCharacterIndices: accompanyingCharacterIndices,
           };
+
+          // summarize the previous scene (all events after the last location change)
+          step = ["Summarizing scene", "This typically takes between 10 and 30 seconds"];
+          event.summary = await backend.getNarration(summarizeScenePrompt(state), (token: string, count: number) => {
+            event.summary += token;
+            onToken(token, count);
+            updateState();
+          });
 
           state.events.push(event);
           updateState();
@@ -223,12 +250,12 @@ export async function next(
             event.presentCharacterIndices.push(i);
           }
 
-          await narrate();
+          await narrate(tokenBudget);
         }
 
         step = ["Generating actions", "This typically takes a few seconds"];
         state.actions = await backend.getObject(
-          generateActionsPrompt(state),
+          generateActionsPrompt(state, tokenBudget),
           schemas.Action.array().length(3),
           onToken,
         );
