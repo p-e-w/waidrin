@@ -77,7 +77,7 @@ const makeMainPromptPreamble = (
 The protagonist (who you should refer to as "you" in your narration, as the adventure happens from their perspective)
 is ${state.protagonist.name}. ${state.protagonist.biography}`;
 
-function makeMainPrompt(prompt: string, state: State, tokenBudget: number): Prompt {
+function makeMainPrompt(prompt: string, state: State): Prompt {
   const promptPreamble = makeMainPromptPreamble(state);
 
   // get the tokens used by the prompt and the preamble
@@ -86,7 +86,7 @@ function makeMainPrompt(prompt: string, state: State, tokenBudget: number): Prom
   const preambleTokens = getApproximateTokenCount(promptPreamble);
 
   // get the context based on the token budget minus the prompt and preamble tokens
-  const contextTokenBudget = tokenBudget - promptTokens - preambleTokens;
+  const contextTokenBudget = state.inputLength - promptTokens - preambleTokens;
   const context = getContext(state, contextTokenBudget);
 
   return makePrompt(`
@@ -101,7 +101,7 @@ ${normalizedPrompt}
 `);
 }
 
-export function narratePrompt(state: State, tokenBudget: number, action?: string): Prompt {
+export function narratePrompt(state: State, action?: string): Prompt {
   return makeMainPrompt(
     `
 ${action ? `The protagonist (${state.protagonist.name}) has chosen to do the following: ${action}.` : ""}
@@ -116,11 +116,10 @@ Remember to refer to the protagonist (${state.protagonist.name}) as "you" in you
 Do not explicitly ask the protagonist for a response at the end; they already know what is expected of them.
 `,
     state,
-    tokenBudget,
   );
 }
 
-export function generateActionsPrompt(state: State, tokenBudget: number): Prompt {
+export function generateActionsPrompt(state: State): Prompt {
   return makeMainPrompt(
     `
 Suggest 3 options for what the protagonist (${state.protagonist.name}) could do or say next.
@@ -128,22 +127,20 @@ Each option should be a single, short sentence that starts with a verb.
 Return the options as a JSON array of strings.
 `,
     state,
-    tokenBudget,
   );
 }
 
-export function checkIfSameLocationPrompt(state: State, tokenBudget: number): Prompt {
+export function checkIfSameLocationPrompt(state: State): Prompt {
   return makeMainPrompt(
     `
 Is the protagonist (${state.protagonist.name}) still at ${state.locations[state.protagonist.locationIndex].name}?
 Answer with "yes" or "no".
 `,
     state,
-    tokenBudget,
   );
 }
 
-export function generateNewLocationPrompt(state: State, tokenBudget: number): Prompt {
+export function generateNewLocationPrompt(state: State): Prompt {
   return makeMainPrompt(
     `
 The protagonist (${state.protagonist.name}) has left ${state.locations[state.protagonist.locationIndex].name}.
@@ -151,16 +148,11 @@ Return the name and type of their new location, and a short description (100 wor
 Also include the names of the characters that are going to accompany ${state.protagonist.name} there, if any.
 `,
     state,
-    tokenBudget,
   );
 }
 
 // Must be called *before* adding the location change event to the state!
-export function generateNewCharactersPrompt(
-  state: State,
-  accompanyingCharacters: string[],
-  tokenBudget: number,
-): Prompt {
+export function generateNewCharactersPrompt(state: State, accompanyingCharacters: string[]): Prompt {
   const location = state.locations[state.protagonist.locationIndex];
 
   return makeMainPrompt(
@@ -175,7 +167,6 @@ Return the character descriptions as an array of JSON objects.
 Include a short biography (100 words maximum) for each character.
 `,
     state,
-    tokenBudget,
   );
 }
 
