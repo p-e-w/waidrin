@@ -10,7 +10,7 @@
  * Key concepts demonstrated:
  * - Plugin initialization and Context object usage.
  * - Direct injection of shared React and UI libraries to avoid "two instances" problems.
- * - Accessing and updating the main application's global state using `setGlobalState` and `getGlobalState`.
+ * - Accessing and updating the main application's global state using `savePluginSettings` and `getGlobalState`.
  * - Persisting plugin-specific settings within the global state.
  * - Dynamic UI injection into predefined slots in the main application.
  *
@@ -104,17 +104,15 @@ const TestUIAttributeDisplay = ({ initialAttributeValue, injectedReact, injected
  * @param {typeof RadixThemes} injectedRadixThemes - The main application's Radix Themes instance.
  * @param {typeof ReactIconsGi} injectedReactIconsGi - The main application's React Icons (Gi) instance.
  * @param {() => StoredState} getGlobalState - Function to retrieve the current global application state.
- * @param {(updater: (state: WritableDraft<StoredState>) => Promise<void>) => Promise<void>} setGlobalState - Function to asynchronously update the global application state.
  * @param {(newValue: string) => Promise<void>} onSave - Callback to propagate saved changes (used by child component). This callback is expected to handle asynchronous persistence of the new value.
  * @param {typeof useShallow} injectedUseShallow - The main application's `zustand/shallow`'s `useShallow` utility.
  */
-const PluginCharacterUIPage = ({ injectedReact, injectedImmer, injectedRadixThemes, injectedReactIconsGi, getGlobalState, setGlobalState, onSave, injectedUseShallow }: {
+const PluginCharacterUIPage = ({ injectedReact, injectedImmer, injectedRadixThemes, injectedReactIconsGi, getGlobalState, onSave, injectedUseShallow }: {
   injectedReact: typeof React;
   injectedImmer: typeof Immer;
   injectedRadixThemes: typeof RadixThemes;
   injectedReactIconsGi: typeof ReactIconsGi;
   getGlobalState: () => StoredState;
-  setGlobalState: (updater: (state: WritableDraft<StoredState>) => Promise<void>) => Promise<void>;
   onSave: (newValue: string) => Promise<void>;
   injectedUseShallow: typeof useShallow;
 }) => {
@@ -207,17 +205,11 @@ export default class TestUIPlugin implements Plugin {
         injectedUseShallow={this.context.useShallow}
         // Pass global state access functions as props.
         getGlobalState={this.context.getGlobalState}
-        setGlobalState={this.context.setGlobalState}
         // Define the onSave callback for the UI component.
         // This callback is responsible for updating the plugin's settings in the global state.
         onSave={async (newValue) => {
           /**
            * @description Updates the plugin's settings in the global state.
-           * This function is asynchronous because `setGlobalState` itself is asynchronous,
-           * wrapping `useStateStore.setAsync` from the main application.
-           *
-           * **Why `async` for the updater function?**
-           * The `setGlobalState` function expects its updater callback to return a `Promise<void>`.
            * By marking the updater function `async`, it implicitly returns a Promise, satisfying
            * this type requirement and ensuring proper asynchronous flow control.
            * This prevents type errors that would occur if a synchronous function (returning `void`)
@@ -228,14 +220,7 @@ export default class TestUIPlugin implements Plugin {
            *
            * @param {WritableDraft<StoredState>} state - The Immer draft of the global state.
            */
-          await this.context!.setGlobalState(async (state) => {
-            // Find the current plugin's entry in the global state's plugins array.
-            const plugin = state.plugins.find((p: PluginWrapper) => p.name === "test-ui-plugin");
-            if (plugin) {
-              // Directly modify the plugin's settings within the Immer draft.
-              plugin.settings = { ...plugin.settings, customAttribute: newValue };
-            }
-          });
+          this.context!.appStateManager.savePluginSettings(this.context!.pluginName, { customAttribute: newValue });
           // Also update the plugin's internal settings for immediate consistency.
           this.settings = { ...this.settings, customAttribute: newValue };
         }}

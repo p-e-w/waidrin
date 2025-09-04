@@ -43,3 +43,6 @@ next-env.d.ts
 
 # plugins
 !/plugins/demo-plugin/
+
+.gemini/
+gha-creds-*.json

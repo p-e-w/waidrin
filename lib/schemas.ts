@@ -181,7 +181,6 @@ export const State = z.object({
   sameSexMagnet: z.boolean(),
   sexualContentLevel: SexualContentLevel,
   violentContentLevel: ViolentContentLevel,
-  isCombat: z.boolean(),
   events: Event.array(),
   actions: Action.array(),
 });

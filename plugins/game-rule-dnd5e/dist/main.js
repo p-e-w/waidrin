@@ -3791,17 +3791,49 @@ var preprocessType = ZodEffects.createWithPreprocess;
 var pipelineType = ZodPipeline.create;
 
 // src/pluginData.ts
-var DndStatsSettingsSchema = objectType({
+var PlotType = enumType(["general", "combat", "puzzle", "chase", "roleplay", "shop"]);
+var CombatantSchema = objectType({
+  characterIndex: numberType().int(),
+  // Link to state.characters by index
+  currentHp: numberType().int(),
+  maxHp: numberType().int(),
+  status: enumType(["active", "unconscious", "dead", "fled", "surrendered"]),
+  isFriendly: booleanType(),
+  // Added "Friendly" flag for allies
+  initiativeRoll: numberType().int()
+});
+var BattleSchema = objectType({
+  roundNumber: numberType().int(),
+  combatants: arrayType(CombatantSchema),
+  combatLog: arrayType(stringType()),
+  activeTurnCombatantIndex: numberType().int().optional()
+  // Index of the Combatant whose turn it is in the combatants array.
+});
+var DnDStatsSchema = objectType({
   strength: numberType().int().min(1).max(20),
   dexterity: numberType().int().min(1).max(20),
   constitution: numberType().int().min(1).max(20),
   intelligence: numberType().int().min(1).max(20),
   wisdom: numberType().int().min(1).max(20),
   charisma: numberType().int().min(1).max(20),
+  hp: numberType().int().default(10),
+  // HP for the character
+  hpMax: numberType().int().default(10),
+  // Max HP for the character
+  dndExp: numberType().int().min(0).default(0),
+  // Experience points, default to 0
+  dndLevel: numberType().int().min(1).max(20).default(1),
+  // Character level, default to 1
   dndClass: stringType(),
-  dndSubclass: stringType()
+  dndSubclass: stringType(),
+  plotType: PlotType.default("general"),
+  // Default to general
+  encounter: BattleSchema.optional(),
+  // Holds battle data when plotType is "combat"
+  backstory: stringType().optional()
+  // To store the initial character creation backstory
 });
-var generateDefaultDndStatsSettings = (rpgDiceRoller) => {
+var generateDefaultDnDStats = (rpgDiceRoller) => {
   const rollFormula = "4d6dl1";
   const rollAttribute = () => new rpgDiceRoller.DiceRoll(rollFormula).total;
   const generated = {
@@ -3811,12 +3843,23 @@ var generateDefaultDndStatsSettings = (rpgDiceRoller) => {
     intelligence: rollAttribute(),
     wisdom: rollAttribute(),
     charisma: rollAttribute(),
+    hp: 10,
+    // Default starting HP
+    hpMax: 10,
+    // Default max HP
+    dndLevel: 1,
+    // Default level
+    dndExp: 0,
+    // Default experience points
     dndClass: "",
-    dndSubclass: ""
+    dndSubclass: "",
+    plotType: PlotType.enum.general,
+    encounter: void 0,
+    backstory: ""
   };
   return generated;
 };
-var DND_CLASS_DATA = {
+var DnDClassData = {
   "Barbarian": [
     "Path of the Berserker",
     "Path of the Totem Warrior",
@@ -3956,6 +3999,9 @@ function resolveCheck(check2, characterStats, dndStats, rpgDiceRoller) {
     case "performance":
     case "persuasion":
       abilityScore = dndStats.charisma;
+      break;
+    case "initiative":
+      abilityScore = dndStats.dexterity;
       break;
     default:
       if (check2.modifiers && check2.modifiers.length > 0) {
@@ -4125,9 +4171,9 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
 * **28-29 (Mod. +9):** **Godlike (Greater).** Your charisma is on par with true deities. You can command loyalty from legions of followers and sway even the most powerful of beings with your presence.
 * **30 (Mod. +10):** **Divine.** You are the embodiment of pure charisma. Your presence is irresistible, your words are law, and your force of personality can shape the very beliefs and emotions of others.
 `;
-function getProtagonistGenerationPrompt(stats, pc) {
+function getBackstory(stats, pc) {
   return {
-    system: "You are an expert in D&D 5e character descriptions. Your task is to provide a descriptive interpretation of a character's attributes based on their numerical values and the provided D&D 5e rules.",
+    system: "You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to provide a descriptive interpretation of a character's attributes based on their numerical values and the provided D&D 5e rules.",
     user: `Given the following D&D 5e attribute scores:
 Strength: ${stats.strength}
 Dexterity: ${stats.dexterity}
@@ -4135,6 +4181,7 @@ Constitution: ${stats.constitution}
 Intelligence: ${stats.intelligence}
 Wisdom: ${stats.wisdom}
 Charisma: ${stats.charisma}
+Level: ${stats.dndLevel}
 Class: ${stats.dndClass}
 SubClass: ${stats.dndSubclass}
 Gender: ${pc.protagonist.gender}
@@ -4257,14 +4304,19 @@ Player Creativity: Reward clever solutions. A good plan might lower the DC, or e
 Consequences of Failure: Failure should be interesting, not just a dead end. What happens if they fail the check?
 Proficiency and Expertise: Characters with proficiency in a skill add their proficiency bonus. Characters with Expertise double their proficiency bonus, making higher DCs more achievable for them.
 `;
-function getChecksPrompt(action) {
+function getChecksPrompt(action, plotType) {
+  let initiativeGuidance = "";
+  if (plotType !== "combat") {
+    initiativeGuidance = `If the action or situation clearly indicates the start of a combat encounter (e.g., an attack, an ambush, a trap being sprung), include an "initiative" check with a difficultyClass of 0 (the actual initiative roll will be handled by the game engine). Do NOT include an "initiative" check if the plotType is already "combat", current plotType is ${plotType}.`;
+  }
   return {
-    system: `You are an expert DM in Dungeons & Dragons 5th Edition. Your task is to analyze a given action and determine if a skill check is required and if so, what are the most appropriate D&D 5e skill checks required to resolve it. 
+    system: `You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to analyze a given action or situation and determine if a skill check is required and if so, what are the most appropriate D&D 5e skill checks required to resolve it. 
+    ${initiativeGuidance}
     You must return an array of CheckDefinition objects in JSON format.
 
 Each CheckDefinition object must have the following properties:
-- 'type': A string representing the skill (e.g., "athletics", "stealth", "perception") or attribute (e.g., "strength", "dexterity", "intelligence", "wisdom", "charisma", "constitution") being checked.
-- 'difficultyClass': A number representing the target number to beat for a successful check.
+- 'type': A string representing the skill (e.g., "athletics", "stealth", "perception") or attribute (e.g., "strength", "dexterity", "intelligence", "wisdom", "charisma", "constitution") being checked, or "to-hit" for attack rolls, or "initiative" for combat initiation.
+- 'difficultyClass': A number representing the target number to beat for a successful check, or the AC of the target if this is an attack roll "to-hit".
 - 'modifiers': An optional array of strings representing the character attributes relevant to the check (e.g., ["strength", "dexterity"]).
 
 Your output must be a JSON array of CheckDefinition objects, and nothing else. For example:
@@ -4281,14 +4333,16 @@ Your output must be a JSON array of CheckDefinition objects, and nothing else. F
   }
 
 ]
-You should consider the context of the action and the typical challenges associated with it in a D&D 5e setting. If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array.
-
+You should consider the context of the action/situation and the typical challenges associated with it in a D&D 5e setting. 
+If multiple checks are appropriate, list them all. 
+Trivial tasks like accepting an offer, believing in someone, giving or receiving an item/goods are automatic success so all difficultyClass for these are set to 0,
 Here are the D&D 5e core skills and guidelines for difficulty classes:
 ${coreSkillsAndDifficultyCheckContent}
 
 ]`,
-    user: `Given the action: "${action}", what if any D&D 5e skill checks are required? If multiple checks are appropriate, list them all. 
-    If no specific check is needed, return an empty array. Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0. 
+    user: ` Given the situation/action: "${action}", does it require a skill check?
+    if so which D&D 5e skill check(s) / saving throw is required? If multiple checks are appropriate, list them all.
+    if you can not determine what specific check is needed, return an empty array.
     Provide your answer as a JSON array of CheckDefinition objects.`
   };
 }
@@ -4296,9 +4350,10 @@ function getConsequenceGuidancePrompt(sceneNarration, actionText, checkResult) {
   const allCheckResults = checkResult.length > 0 ? `Check Results:
 ${checkResult.join("\n")}` : "No specific checks were needed for this action.";
   return {
-    system: `You are an expert D&D 5e Game Master. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.
+    system: `You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.
     Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.
-    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
+    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, 
+    item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
     user: `Current scene:
     ${sceneNarration}
 
@@ -4307,7 +4362,20 @@ ${checkResult.join("\n")}` : "No specific checks were needed for this action.";
 
     ${allCheckResults}
 
-    Action to accept a task, quest or acknowledge someone's point of view is auto success regardless of the DC check results (disregard the result text favoring the story progression), you may add flavor to the guidance but it should not impact the automatic nature of trivial tasks. Provide narrative guidance for the action's possible consequences based on these inputs. Focus on the immediate consequences of the action and how the story could unfold, including any twists or unexpected developments in bullet points, DO NOT narrate, or write story paragraphs, these are meant to be clear and concise possible ideas based on the situation. The guidance should be concise and focused on the action's outcome, like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc... It must NOT broader on context of the story. Avoid repeating information already present in the scene or action text.`
+    Trivial actions like accepting a task/quest or acknowledge someone's point of view is auto success regardless of the DC check results 
+    (disregard the result text favoring the story progression), you may add flavor to the guidance but it should not impact the automatic nature of trivial tasks. 
+    Provide narrative guidance for the action's possible consequences based on these inputs. 
+    Focus on the immediate consequences of the action and how the story could unfold, 
+    including any twists or unexpected developments in bullet points.
+    The guidance should be concise and focused on the action's outcome, like:
+    - what was information gained/missed, 
+    - item exchanged, 
+    - key item gained/lost, 
+    - altering relationship, 
+    - leads to combat, 
+    - or disastrous outcome, etc... 
+    DO NOT narrate, or write story paragraphs, only provide clear and concise of possible ideas based on the situation in one single sentence for each check result.
+    Avoid repeating information already present in the scene or action text.`
   };
 }
 var dndRulesDMStyle = "Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.";
@@ -14708,7 +14776,6 @@ var DndStatsCharacterUIPage = ({
   injectedReact,
   injectedRadixThemes,
   getGlobalState,
-  setGlobalState,
   onSave,
   injectedUseShallow,
   injectedRpgDiceRoller
@@ -14716,7 +14783,7 @@ var DndStatsCharacterUIPage = ({
   const pluginSettings = injectedReact.useMemo(() => {
     const state = getGlobalState();
     const plugin = state.plugins.find((p) => p.name === "game-rule-dnd5e");
-    const settingsToUse = plugin ? plugin.settings : generateDefaultDndStatsSettings(injectedRpgDiceRoller);
+    const settingsToUse = plugin ? plugin.settings : generateDefaultDnDStats(injectedRpgDiceRoller);
     return settingsToUse;
   }, [getGlobalState, injectedRpgDiceRoller]);
   const [currentSettings, setCurrentSettings] = injectedReact.useState(pluginSettings);
@@ -14730,47 +14797,104 @@ var DndStatsCharacterUIPage = ({
   };
   const handleApply = async () => {
     await onSave(currentSettings);
+    const state = getGlobalState();
+    const plugin = state.plugins.find((p) => p.name === "game-rule-dnd5e");
+    if (plugin) {
+      setCurrentSettings(plugin.settings);
+    }
   };
-  const availableSubclasses = DND_CLASS_DATA[currentSettings.dndClass] || [];
-  return /* @__PURE__ */ React.createElement(injectedRadixThemes.Theme, null, /* @__PURE__ */ React.createElement(injectedRadixThemes.Box, { p: "4" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "6", mb: "4" }, "D&D 5E Character Stats"), Object.keys(DndStatsSettingsSchema.shape).filter((key) => key !== "dndClass" && key !== "dndSubclass").map((key) => /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2", mb: "3", key }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "2", weight: "bold" }, key.charAt(0).toUpperCase() + key.slice(1), ":"), /* @__PURE__ */ React.createElement(
+  const availableSubclasses = DnDClassData[currentSettings.dndClass] || [];
+  return /* @__PURE__ */ React.createElement(injectedRadixThemes.Theme, null, /* @__PURE__ */ React.createElement(injectedRadixThemes.Box, { p: "4" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "6", mb: "4" }, "D&D 5E Character Stats"), /* @__PURE__ */ React.createElement(injectedRadixThemes.Grid, { columns: "2", gap: "3", mb: "3" }, Object.keys(DnDStatsSchema.shape).filter(
+    (key) => key !== "dndClass" && key !== "dndSubclass" && key !== "plotType" && key !== "encounter" && key !== "backstory" && key !== "hp" && key !== "hpMax" && key !== "dndExp" && key !== "dndLevel"
+    // Exclude these from this specific loop
+  ).map((key) => /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2", key }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, key.charAt(0).toUpperCase() + key.slice(1), ":"), /* @__PURE__ */ React.createElement(
     injectedRadixThemes.TextField.Root,
     {
+      size: "3",
       type: "number",
       value: currentSettings[key],
       onChange: (e) => handleChange(key, parseInt(e.target.value)),
       min: "1",
       max: "20"
     }
-  ))), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2", mb: "3" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "2", weight: "bold" }, "Class:"), /* @__PURE__ */ React.createElement(
+  ))), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "HP:"), /* @__PURE__ */ React.createElement(
+    injectedRadixThemes.TextField.Root,
+    {
+      size: "3",
+      type: "number",
+      value: currentSettings.hp,
+      onChange: (e) => handleChange("hp", parseInt(e.target.value)),
+      min: "1"
+    }
+  )), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Max HP:"), /* @__PURE__ */ React.createElement(
+    injectedRadixThemes.TextField.Root,
+    {
+      size: "3",
+      type: "number",
+      value: currentSettings.hpMax,
+      onChange: (e) => handleChange("hpMax", parseInt(e.target.value)),
+      min: "1"
+    }
+  )), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Experience Points:"), /* @__PURE__ */ React.createElement(
+    injectedRadixThemes.TextField.Root,
+    {
+      size: "3",
+      type: "number",
+      value: currentSettings.dndExp,
+      onChange: (e) => handleChange("dndExp", parseInt(e.target.value)),
+      min: "0"
+    }
+  )), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Level:"), /* @__PURE__ */ React.createElement(
+    injectedRadixThemes.TextField.Root,
+    {
+      size: "3",
+      type: "number",
+      value: currentSettings.dndLevel,
+      onChange: (e) => handleChange("dndLevel", parseInt(e.target.value)),
+      min: "1",
+      max: "20"
+    }
+  )), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Class:"), /* @__PURE__ */ React.createElement(
     injectedRadixThemes.Select.Root,
     {
+      size: "3",
       value: currentSettings.dndClass,
       onValueChange: (value) => handleChange("dndClass", value)
     },
     /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Trigger, null),
-    /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Content, null, Object.keys(DND_CLASS_DATA).map((className) => /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Item, { value: className, key: className }, className)))
-  )), currentSettings.dndClass && /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2", mb: "3" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "2", weight: "bold" }, "Subclass:"), /* @__PURE__ */ React.createElement(
+    /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Content, null, Object.keys(DnDClassData).map((className) => /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Item, { value: className, key: className }, className)))
+  )), currentSettings.dndClass && /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Subclass:"), /* @__PURE__ */ React.createElement(
     injectedRadixThemes.Select.Root,
     {
+      size: "3",
       value: currentSettings.dndSubclass,
       onValueChange: (value) => handleChange("dndSubclass", value)
     },
     /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Trigger, null),
     /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Content, null, availableSubclasses.map((subclassName) => /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Item, { value: subclassName, key: subclassName }, subclassName)))
-  )), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { gap: "2", mt: "4" }, " ", /* @__PURE__ */ React.createElement(injectedRadixThemes.Button, { onClick: handleApply }, "Apply Changes"), /* @__PURE__ */ React.createElement(injectedRadixThemes.Button, { onClick: () => setCurrentSettings(generateDefaultDndStatsSettings(injectedRpgDiceRoller)), variant: "outline" }, "Re-roll"), " ")));
+  ))), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2", mb: "3" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Backstory:"), /* @__PURE__ */ React.createElement(
+    injectedRadixThemes.TextArea,
+    {
+      size: "3",
+      value: currentSettings.backstory || "",
+      onChange: (e) => handleChange("backstory", e.target.value),
+      rows: 5,
+      placeholder: "Enter prompt guidance for your character's backstory... or leave it blank for the system generate one for you. \n Use simple sentences to highlight the attribute score's interpretation and to describe your character's background, personality, and motivations."
+    }
+  )), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { gap: "2", mt: "4", justify: "end" }, " ", /* @__PURE__ */ React.createElement(injectedRadixThemes.Button, { size: "4", onClick: handleApply }, "Apply Changes"), /* @__PURE__ */ React.createElement(injectedRadixThemes.Button, { size: "4", onClick: () => setCurrentSettings(generateDefaultDnDStats(injectedRpgDiceRoller)), variant: "outline" }, "Re-roll"), " ")));
 };
 var DndStatsPlugin = class {
   // The plugin's settings
   /**
    * Initializes the plugin with its settings and context.
-   * Parses and validates incoming settings using DndStatsSettingsSchema,
+   * Parses and validates incoming settings using DnDStatsSchema,
    * merging them with default values.
    * @param settings - The settings object provided by the application.
    * @param context - The plugin context, providing access to application functionalities.
    */
   async init(settings, context) {
     this.context = context;
-    this.settings = DndStatsSettingsSchema.parse(__spreadValues(__spreadValues({}, generateDefaultDndStatsSettings(this.context.rpgDiceRoller)), settings));
+    this.settings = DnDStatsSchema.parse(__spreadValues(__spreadValues({}, generateDefaultDnDStats(this.context.rpgDiceRoller)), settings));
     React = this.context.react;
     this.context.addCharacterUI(
       this.context.pluginName,
@@ -14783,17 +14907,27 @@ var DndStatsPlugin = class {
           injectedReact: this.context.react,
           injectedRadixThemes: this.context.radixThemes,
           getGlobalState: this.context.getGlobalState,
-          setGlobalState: this.context.setGlobalState,
           injectedUseShallow: this.context.useShallow,
           injectedRpgDiceRoller: this.context.rpgDiceRoller,
           onSave: async (newSettings) => {
-            await this.context.setGlobalState(async (state) => {
-              const plugin = state.plugins.find((p) => p.name === "game-rule-dnd5e");
-              if (plugin) {
-                plugin.settings = __spreadValues(__spreadValues({}, plugin.settings), newSettings);
+            let finalSettings = __spreadValues({}, newSettings);
+            if (!newSettings.backstory || newSettings.backstory.trim() === "") {
+              const pc = this.context.getGlobalState();
+              const prompt = getBackstory(newSettings, pc);
+              try {
+                this.context.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", 0, true);
+                const generatedBackstory = await this.context.getBackend().getNarration(prompt, (token, count) => {
+                  this.context.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", count, true);
+                });
+                finalSettings = __spreadProps(__spreadValues({}, newSettings), { backstory: generatedBackstory });
+                this.context.updateProgress("Backstory Generated", "Your character's history is ready!", -1, false);
+                console.log("DEBUG: getBackstory returned:", generatedBackstory);
+              } catch (error39) {
+                this.context.updateProgress("Backstory Generation Aborted", "User aborted operation during generation.", -1, false);
               }
-            });
-            this.settings = __spreadValues(__spreadValues({}, this.settings), newSettings);
+            }
+            this.context.appStateManager.savePluginSettings(this.context.pluginName, finalSettings);
+            this.settings = __spreadValues(__spreadValues({}, this.settings), finalSettings);
           }
         }
       )
@@ -14802,16 +14936,16 @@ var DndStatsPlugin = class {
   getGameRuleLogic() {
     return this;
   }
-  async getInitialProtagonistStats() {
-    if (!this.settings || !this.context) {
+  getBiographyGuidance() {
+    if (!this.settings) {
       return "";
     }
-    const stats = this.settings;
-    const pc = this.context.getGlobalState();
-    const prompt = getProtagonistGenerationPrompt(stats, pc);
-    const narration = await this.context.getBackend().getNarration(prompt);
-    return narration;
+    return this.settings.backstory || "";
   }
+  /**
+   * @method modifyProtagonistPrompt
+   * @description To-do: This is a place holder to rewrite the Biography prompt, currently we are just passing guidance to main app based on character stats based on game rules.
+   */
   modifyProtagonistPrompt(originalPrompt) {
     return modifyProtagonistPromptForDnd(originalPrompt);
   }
@@ -14825,11 +14959,12 @@ var DndStatsPlugin = class {
    * @returns {Promise<CheckDefinition[]>} A promise that resolves to an array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
    */
   async getActionChecks(action, context) {
-    if (!this.context) {
-      console.error("Context not available for getActionChecks.");
+    if (!this.context || !this.settings) {
+      console.error("Context or settings not available for getActionChecks.");
       return [];
     }
-    const checksPrompt = getChecksPrompt(action);
+    const PCStats = this.settings;
+    const checksPrompt = getChecksPrompt(action, PCStats.plotType);
     try {
       const CheckDefinitionSchema = object({
         type: string2(),
@@ -14837,7 +14972,10 @@ var DndStatsPlugin = class {
         modifiers: array(string2()).optional()
       });
       const CheckDefinitionsArraySchema = array(CheckDefinitionSchema);
-      const checks = await this.context.getBackend().getObject(checksPrompt, CheckDefinitionsArraySchema);
+      let checks = await this.context.getBackend().getObject(checksPrompt, CheckDefinitionsArraySchema);
+      if (PCStats.plotType === "combat") {
+        checks = checks.filter((check2) => check2.type !== "initiative");
+      }
       return checks;
     } catch (error39) {
       console.error("Error getting action checks from LLM:", error39);
@@ -14847,22 +14985,29 @@ var DndStatsPlugin = class {
   /**
    * @method resolveCheck
    * @description Resolves a game rule check, utilizing rpg-dice-roller, and returns the result as a statement.
-   * The plugin will use its internal rules to determine the character's appropriate stat and skill modifier.
-   * This statement will be incorporated into the `narratePrompt`'s output, typically after the action description.
-   * @param {CheckDefinition} check - The definition of the check to resolve.
-   * @param {Character} characterStats - The global `Character` object. The plugin will map this to its internal representation of the character's stats.
-   *   (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
-   * @returns {string} A statement describing the check's result and any consequences.
+   * The plugin will use its internal rules to determine the character`s appropriate stat and skill modifier.
+   *    * This statement will be incorporated into the `narratePrompt`'s output, typically after the action description.
+   *    * @param {CheckDefinition} check - The definition of the check to resolve.
+   *    * @param {Character} characterData - The global `Character` object. The plugin will map this to its internal representation of the character's stats.
+   *    *   (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
+   *    * @returns {string} A statement describing the check's result and any consequences.
    */
-  resolveCheck(check2, characterStats) {
+  async resolveCheck(check2, characterData, context, action) {
     if (!this.settings || !this.context) {
-      return `Check for ${check2.type} could not be resolved due to missing context or settings.`;
+      return { resultStatement: `Check for ${check2.type} could not be resolved due to missing context or settings.`, consequenceLog: [] };
     }
-    const dndStats = this.settings;
-    return resolveCheck(check2, characterStats, dndStats, this.context.rpgDiceRoller);
+    const PCStats = this.settings;
+    const rpgDiceRoller = this.context.rpgDiceRoller;
+    let resultStatement = resolveCheck(check2, characterData, PCStats, rpgDiceRoller);
+    let consequenceLog = [];
+    if (check2.type === "initiative") {
+      this.handleConsequence("initiative_triggered", [resultStatement], action);
+      consequenceLog.push("Combat initiated! Initiative order determined.");
+    }
+    return { resultStatement, consequenceLog };
   }
   /**
-   * @method getNarrationPrompt
+   * @method getNarrativeGuidance
    * @description Generates a narration prompt, influenced by the outcome of performed checks and consequences (e.g., HP, item, relationship, story/plot branch changes).
    * @param {string} eventType - The type of event triggering narration.
    * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
@@ -14870,10 +15015,50 @@ var DndStatsPlugin = class {
    * @param {string} [action] - Optional: The action that triggered the narration.
    * @returns {Promise<string[]>} The generated narration prompt.
    */
-  async getNarrationPrompt(eventType, context, checkResultStatements, action) {
-    if (!this.context) {
-      console.error("Context not available for getNarrationPrompt.");
+  async getNarrativeGuidance(eventType, context, checkResolutionResults, action) {
+    if (!this.context || !this.settings) {
+      console.error("Context or settings not available for getNarrativeGuidance.");
       return [];
+    }
+    const PCStats = this.settings;
+    if (!action && (!checkResolutionResults || checkResolutionResults.length === 0)) {
+      let previousLocationName = `a location from protagonist's backstory: ${this.settings.backstory || ""}`;
+      let newLocationName = "new plot line location";
+      let newLocationDescription = "";
+      let presentCharactersInfo = "";
+      for (let i = context.events.length - 1; i >= 0; i--) {
+        const event = context.events[i];
+        if (event.type === "location_change") {
+          newLocationName = context.locations[event.locationIndex].name;
+          newLocationDescription = context.locations[event.locationIndex].description;
+          if (i > 0) {
+            for (let j = i - 1; j >= 0; j--) {
+              const prevEvent = context.events[j];
+              if (prevEvent.type === "location_change") {
+                previousLocationName = context.locations[prevEvent.locationIndex].name;
+                break;
+              } else if (prevEvent.type === "narration" && prevEvent.locationIndex !== void 0) {
+                previousLocationName = context.locations[prevEvent.locationIndex].name;
+                break;
+              }
+            }
+          }
+          if (event.presentCharacterIndices && event.presentCharacterIndices.length > 0) {
+            presentCharactersInfo = `Present characters: ${event.presentCharacterIndices.map((idx) => context.characters[idx].name).join(", ")}.`;
+          }
+          break;
+        }
+      }
+      const locationChangePrompt = {
+        system: "You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Maintain story continuity. Focus on the protagonist's journey and goals.",
+        user: `The protagonist has moved from ${previousLocationName} to ${newLocationName}. ${newLocationDescription}. There are ${presentCharactersInfo} in this new location.
+        Narrate this transition. Emphasize the reason for the new scene in the continuity of the story (e.g., continuing a quest, seeking something, fleeing). 
+        Describe the new location and its immediate relevance to the protagonist's ongoing plot or implied goal in 250 words or less.
+        Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.`
+      };
+      const narration = await this.context.getBackend().getNarration(locationChangePrompt);
+      console.log("Guidance for New Location Prompt:", locationChangePrompt);
+      return [narration];
     }
     let sceneNarration = "";
     for (let i = context.events.length - 1; i >= 0; i--) {
@@ -14883,24 +15068,227 @@ var DndStatsPlugin = class {
         break;
       }
     }
-    const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements || []);
+    let combatNarration = "";
+    if (PCStats.plotType === "combat" && PCStats.encounter) {
+      combatNarration = `Combat Round ${PCStats.encounter.roundNumber}. Combat Log: ${PCStats.encounter.combatLog.map((log) => log.replace(/\\n/g, " ")).join("; ")}.`;
+    }
+    const checkResultStatements = (checkResolutionResults == null ? void 0 : checkResolutionResults.map((cr) => cr.resultStatement)) || [];
+    const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements);
     const consequenceGuidance = await this.context.getBackend().getNarration(internalGuidancePrompt);
     const dndStyleGuidance = getDndNarrationGuidance(eventType);
     const consolidatedGuidance = `${consequenceGuidance}
 
-${dndStyleGuidance}`;
+${dndStyleGuidance}
+
+${combatNarration}`;
     console.log("Consolidated Guidance for Narration Prompt:", consolidatedGuidance);
     return [consolidatedGuidance];
   }
   /**
-   * @method getCombatRoundNarration
-   * @description A dedicated method for handling narration during combat rounds, allowing for different narrative structures and details compared to general scene narration.
-   * @param {number} roundNumber - The current combat round number.
-   * @param {string[]} combatLog - A minimal log of events that occurred in the combat round, e.g., ["Protagonist attacks Goblin for 5 damage.", "Goblin misses Protagonist."].
-   * @returns {string} The narration for the combat round.
+   * @method handleConsequence
+   * @description Applies state changes based on the outcome of a check or event.
+   * This method is called internally by `resolveCheck` and is solely responsible for modifying the plugin's internal state.
+   * @param {string} eventType - The type of event triggering the consequence (e.g., "damage_dealt", "status_effect_applied").
+   * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks that led to this consequence.
+   * @param {string} [action] - Optional: The action that triggered the consequence.
+   * @returns {void}
    */
-  getCombatRoundNarration(roundNumber, combatLog) {
-    return `Combat Round ${roundNumber}: ${combatLog.join(". ")}.`;
+  async handleConsequence(eventType, checkResultStatements, action) {
+    var _a;
+    if (!this.settings) {
+      console.error("Settings not available for handleConsequence.");
+      return;
+    }
+    const PCStats = this.settings;
+    if (eventType === "damage_dealt" && checkResultStatements && PCStats.plotType === "combat" && PCStats.encounter) {
+      const damageRegex = /dealt (\d+) (\w+) damage to (\w+)/;
+      const match = checkResultStatements[0].match(damageRegex);
+      if (match) {
+        const damageAmount = parseInt(match[1]);
+        const targetName = match[3];
+        const targetCombatant = PCStats.encounter.combatants.find(
+          (c) => {
+            var _a2;
+            const globalState = (_a2 = this.context) == null ? void 0 : _a2.getGlobalState();
+            if (!globalState) return false;
+            if (c.characterIndex === -1) {
+              return globalState.protagonist.name === targetName;
+            } else {
+              return globalState.characters[c.characterIndex].name === targetName;
+            }
+          }
+        );
+        if (targetCombatant) {
+          targetCombatant.currentHp -= damageAmount;
+          PCStats.encounter.combatLog.push(`${targetName} took ${damageAmount} damage.`);
+          if (targetCombatant.currentHp <= 0) {
+            targetCombatant.status = "dead";
+            PCStats.encounter.combatLog.push(`${targetName} is dead.`);
+            const remainingEnemies = PCStats.encounter.combatants.filter(
+              (c) => c.status !== "dead" && c.status !== "fled" && c.status !== "surrendered" && c.isFriendly === false
+            );
+            if (remainingEnemies.length === 0) {
+              PCStats.encounter.combatLog.push("Combat ends.");
+              PCStats.plotType = "general";
+              PCStats.encounter = void 0;
+            }
+          }
+        }
+      }
+    } else if (eventType === "initiative_triggered" && PCStats.plotType !== "combat") {
+      PCStats.plotType = "combat";
+      const CombatantsLLMSchema = object({
+        friendlyCharacters: array(object({
+          name: string2()
+          // Add other relevant character properties if needed from LLM
+        })),
+        namedEnemies: array(object({
+          name: string2()
+          // Add other relevant character properties if needed from LLM
+        })),
+        unnamedEnemiesCount: number2().int().min(0),
+        // Potentially add a description of the encounter for context
+        encounterDescription: string2().optional()
+      });
+      let sceneNarration = "";
+      const globalState = (_a = this.context) == null ? void 0 : _a.getGlobalState();
+      if (globalState) {
+        for (let i = globalState.events.length - 1; i >= 0; i--) {
+          const event = globalState.events[i];
+          if ((event == null ? void 0 : event.type) === "narration") {
+            sceneNarration = event.text;
+            break;
+          }
+        }
+      }
+      const combatantsPrompt = {
+        system: "You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer.",
+        user: `Based on the following scene narration, identify the combat participants:
+
+Scene: ${sceneNarration}
+Protagonist: ${globalState == null ? void 0 : globalState.protagonist.name}
+
+Provide a JSON object with the following structure:
+{
+  "friendlyCharacters": [
+    { "name": "Protagonist's Name" },
+    { "name": "Ally 1 Name" }
+  ],
+  "namedEnemies": [
+    { "name": "Enemy 1 Name" },
+    { "name": "Enemy 2 Name" }
+  ],
+  "unnamedEnemiesCount": 0,
+  "encounterDescription": "A brief description of the combat encounter."
+}`
+      };
+      const combatantsLLMResponse = await this.context.getBackend().getObject(combatantsPrompt, CombatantsLLMSchema);
+      const allCombatants = [];
+      if (globalState == null ? void 0 : globalState.protagonist) {
+        allCombatants.push({
+          characterIndex: -1,
+          // Special index for protagonist
+          currentHp: 10,
+          // Placeholder HP for protagonist, to-do: need to map this to actual stats in settings
+          maxHp: 10,
+          // Placeholder HP for protagonist, to-do: need to map this to actual stats in settings
+          status: "active",
+          initiativeRoll: Math.floor(Math.random() * 20) + 1,
+          // Placeholder initiative
+          isFriendly: true
+        });
+      }
+      for (const char of combatantsLLMResponse.friendlyCharacters) {
+        if ((globalState == null ? void 0 : globalState.protagonist) && char.name === globalState.protagonist.name) {
+          continue;
+        }
+        let charIndex = globalState == null ? void 0 : globalState.characters.findIndex((c) => c.name === char.name);
+        if (charIndex === -1 || charIndex === void 0) {
+          charIndex = (globalState == null ? void 0 : globalState.characters.length) || 0;
+          globalState == null ? void 0 : globalState.characters.push(__spreadProps(__spreadValues({}, char), { gender: "male", race: "human", biography: "", locationIndex: 0 }));
+        }
+        allCombatants.push({
+          characterIndex: charIndex,
+          currentHp: 10,
+          // Placeholder HP, to-do: should be based on hit dice or stats if available
+          maxHp: 10,
+          // Placeholder HP, to-do: should be based on hit dice or stats if available
+          status: "active",
+          initiativeRoll: Math.floor(Math.random() * 20) + 1,
+          // Placeholder initiative
+          isFriendly: true
+        });
+      }
+      for (const char of combatantsLLMResponse.namedEnemies) {
+        let charIndex = globalState == null ? void 0 : globalState.characters.findIndex((c) => c.name === char.name);
+        if (charIndex === -1 || charIndex === void 0) {
+          charIndex = (globalState == null ? void 0 : globalState.characters.length) || 0;
+          globalState == null ? void 0 : globalState.characters.push(__spreadProps(__spreadValues({}, char), { gender: "male", race: "human", biography: "", locationIndex: 0 }));
+        }
+        allCombatants.push({
+          characterIndex: charIndex,
+          currentHp: 10,
+          // Placeholder HP, to-do: should be based on hit dice or stats if available
+          maxHp: 10,
+          // Placeholder HP, to-do: should be based on hit dice or stats if available
+          status: "active",
+          initiativeRoll: Math.floor(Math.random() * 20) + 1,
+          // Placeholder initiative
+          isFriendly: false
+        });
+      }
+      for (let i = 0; i < combatantsLLMResponse.unnamedEnemiesCount; i++) {
+        const enemyName = `Unnamed Enemy ${i + 1}`;
+        const enemyChar = {
+          name: enemyName,
+          gender: "male",
+          // Placeholder
+          race: "human",
+          // Placeholder
+          biography: "A generic enemy.",
+          // Placeholder
+          locationIndex: 0
+          // Placeholder
+        };
+        let charIndex = (globalState == null ? void 0 : globalState.characters.length) || 0;
+        globalState == null ? void 0 : globalState.characters.push(enemyChar);
+        allCombatants.push({
+          characterIndex: charIndex,
+          currentHp: 20,
+          // Placeholder HP
+          maxHp: 20,
+          // Placeholder HP
+          status: "active",
+          initiativeRoll: Math.floor(Math.random() * 20) + 1,
+          // Placeholder initiative
+          isFriendly: false
+        });
+      }
+      allCombatants.sort((a, b) => b.initiativeRoll - a.initiativeRoll);
+      PCStats.encounter = {
+        roundNumber: 1,
+        combatants: allCombatants,
+        combatLog: ["Combat initiated."]
+        //to-do: put actual logic in here to log actions and increase round number
+      };
+    }
+  }
+  /**
+   * @method getActions
+   * @description Provides a list of available actions based on the current game state and plot type.
+   * @returns {Promise<string[]>} A promise that resolves to an array of action strings.
+   */
+  async getActions() {
+    if (!this.settings) {
+      console.error("Settings not available for getActions.");
+      return [];
+    }
+    const PCStats = this.settings;
+    if (PCStats.plotType === "combat") {
+      return ["Attack", "Defend", "Cast Spell", "Use Item", "Flee"];
+    } else {
+      return ["Explore", "Talk", "Rest", "Search", "Use Item", "Examine", "Use non-combat magic", "Use skill"];
+    }
   }
 };
 export {

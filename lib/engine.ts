@@ -18,7 +18,7 @@ import {
   type Prompt,
 } from "./prompts";
 import * as schemas from "./schemas";
-import { getState, initialState, type Location, type LocationChangeEvent, type NarrationEvent, type IGameRuleLogic, StoredState } from "./state";
+import { getState, initialState, type Location, type LocationChangeEvent, type NarrationEvent, type IGameRuleLogic, StoredState, type CheckDefinition, type Character, type State, type CheckResolutionResult } from "./state";
 
 /**
  * @function getDefaultGameRuleLogic
@@ -27,8 +27,8 @@ import { getState, initialState, type Location, type LocationChangeEvent, type N
  */
 function getDefaultGameRuleLogic(): IGameRuleLogic {
   return {
-    // Default implementation for getInitialProtagonistStats
-    getInitialProtagonistStats: () => Promise.resolve(""),
+    // Default implementation for getBiographyGuidance
+    getBiographyGuidance: () => "",
 
     // Default implementation for modifyProtagonistPrompt
     modifyProtagonistPrompt: (originalPrompt: Prompt) => originalPrompt,
@@ -43,18 +43,18 @@ function getDefaultGameRuleLogic(): IGameRuleLogic {
     getActionChecks: () => Promise.resolve([]),
 
     // Default implementation for resolveCheck
-    resolveCheck: () => "",
-
-    // Default implementation for getNarrationPrompt
-    getNarrationPrompt: async (eventType: string, context: WritableDraft<StoredState>, checkResultStatements?: string[], action?: string) => {
-      // Call the comprehensive narratePrompt from lib/prompts.ts
-      const prompt = narratePrompt(context, action, checkResultStatements);
-      return [prompt.user]; // Return the user part of the prompt as a string array
+    resolveCheck: async (_check: CheckDefinition, _characterStats: Character, _context: WritableDraft<State>, _action?: string) => {
+      return { resultStatement: "", consequencesApplied: [] };
     },
 
-    // Default implementation for getCombatRoundNarration
-    getCombatRoundNarration: (roundNumber: number, combatLog: string[]) => {
-      return `Default combat narration for round ${roundNumber}. Log: ${combatLog.join("; ")}`;
+    // Default implementation for getActions
+    getActions: () => Promise.resolve([]),
+
+    // Default implementation for getNarrativeGuidance
+    getNarrativeGuidance: async (eventType: string, context: WritableDraft<StoredState>, checkResolutionResults?: CheckResolutionResult[], action?: string) => {
+      // Call the comprehensive narratePrompt from lib/prompts.ts
+      const prompt = narratePrompt(context, action, checkResolutionResults?.map(cr => cr.resultStatement));
+      return [prompt.user]; // Return the user part of the prompt as a string array
     },
   };
 }
@@ -64,7 +64,7 @@ function getDefaultGameRuleLogic(): IGameRuleLogic {
  * @description Retrieves the currently active IGameRuleLogic implementation.
  * @returns {IGameRuleLogic} The active game rule logic.
  */
-function getActiveGameRuleLogic(): IGameRuleLogic {
+export function getActiveGameRuleLogic(): IGameRuleLogic {
   const state = getState();
 
   // Check if any plugin is explicitly selected via the 'selectedPlugin' flag.
@@ -218,22 +218,7 @@ export async function next(
      */
     const narrate = async (action?: string) => {
       const gameRuleLogic = getActiveGameRuleLogic();
-      let checkResultStatements: string[] = [];
-
-      if (action && gameRuleLogic.getActionChecks) {
-        // Call the game rule logic to determine checks for the action.
-        console.log(`ENGINE: getActionChecks called with action: ${action}`);
-        const checkDefinitions = await gameRuleLogic.getActionChecks(action, state);
-        console.log(`ENGINE: getActionChecks returned: ${JSON.stringify(checkDefinitions)}`);
-        for (const check of checkDefinitions) {
-          if (gameRuleLogic.resolveCheck) {
-            console.log(`ENGINE: resolveCheck called with check: ${JSON.stringify(check)}`);
-            const resultStatement = gameRuleLogic.resolveCheck(check, state.protagonist);
-            console.log(`ENGINE: resolveCheck returned: ${resultStatement}`);
-            checkResultStatements.push(resultStatement);
-          }
-        }
-      }
+      let checkResolutionResults: CheckResolutionResult[] = []; // This needs to be populated *before* narrationPromptContent
 
       // Initialize a new NarrationEvent object. This object will store the generated
       // narration text and associated metadata.
@@ -247,23 +232,58 @@ export async function next(
       // Add the newly created narration event to the global list of events in the state.
       state.events.push(event);
 
+      // --- NEW LOGIC FOR GATHERING AND RESOLVING CHECKS ---
+      let checkDefinitions: CheckDefinition[] = [];
+
+      // 1. Get checks from narration (new logic)
+      // This block will execute if the gameRuleLogic has an getActionChecks method.
+      // It will process the scene narration (from the *previous* event, or initial state) to identify any checks.
+      // We need to get the *most recent* narration event text for this.
+      let sceneNarrationForChecks = "";
+      for (let i = state.events.length - 1; i >= 0; i--) {
+        const prevEvent = state.events[i];
+        if (prevEvent.type === "narration") {
+          sceneNarrationForChecks = prevEvent.text;
+          break;
+        }
+      }
+
+      if (gameRuleLogic.getActionChecks) {
+        console.log(`ENGINE: getActionChecks called with narration: ${sceneNarrationForChecks}`);
+        const narrationChecks = await gameRuleLogic.getActionChecks(sceneNarrationForChecks, state);
+        checkDefinitions.push(...narrationChecks);
+      }
+
+      // 2. Get checks from user action (existing logic, now combined)
+      if (action && gameRuleLogic.getActionChecks) {
+        console.log(`ENGINE: getActionChecks called with action: ${action}`);
+        const actionChecks = await gameRuleLogic.getActionChecks(action, state);
+        checkDefinitions.push(...actionChecks);
+      }
+
+      // Process all collected checks (from both narration and user action)
+      for (const check of checkDefinitions) {
+        if (gameRuleLogic.resolveCheck) {
+          console.log(`ENGINE: resolveCheck called with check: ${JSON.stringify(check)}`);
+          const resultStatement = await gameRuleLogic.resolveCheck(check, state.protagonist, state, action);
+          console.log(`ENGINE: resolveCheck returned: ${JSON.stringify(resultStatement)}`);
+          checkResolutionResults.push(resultStatement); // This populates checkResolutionResults
+        }
+      }
+      // --- END NEW LOGIC ---
+
       // Update the `step` variable to indicate that narration is in progress.
       step = ["Narrating", ""];
       // Request narration text from the backend. The `getNarration` method streams
       // tokens, and the callback updates the `event.text` and triggers UI updates.
       let narrationPromptContent: Prompt;
-      if (state.isCombat && gameRuleLogic.getCombatRoundNarration) {
-        console.log(`ENGINE: getCombatRoundNarration called.`);
-        // Placeholder for combatLog and roundNumber. These would typically come from a combat system.
-        narrationPromptContent = { system: "", user: gameRuleLogic.getCombatRoundNarration(1, ["Combat log entry 1", "Combat log entry 2"]) };
-        console.log(`ENGINE: getCombatRoundNarration returned`); //debug logging - ${JSON.stringify(narrationPromptContent)}
-      } else if (gameRuleLogic.getNarrationPrompt) {
-        console.log(`ENGINE: getNarrationPrompt called.`);
-        const consequences = await gameRuleLogic.getNarrationPrompt("general", state, checkResultStatements, action); // Pass action here and await
+      if (gameRuleLogic.getNarrativeGuidance) {
+        console.log(`ENGINE: getNarrativeGuidance called.`);
+        // Now checkResolutionResults is populated from the *current* action/narration processing
+        const consequences = await gameRuleLogic.getNarrativeGuidance("general", state, checkResolutionResults, action);
         narrationPromptContent = narratePrompt(state, action, consequences);
-        console.log(`ENGINE: getNarrationPrompt returned: `); //debug logging - ${JSON.stringify(narrationPromptContent)}
+        console.log(`ENGINE: getNarrativeGuidance returned: `); //debug logging - ${JSON.stringify(narrationPromptContent)}
       } else {
-        // This branch should ideally not be hit if getDefaultGameRuleLogic is correctly implemented
         console.log(`ENGINE: Falling back to narratePrompt from lib/prompts.ts.`);
         narrationPromptContent = narratePrompt(state, action);
         console.log(`ENGINE: narratePrompt (fallback) returned: `); //debug logging - ${JSON.stringify(narrationPromptContent)}
@@ -364,8 +384,8 @@ export async function next(
         // Request the backend to generate the protagonist character.
         // The generated character object is assigned to `state.protagonist`.
         const gameRuleLogic = getActiveGameRuleLogic();
-        const initialProtagonistStats = gameRuleLogic.getInitialProtagonistStats ? await gameRuleLogic.getInitialProtagonistStats() : "";
-        console.log(`ENGINE: getInitialProtagonistStats returned value`); //Debug logging - ${initialProtagonistStats}
+        const initialProtagonistStats = gameRuleLogic.getBiographyGuidance ? await gameRuleLogic.getBiographyGuidance() : "";
+        console.log(`ENGINE: getBiographyGuidance returned value`); //Debug logging - ${initialProtagonistStats}
         let protagonistPrompt = generateProtagonistPrompt(state, initialProtagonistStats);
         if (gameRuleLogic.modifyProtagonistPrompt) {
           const originalPrompt = { ...protagonistPrompt }; // Capture original for logging
@@ -507,18 +527,15 @@ export async function next(
           for (let i = state.characters.length - characters.length; i < state.characters.length; i++) {
             event.presentCharacterIndices.push(i);
           }
-
-          //console.log("ENGINE: next() - Before narrate (subsequent). tstCount:", getTstCount(state));
           // Generate narration for the new location and characters.
           await narrate();
-          //console.log("ENGINE: next() - After narrate (subsequent). tstCount:", getTstCount(state));
         }
 
         // Update `step` to indicate action generation.
         step = ["Generating actions", "This typically takes a few seconds"];
         // Request the backend to generate a list of possible actions for the current state.
         state.actions = await backend.getObject(
-          generateActionsPrompt(state),
+          await generateActionsPrompt(state),
           schemas.Action.array().length(3),
           onToken,
         );
@@ -585,6 +602,7 @@ export function reset(): void {
  * @returns {void}
  */
 export function abort(): void {
+  console.log("DEBUG: ENGINE: Abort function called.");
   getBackend().abort();
 }
 

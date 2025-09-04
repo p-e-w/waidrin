@@ -8,6 +8,10 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { getState } from "@/lib/state";
 import { useStateStore } from "@/lib/state";
+import type { IAppLibs } from "@/app/services/AppLibs";
+import type { IAppBackend } from "@/app/services/AppBackend";
+import type { IAppStateManager } from "@/app/services/AppStateManager";
+import type { IAppUI } from "@/app/services/AppUI";
 
 /**
  * @interface BackendUI
@@ -87,7 +91,6 @@ export function getPluginsState(): PluginsState {
 export class Context {
   pluginName: string;
   react: typeof React;
-  setGlobalState: (updater: (state: WritableDraft<StoredState>) => Promise<void>) => Promise<void>;
   getGlobalState: () => StoredState;
   immer: typeof import('immer');
   radixThemes: typeof import('@radix-ui/themes');
@@ -95,11 +98,14 @@ export class Context {
   useShallow: typeof import('zustand/shallow').useShallow;
   rpgDiceRoller: typeof import('@dice-roller/rpg-dice-roller');
   getBackend: typeof import('@/lib/backend').getBackend;
+  appLibs: IAppLibs;
+  appBackend: IAppBackend;
+  appStateManager: IAppStateManager;
+  appUI: IAppUI;
 
   constructor(
     pluginName: string,
     react: typeof React,
-    setGlobalState: (updater: (state: WritableDraft<StoredState>) => Promise<void>) => Promise<void>,
     getGlobalState: () => StoredState,
     immer: typeof import('immer'),
     radixThemes: typeof import('@radix-ui/themes'),
@@ -107,10 +113,14 @@ export class Context {
     useShallow: typeof import('zustand/shallow').useShallow,
     rpgDiceRoller: typeof import('@dice-roller/rpg-dice-roller'),
     getBackend: typeof import('@/lib/backend').getBackend,
+    public updateProgress: (title: string, message: string, tokenCount: number, visible?: boolean) => void,
+    appLibs: IAppLibs,
+    appBackend: IAppBackend,
+    appStateManager: IAppStateManager,
+    appUI: IAppUI,
   ) {
     this.pluginName = pluginName;
     this.react = react;
-    this.setGlobalState = setGlobalState;
     this.getGlobalState = getGlobalState;
     this.immer = immer;
     this.radixThemes = radixThemes;
@@ -118,6 +128,11 @@ export class Context {
     this.useShallow = useShallow;
     this.rpgDiceRoller = rpgDiceRoller;
     this.getBackend = getBackend;
+    this.updateProgress = updateProgress;
+    this.appLibs = appLibs;
+    this.appBackend = appBackend;
+    this.appStateManager = appStateManager;
+    this.appUI = appUI;
   }
 
   /**

@@ -8,7 +8,12 @@
     "intelligence": 10,
     "wisdom": 10,
     "charisma": 10,
+    "hp": 10,
+    "hpMax": 10,
+    "dndExp": 0,
+    "dndLevel": 1,
     "dndClass": "",
-    "dndSubclass": ""
+    "dndSubclass": "",
+    "backstory": ""
   }
 }

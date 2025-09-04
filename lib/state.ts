@@ -127,7 +127,6 @@ export const initialState: State = schemas.State.parse({
   sameSexMagnet: false,
   sexualContentLevel: "regular",
   violentContentLevel: "regular",
-  isCombat: false,
   events: [],
   actions: [],
 });
@@ -150,6 +149,15 @@ export interface CheckResult {
   success: boolean; // True if the check was successful, false otherwise.
   message: string; // A descriptive message about the check's outcome.
   roll?: number; // Optional: The result of the dice roll, if applicable.
+}
+
+/**
+ * @interface CheckResolutionResult
+ * @description Captures the detailed outcome of a CheckDefinition being resolved, including consequences.
+ */
+export interface CheckResolutionResult {
+  resultStatement: string; // The factual outcome of the check (e.g., "You passed the check").
+  consequenceLog?: string[]; // Optional: A list of high-level consequences applied (e.g., "Goblin 1 took 15 damage", "Goblin 1 is dead", "Longsword broke").
 }
 
 /**
@@ -176,13 +184,13 @@ export interface ClassDefinition {
  */
 export interface IGameRuleLogic {
   /**
-   * @method getInitialProtagonistStats
+   * @method getBiographyGuidance
    * @description Provides a statement that augments the default prompt in `generateProtagonistPrompt`, influencing the protagonist's background, personality, and appearance based on the plugin's internal interpretation of stats.
    * This statement will be inserted into the `generateProtagonistPrompt` at a designated placeholder (e.g., `[PLUGIN_PROTAGONIST_DESCRIPTION]`).
    * (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
    * @returns {string} A statement to augment the protagonist generation prompt.
    */
-  getInitialProtagonistStats?(): Promise<string>;
+  getBiographyGuidance?(): string;
 
   /**
    * @method modifyProtagonistPrompt
@@ -230,27 +238,37 @@ export interface IGameRuleLogic {
    *   (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
    * @returns {string} A statement describing the check's result and any consequences.
    */
-  resolveCheck?(check: CheckDefinition, characterStats: Character): string;
+  resolveCheck?(check: CheckDefinition, characterStats: Character, context: WritableDraft<State>, action?: string): Promise<CheckResolutionResult>;
 
   /**
-   * @method getNarrationPrompt
+   * @method handleConsequence
+   * @description Applies state changes based on the outcome of a check or event.
+   * This method is called internally by `resolveCheck` and is solely responsible for modifying the plugin's internal state.
+   * @param {string} eventType - The type of event triggering the consequence (e.g., "damage_dealt", "status_effect_applied").
+   * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks that led to this consequence.
+   * @param {string} [action] - Optional: The action that triggered the consequence.
+   * @returns {void}
+   */
+  handleConsequence?(eventType: string, checkResultStatements?: string[], action?: string): void;
+  
+  /**
+   * @method getActions
+   * @description Provides a list of available actions based on the current game state and plot type.
+   * @returns {Promise<string[]>} A promise that resolves to an array of action strings.
+   */
+  getActions?(): Promise<string[]>;
+
+  /**
+   * @method getNarrativeGuidance
    * @description Generates a narration prompt, influenced by the outcome of performed checks and consequences (e.g., HP, item, relationship, story/plot branch changes).
    * @param {string} eventType - The type of event triggering narration.
    * @param {WritableDraft<State>} context - The current game state. (Note: Direct mutation of this `WritableDraft` object is the intended way to update state.)
-   * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
+   * @param {CheckResolutionResult[]} [checkResultStatements] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
    * @param {string} [action] - Optional: The action that triggered the narration.
    * @returns {Promise<string[]>} The generated narration prompt.
    */
-  getNarrationPrompt?(eventType: string, context: WritableDraft<State>, checkResultStatements?: string[], action?: string): Promise<string[]>;
+  getNarrativeGuidance?(eventType: string, context: WritableDraft<State>, checkResultStatements?: CheckResolutionResult[], action?: string): Promise<string[]>;
 
-  /**
-   * @method getCombatRoundNarration
-   * @description A dedicated method for handling narration during combat rounds, allowing for different narrative structures and details compared to general scene narration.
-   * @param {number} roundNumber - The current combat round number.
-   * @param {string[]} combatLog - A minimal log of events that occurred in the combat round, e.g., ["Protagonist attacks Goblin for 5 damage.", "Goblin misses Protagonist."].
-   * @returns {string} The narration for the combat round.
-   */
-  getCombatRoundNarration?(roundNumber: number, combatLog: string[]): string;
 }
 
 /**

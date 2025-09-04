@@ -1,33 +1,62 @@
 import * as z from "zod";
 import type * as RpgDiceRoller from '@dice-roller/rpg-dice-roller';
 import type { CheckDefinition, Character } from "@/lib/state"; // Import CheckDefinition and Character
+import { back } from "@/lib/engine";
+
+export const PlotType = z.enum(["general", "combat", "puzzle", "chase", "roleplay", "shop"]);
+export type PlotType = z.infer<typeof PlotType>;
+
+export const CombatantSchema = z.object({
+  characterIndex: z.number().int(), // Link to state.characters by index
+  currentHp: z.number().int(),
+  maxHp: z.number().int(),
+  status: z.enum(["active", "unconscious", "dead", "fled", "surrendered"]), 
+  isFriendly: z.boolean(), // Added "Friendly" flag for allies
+  initiativeRoll: z.number().int(),
+});
+export type Combatant = z.infer<typeof CombatantSchema>;
+
+export const BattleSchema = z.object({
+  roundNumber: z.number().int(),
+  combatants: z.array(CombatantSchema),
+  combatLog: z.array(z.string()),
+  activeTurnCombatantIndex: z.number().int().optional(), // Index of the Combatant whose turn it is in the combatants array.
+});
+export type Battle = z.infer<typeof BattleSchema>;
 
 /**
  * Zod schema for validating D&D character stats settings.
  * Each stat is an integer between 1 and 20.
  */
-export const DndStatsSettingsSchema = z.object({
+export const DnDStatsSchema = z.object({
   strength: z.number().int().min(1).max(20),
   dexterity: z.number().int().min(1).max(20),
   constitution: z.number().int().min(1).max(20),
   intelligence: z.number().int().min(1).max(20),
   wisdom: z.number().int().min(1).max(20),
   charisma: z.number().int().min(1).max(20),
+  hp: z.number().int().default(10), // HP for the character
+  hpMax: z.number().int().default(10), // Max HP for the character
+  dndExp: z.number().int().min(0).default(0), // Experience points, default to 0
+  dndLevel: z.number().int().min(1).max(20).default(1), // Character level, default to 1
   dndClass: z.string(),
   dndSubclass: z.string(),
+  plotType: PlotType.default("general"), // Default to general
+  encounter: BattleSchema.optional(), // Holds battle data when plotType is "combat"
+  backstory: z.string().optional(), // To store the initial character creation backstory
 });
 
 /**
- * TypeScript type inferred from the DndStatsSettingsSchema.
+ * TypeScript type inferred from the DnDStatsSchema.
  * Represents the structure of the D&D character stats.
  */
-export type DndStatsSettings = z.infer<typeof DndStatsSettingsSchema>;
+export type DnDStats = z.infer<typeof DnDStatsSchema>;
 
 /**
  * Function to generate default values for D&D character stats using dice rolls.
  * Used when no settings are provided or to fill in missing values.
  */
-export const generateDefaultDndStatsSettings = (rpgDiceRoller: typeof RpgDiceRoller): DndStatsSettings => {
+export const generateDefaultDnDStats = (rpgDiceRoller: typeof RpgDiceRoller): DnDStats => {
   const rollFormula = "4d6dl1"; // 4 six-sided dice, drop the lowest
 
   const rollAttribute = () => new rpgDiceRoller.DiceRoll(rollFormula).total;
@@ -39,10 +68,17 @@ export const generateDefaultDndStatsSettings = (rpgDiceRoller: typeof RpgDiceRol
     intelligence: rollAttribute(),
     wisdom: rollAttribute(),
     charisma: rollAttribute(),
+    hp: 10, // Default starting HP
+    hpMax: 10, // Default max HP
+    dndLevel: 1,  // Default level
+    dndExp: 0,    // Default experience points
     dndClass: "",
     dndSubclass: "",
+    plotType: PlotType.enum.general,
+    encounter: undefined,
+    backstory: "",
   };
-  //console.log("generateDefaultDndStatsSettings generated:", generated);
+  //console.log("generateDefaultDnDStats generated:", generated);
   return generated;
 };
 
@@ -50,7 +86,7 @@ export type DndClassData = {
   [key: string]: string[];
 };
 
-export const DND_CLASS_DATA: DndClassData = {
+export const DnDClassData: DndClassData = {
   "Barbarian": [
     "Path of the Berserker",
     "Path of the Totem Warrior",
@@ -166,7 +202,7 @@ export function getAbilityModifier(score: number): number {
  * @param rpgDiceRoller The rpg-dice-roller instance.
  * @returns A statement describing the check's result and any consequences.
  */
-export function resolveCheck(check: CheckDefinition, characterStats: Character, dndStats: DndStatsSettings, rpgDiceRoller: typeof RpgDiceRoller): string {
+export function resolveCheck(check: CheckDefinition, characterStats: Character, dndStats: DnDStats, rpgDiceRoller: typeof RpgDiceRoller): string {
   let abilityScore: number | undefined;
   let modifier: number = 0;
 
@@ -207,6 +243,9 @@ export function resolveCheck(check: CheckDefinition, characterStats: Character, 
     case "performance":
     case "persuasion":
       abilityScore = dndStats.charisma;
+      break;
+    case "initiative": // NEW CASE FOR INITIATIVE
+      abilityScore = dndStats.dexterity; // Initiative uses Dexterity
       break;
     default:
       // If it's a custom check type not directly mapped to an ability,

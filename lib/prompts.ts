@@ -3,6 +3,7 @@
 
 import * as schemas from "./schemas";
 import type { State } from "./state";
+import { getActiveGameRuleLogic } from "./engine";
 
 /**
  * @interface Prompt
@@ -214,9 +215,20 @@ Do not explicitly ask the protagonist for a response at the end; they already kn
  * @param {State} state - The current game state.
  * @returns {Prompt} A prompt for the LLM to generate action options.
  */
-export function generateActionsPrompt(state: State): Prompt {
+export async function generateActionsPrompt(state: State): Promise<Prompt> {
+  const gameRuleLogic = getActiveGameRuleLogic();
+  let gameRuleActionsText = "";
+
+  if (gameRuleLogic.getActions) {
+    const actions = await gameRuleLogic.getActions();
+    gameRuleActionsText = `
+Here are the available actions from the game rule logic:
+${actions.map((a: string) => `- ${a}`).join('\n')}
+`;
+  }
+
   return makeMainPrompt(
-    `
+    `${gameRuleActionsText}
 Suggest 3 options for what the protagonist (${state.protagonist.name}) could do or say next.
 Each option should be a single, short sentence that starts with a verb.
 Return the options as a JSON array of strings.

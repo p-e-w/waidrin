@@ -1,5 +1,5 @@
 import type { Prompt } from "@/lib/prompts";
-import type { DndStatsSettings } from "./pluginData";
+import type { DnDStats } from "./pluginData";
 import type { StoredState } from "@/lib/state";
 
 /**
@@ -147,9 +147,9 @@ In Dungeons & Dragons 5th Edition, ability scores range from 1 to 10, with 10-11
  * @param pc - The current player character state.
  * @returns A Prompt object with system and user messages for protagonist generation.
  */
-export function getProtagonistGenerationPrompt(stats: DndStatsSettings, pc: StoredState): Prompt {
+export function getBackstory(stats: DnDStats, pc: StoredState): Prompt { //rename to getStatsInterpretations
   return {
-    system: "You are an expert in D&D 5e character descriptions. Your task is to provide a descriptive interpretation of a character's attributes based on their numerical values and the provided D&D 5e rules.",
+    system: "You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to provide a descriptive interpretation of a character's attributes based on their numerical values and the provided D&D 5e rules.",
     user: `Given the following D&D 5e attribute scores:
 Strength: ${stats.strength}
 Dexterity: ${stats.dexterity}
@@ -157,6 +157,7 @@ Constitution: ${stats.constitution}
 Intelligence: ${stats.intelligence}
 Wisdom: ${stats.wisdom}
 Charisma: ${stats.charisma}
+Level: ${stats.dndLevel}
 Class: ${stats.dndClass}
 SubClass: ${stats.dndSubclass}
 Gender: ${pc.protagonist.gender}
@@ -287,15 +288,21 @@ Proficiency and Expertise: Characters with proficiency in a skill add their prof
  * @param {string} action - The action for which to determine checks.
  * @returns {Prompt} The constructed prompt.
  */
-export function getChecksPrompt(action: string): Prompt {
+export function getChecksPrompt(action: string, plotType: string): Prompt {
+  let initiativeGuidance = "";
+  if (plotType !== "combat") {
+    initiativeGuidance = `If the action or situation clearly indicates the start of a combat encounter (e.g., an attack, an ambush, a trap being sprung), include an \"initiative\" check with a difficultyClass of 0 (the actual initiative roll will be handled by the game engine). Do NOT include an \"initiative\" check if the plotType is already \"combat\", current plotType is ${plotType}.`;
+  }
+
   return {
-    system: `You are an expert DM in Dungeons & Dragons 5th Edition. Your task is to analyze a given action and determine if a skill check is required and if so, what are the most appropriate D&D 5e skill checks required to resolve it. 
+    system: `You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to analyze a given action or situation and determine if a skill check is required and if so, what are the most appropriate D&D 5e skill checks required to resolve it. 
+    ${initiativeGuidance}
     You must return an array of CheckDefinition objects in JSON format.
 
 Each CheckDefinition object must have the following properties:
-- 'type': A string representing the skill (e.g., "athletics", "stealth", "perception") or attribute (e.g., "strength", "dexterity", "intelligence", "wisdom", "charisma", "constitution") being checked, or "to-hit" for attack rolls.
-- 'difficultyClass': A number representing the target number to beat for a successful check, or the AC of the target if this is an attack roll "to-hit".
-- 'modifiers': An optional array of strings representing the character attributes relevant to the check (e.g., ["strength", "dexterity"]).
+- 'type': A string representing the skill (e.g., \"athletics\", \"stealth\", \"perception\") or attribute (e.g., \"strength\", \"dexterity\", \"intelligence\", \"wisdom\", \"charisma\", \"constitution\") being checked, or \"to-hit\" for attack rolls, or \"initiative\" for combat initiation.
+- 'difficultyClass': A number representing the target number to beat for a successful check, or the AC of the target if this is an attack roll \"to-hit\".
+- 'modifiers': An optional array of strings representing the character attributes relevant to the check (e.g., [\"strength\", \"dexterity\"]).
 
 Your output must be a JSON array of CheckDefinition objects, and nothing else. For example:
 [
@@ -311,14 +318,16 @@ Your output must be a JSON array of CheckDefinition objects, and nothing else. F
   }
 
 ]
-You should consider the context of the action and the typical challenges associated with it in a D&D 5e setting. If multiple checks are appropriate, list them all. If no specific check is needed, return an empty array.
-
+You should consider the context of the action/situation and the typical challenges associated with it in a D&D 5e setting. 
+If multiple checks are appropriate, list them all. 
+Trivial tasks like accepting an offer, believing in someone, giving or receiving an item/goods are automatic success so all difficultyClass for these are set to 0,
 Here are the D&D 5e core skills and guidelines for difficulty classes:
 ${coreSkillsAndDifficultyCheckContent}
 
 ]`, 
-    user: `Given the action: "${action}", what if any D&D 5e skill checks are required? If multiple checks are appropriate, list them all. 
-    Simple task like accepting an offer, believing in someone, giving or receiving an item/goods are automatic so all difficultyClass for these are set to 0, otherwise if you determined that no specific check is needed, return an empty array.
+    user: ` Given the situation/action: "${action}", does it require a skill check?
+    if so which D&D 5e skill check(s) / saving throw is required? If multiple checks are appropriate, list them all.
+    if you can not determine what specific check is needed, return an empty array.
     Provide your answer as a JSON array of CheckDefinition objects.`, 
   };
 }
@@ -337,7 +346,11 @@ export function getConsequenceGuidancePrompt(sceneNarration: string, actionText:
     : "No specific checks were needed for this action.";
 
   return {
-    system: `You are an expert D&D 5e Game Master. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.\n    Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.\n    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
+    system: `You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.
+    Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.
+    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, 
+    item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
+    
     user: `Current scene:
     ${sceneNarration}
 
@@ -346,7 +359,20 @@ export function getConsequenceGuidancePrompt(sceneNarration: string, actionText:
 
     ${allCheckResults}
 
-    Action to accept a task, quest or acknowledge someone's point of view is auto success regardless of the DC check results (disregard the result text favoring the story progression), you may add flavor to the guidance but it should not impact the automatic nature of trivial tasks. Provide narrative guidance for the action's possible consequences based on these inputs. Focus on the immediate consequences of the action and how the story could unfold, including any twists or unexpected developments in bullet points, DO NOT narrate, or write story paragraphs, these are meant to be clear and concise possible ideas based on the situation. The guidance should be concise and focused on the action's outcome, like what was information gained/missed, item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc... It must NOT broader on context of the story. Avoid repeating information already present in the scene or action text.`,
+    Trivial actions like accepting a task/quest or acknowledge someone's point of view is auto success regardless of the DC check results 
+    (disregard the result text favoring the story progression), you may add flavor to the guidance but it should not impact the automatic nature of trivial tasks. 
+    Provide narrative guidance for the action's possible consequences based on these inputs. 
+    Focus on the immediate consequences of the action and how the story could unfold, 
+    including any twists or unexpected developments in bullet points.
+    The guidance should be concise and focused on the action's outcome, like:
+    - what was information gained/missed, 
+    - item exchanged, 
+    - key item gained/lost, 
+    - altering relationship, 
+    - leads to combat, 
+    - or disastrous outcome, etc... 
+    DO NOT narrate, or write story paragraphs, only provide clear and concise of possible ideas based on the situation in one single sentence for each check result.
+    Avoid repeating information already present in the scene or action text.`,
   };
 }
 

@@ -91,12 +91,7 @@ var TestUIPlugin = class {
           getGlobalState: this.context.getGlobalState,
           setGlobalState: this.context.setGlobalState,
           onSave: async (newValue) => {
-            await this.context.setGlobalState(async (state) => {
-              const plugin = state.plugins.find((p) => p.name === "test-ui-plugin");
-              if (plugin) {
-                plugin.settings = __spreadProps(__spreadValues({}, plugin.settings), { customAttribute: newValue });
-              }
-            });
+            this.context.appStateManager.savePluginSettings(this.context.pluginName, { customAttribute: newValue });
             this.settings = __spreadProps(__spreadValues({}, this.settings), { customAttribute: newValue });
           }
         }
