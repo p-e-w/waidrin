@@ -78,7 +78,6 @@ export const generateDefaultDnDStats = (rpgDiceRoller: typeof RpgDiceRoller): Dn
     encounter: undefined,
     backstory: "",
   };
-  //console.log("generateDefaultDnDStats generated:", generated);
   return generated;
 };
 

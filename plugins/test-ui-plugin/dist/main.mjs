@@ -44,7 +44,7 @@ var TestUIAttributeDisplay = ({ initialAttributeValue, injectedReact, injectedRa
     }
   ), /* @__PURE__ */ React.createElement(injectedRadixThemes.Button, { onClick: handleApply }, "Apply"), /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, null, " (Persisted: ", displayValue, ")"));
 };
-var PluginCharacterUIPage = ({ injectedReact, injectedImmer, injectedRadixThemes, injectedReactIconsGi, getGlobalState, setGlobalState, onSave, injectedUseShallow }) => {
+var PluginCharacterUIPage = ({ injectedReact, injectedImmer, injectedRadixThemes, injectedReactIconsGi, getGlobalState, onSave, injectedUseShallow }) => {
   const pluginSettings = injectedReact.useMemo(() => {
     const state = getGlobalState();
     const plugin = state.plugins.find((p) => p.name === "test-ui-plugin");
@@ -74,7 +74,7 @@ var TestUIPlugin = class {
   async init(settings, context) {
     this.context = context;
     this.settings = settings;
-    React = this.context.react;
+    React = this.context.appLibs.react;
     this.context.addCharacterUI(
       this.context.pluginName,
       // GameRuleName: Display name for the UI tab.
@@ -83,13 +83,12 @@ var TestUIPlugin = class {
       /* @__PURE__ */ React.createElement(
         PluginCharacterUIPage,
         {
-          injectedReact: this.context.react,
-          injectedImmer: this.context.immer,
-          injectedRadixThemes: this.context.radixThemes,
-          injectedReactIconsGi: this.context.reactIconsGi,
-          injectedUseShallow: this.context.useShallow,
-          getGlobalState: this.context.getGlobalState,
-          setGlobalState: this.context.setGlobalState,
+          injectedReact: this.context.appLibs.react,
+          injectedImmer: this.context.appLibs.immer,
+          injectedRadixThemes: this.context.appLibs.radixThemes,
+          injectedReactIconsGi: this.context.appLibs.reactIconsGi,
+          injectedUseShallow: this.context.appLibs.useShallow,
+          getGlobalState: this.context.appStateManager.getGlobalState,
           onSave: async (newValue) => {
             this.context.appStateManager.savePluginSettings(this.context.pluginName, { customAttribute: newValue });
             this.settings = __spreadProps(__spreadValues({}, this.settings), { customAttribute: newValue });

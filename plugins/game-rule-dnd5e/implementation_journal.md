@@ -1,15 +1,19 @@
-### 2025-09-02 - Combat Mechanics Refinement Completed
+### 2025-09-05 - Irrelevant LLM Responses Fix
 
-**Objective:** Implement the refined combat mechanics as outlined in `plugins/game-rule-dnd5e/Combat mechanics change request.md`.
+**Objective:** Address the issue of `getActionChecks` being called with empty narration, leading to irrelevant LLM responses.
 
-**Outcome:** All planned modifications for combat mechanics refinement have been implemented:
-- `lib/schemas.ts`: `isCombat` removed.
-- `lib/state.ts`: `isCombat` removed from `initialState`.
-- `lib/engine.ts`: Reliance on `isCombat` removed; `getNarrativeGuidance` and `generateActionsPrompt` are always called.
-- `lib/prompts.ts`: `generateActionsPrompt` calls `gameRuleLogic.getActions()` if available.
-- `plugins/game-rule-dnd5e/src/pluginData.ts`: `PlotType` enum, `CombatantSchema`, `BattleSchema` defined; `plotType` and `encounter` added to `DnDStatsSchema`.
-- `plugins/game-rule-dnd5e/src/main.tsx`: `getNarrativeGuidance`, `resolveCheck`, `handleConsequence`, and `getActions` methods implemented and interact with the plugin's internal `plotType` and `encounter` state.
+**Problem:** In the initial game loop, `getActionChecks` in `plugins/game-rule-dnd5e/src/main.tsx` was called with an empty `sceneNarrationForChecks` because `lib/engine.ts`'s `narrate` function couldn't find a previous narration event. This resulted in the LLM generating out-of-context action checks.
 
-All changes have been verified through code review and appear to be correctly implemented.
+**Solution:** Modified the `narrate` function in `lib/engine.ts`. Added a conditional check (`if (sceneNarrationForChecks && gameRuleLogic.getActionChecks)`) to ensure that `gameRuleLogic.getActionChecks` is only called if `sceneNarrationForChecks` is not empty.
 
-**Next Steps:** Await further instructions from the user.
+**Outcome:**
+- Prevents `getActionChecks` from being called with an empty narration string.
+- Ensures LLM calls for action checks are made only with relevant context.
+- Improves narrative coherence and LLM API efficiency.
+
+**Verification:**
+- TypeScript type check passed successfully.
+- `game-rule-dnd5e` plugin rebuilt successfully.
+- Main application rebuilt successfully.
+
+**Next Steps:** Await user confirmation of the fix by running the application and providing console logs.

@@ -4343,6 +4343,7 @@ ${coreSkillsAndDifficultyCheckContent}
     user: ` Given the situation/action: "${action}", does it require a skill check?
     if so which D&D 5e skill check(s) / saving throw is required? If multiple checks are appropriate, list them all.
     if you can not determine what specific check is needed, return an empty array.
+    Trivial actions like accepting a task/quest or acknowledge someone's point of view is auto success so all difficultyClass for these are set to 0
     Provide your answer as a JSON array of CheckDefinition objects.`
   };
 }
@@ -4350,32 +4351,48 @@ function getConsequenceGuidancePrompt(sceneNarration, actionText, checkResult) {
   const allCheckResults = checkResult.length > 0 ? `Check Results:
 ${checkResult.join("\n")}` : "No specific checks were needed for this action.";
   return {
-    system: `You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.
-    Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.
-    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, 
-    item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
-    user: `Current scene:
+    system: `You are a helpful dungeon master trained to generate consequence statements using Dungeons & Dragons 5th Edition rules in simple sentences of 10 words or less. 
+    Your ONLY task is to use the provided scene, action, and D&D 5e skill check results to generate the outcome of the "Action Taken".
+     - Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.
+     - Based on your interpretation, provide simple and concise narrative guidance for the consequences of the action like:
+       - what information gained/missed, 
+       - item exchanged, 
+       - key item lost, 
+       - altering relationship, 
+       - leads to combat, 
+       - or disastrous outcome, etc... 
+    Only use 10 words or less per guidance, they must be short, clear and concise of possible ideas based on the situation in one single sentence per check result if it is provided.
+    For example:
+    If the check results is "Stealth check (DC 15): Roll 18 (Success)", you should say "You successfully sneak past the guards unnoticed."
+    If multiple checks are provided, give a separate guidance for each check result.
+    If no checks were needed, provide a single concise guidance based on the action and scene like "You agree to join so and so in their quest. so and so are now your ally."
+    If the action is trivial (DC 0), it is considered an automatic success, so provide guidance accordingly like "You easily accomplish the task without any issues."
+    Do NOT mention the check results, DC, or roll numbers in your guidance.
+    Do NOT suggest new actions or next steps, only focus on the consequences of the action taken.
+    Do NOT make up new information not implied by the scene or action.
+    Do NOT repeat information already present in the scene or action text.`,
+    user: `If no action is described after Action taken then you MUST ONLY return a single space " "! If action is provided then provide guidance in simple and concise sentence, focused on the action's outcome, limited to the following:
+    Base on the following scene and action, ONLY provide the guidance based on the action's outcome.
+    ***** Current scene:
     ${sceneNarration}
+    *****
 
-    Action taken:
+    ***** Action taken:
     ${actionText}
+    *****
 
+    ***** Check results (if any):
     ${allCheckResults}
-
-    Trivial actions like accepting a task/quest or acknowledge someone's point of view is auto success regardless of the DC check results 
-    (disregard the result text favoring the story progression), you may add flavor to the guidance but it should not impact the automatic nature of trivial tasks. 
-    Provide narrative guidance for the action's possible consequences based on these inputs. 
-    Focus on the immediate consequences of the action and how the story could unfold, 
-    including any twists or unexpected developments in bullet points.
-    The guidance should be concise and focused on the action's outcome, like:
-    - what was information gained/missed, 
-    - item exchanged, 
-    - key item gained/lost, 
-    - altering relationship, 
-    - leads to combat, 
-    - or disastrous outcome, etc... 
-    DO NOT narrate, or write story paragraphs, only provide clear and concise of possible ideas based on the situation in one single sentence for each check result.
-    Avoid repeating information already present in the scene or action text.`
+    *****
+    
+    Base on these you will only provide objective ANSWERS, in single concise guidance statement of less than 10 words each.
+    - Is there any information gained/missed, what information?
+    - Is there any item exchanged, what item?
+    - Is there any key item lost, what item?
+    - Is there any relationship altered, who is affected and how?
+    - Is there any ally or enemy gained/lost, who?
+    - Does this lead to combat, chase, or negotiation?
+    - Is this consequence ends in a disastrous outcome, what is it?`
   };
 }
 var dndRulesDMStyle = "Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.";
@@ -14872,7 +14889,7 @@ var DndStatsCharacterUIPage = ({
     },
     /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Trigger, null),
     /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Content, null, availableSubclasses.map((subclassName) => /* @__PURE__ */ React.createElement(injectedRadixThemes.Select.Item, { value: subclassName, key: subclassName }, subclassName)))
-  ))), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2", mb: "3" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Backstory:"), /* @__PURE__ */ React.createElement(
+  ))), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { direction: "column", gap: "2", mb: "3" }, /* @__PURE__ */ React.createElement(injectedRadixThemes.Text, { size: "3", weight: "bold" }, "Backstory Guidance:"), /* @__PURE__ */ React.createElement(
     injectedRadixThemes.TextArea,
     {
       size: "3",
@@ -14884,7 +14901,6 @@ var DndStatsCharacterUIPage = ({
   )), /* @__PURE__ */ React.createElement(injectedRadixThemes.Flex, { gap: "2", mt: "4", justify: "end" }, " ", /* @__PURE__ */ React.createElement(injectedRadixThemes.Button, { size: "4", onClick: handleApply }, "Apply Changes"), /* @__PURE__ */ React.createElement(injectedRadixThemes.Button, { size: "4", onClick: () => setCurrentSettings(generateDefaultDnDStats(injectedRpgDiceRoller)), variant: "outline" }, "Re-roll"), " ")));
 };
 var DndStatsPlugin = class {
-  // The plugin's settings
   /**
    * Initializes the plugin with its settings and context.
    * Parses and validates incoming settings using DnDStatsSchema,
@@ -14892,8 +14908,12 @@ var DndStatsPlugin = class {
    * @param settings - The settings object provided by the application.
    * @param context - The plugin context, providing access to application functionalities.
    */
-  async init(settings, context) {
+  async init(settings, context, appLibs, appBackend, appStateManager, appUI) {
     this.context = context;
+    this.appLibs = appLibs;
+    this.appBackend = appBackend;
+    this.appStateManager = appStateManager;
+    this.appUI = appUI;
     this.settings = DnDStatsSchema.parse(__spreadValues(__spreadValues({}, generateDefaultDnDStats(this.context.rpgDiceRoller)), settings));
     React = this.context.react;
     this.context.addCharacterUI(
@@ -14915,13 +14935,12 @@ var DndStatsPlugin = class {
               const pc = this.context.getGlobalState();
               const prompt = getBackstory(newSettings, pc);
               try {
-                this.context.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", 0, true);
-                const generatedBackstory = await this.context.getBackend().getNarration(prompt, (token, count) => {
-                  this.context.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", count, true);
+                const generatedBackstory = await this.appBackend.getNarration(prompt, (token, count) => {
+                  this.appUI.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", count, true);
                 });
                 finalSettings = __spreadProps(__spreadValues({}, newSettings), { backstory: generatedBackstory });
                 this.context.updateProgress("Backstory Generated", "Your character's history is ready!", -1, false);
-                console.log("DEBUG: getBackstory returned:", generatedBackstory);
+                console.log("DEBUG: Plugin: Backstory Generated.");
               } catch (error39) {
                 this.context.updateProgress("Backstory Generation Aborted", "User aborted operation during generation.", -1, false);
               }
@@ -14972,7 +14991,7 @@ var DndStatsPlugin = class {
         modifiers: array(string2()).optional()
       });
       const CheckDefinitionsArraySchema = array(CheckDefinitionSchema);
-      let checks = await this.context.getBackend().getObject(checksPrompt, CheckDefinitionsArraySchema);
+      let checks = await this.appBackend.getObject(checksPrompt, CheckDefinitionsArraySchema);
       if (PCStats.plotType === "combat") {
         checks = checks.filter((check2) => check2.type !== "initiative");
       }
@@ -15021,16 +15040,18 @@ var DndStatsPlugin = class {
       return [];
     }
     const PCStats = this.settings;
-    if (!action && (!checkResolutionResults || checkResolutionResults.length === 0)) {
+    if (!action && (!checkResolutionResults || checkResolutionResults.length === 0) && context.events.length > 0 && context.events[context.events.length - 1].type === "location_change") {
       let previousLocationName = `a location from protagonist's backstory: ${this.settings.backstory || ""}`;
       let newLocationName = "new plot line location";
       let newLocationDescription = "";
       let presentCharactersInfo = "";
+      console.log("DEBUG: Plugin: Handling location change narration...");
       for (let i = context.events.length - 1; i >= 0; i--) {
         const event = context.events[i];
         if (event.type === "location_change") {
           newLocationName = context.locations[event.locationIndex].name;
           newLocationDescription = context.locations[event.locationIndex].description;
+          console.log("DEBUG: Plugin: found New Location Name:", newLocationName);
           if (i > 0) {
             for (let j = i - 1; j >= 0; j--) {
               const prevEvent = context.events[j];
@@ -15043,8 +15064,10 @@ var DndStatsPlugin = class {
               }
             }
           }
+          console.log("DEBUG: Plugin: found Previous Location Name:", previousLocationName);
           if (event.presentCharacterIndices && event.presentCharacterIndices.length > 0) {
             presentCharactersInfo = `Present characters: ${event.presentCharacterIndices.map((idx) => context.characters[idx].name).join(", ")}.`;
+            console.log("DEBUG: Plugin: Present Characters Info:", presentCharactersInfo);
           }
           break;
         }
@@ -15057,13 +15080,13 @@ var DndStatsPlugin = class {
         Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.`
       };
       const narration = await this.context.getBackend().getNarration(locationChangePrompt);
-      console.log("Guidance for New Location Prompt:", locationChangePrompt);
+      console.log("DEBUG: Plugin: Guidance for New Location Prompt:", locationChangePrompt);
       return [narration];
     }
     let sceneNarration = "";
     for (let i = context.events.length - 1; i >= 0; i--) {
       const event = context.events[i];
-      if (event.type === "narration") {
+      if (event.type === "narration" && event.text !== "") {
         sceneNarration = event.text;
         break;
       }
@@ -15073,15 +15096,21 @@ var DndStatsPlugin = class {
       combatNarration = `Combat Round ${PCStats.encounter.roundNumber}. Combat Log: ${PCStats.encounter.combatLog.map((log) => log.replace(/\\n/g, " ")).join("; ")}.`;
     }
     const checkResultStatements = (checkResolutionResults == null ? void 0 : checkResolutionResults.map((cr) => cr.resultStatement)) || [];
-    const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements);
-    const consequenceGuidance = await this.context.getBackend().getNarration(internalGuidancePrompt);
+    let consequenceGuidance;
+    if (!action && checkResultStatements.length === 0) {
+      consequenceGuidance = "N/A. ";
+      console.log("DEBUG: Plugin: Consequence Guidance not applicable.");
+    } else {
+      const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements);
+      consequenceGuidance = await this.appBackend.getNarration(internalGuidancePrompt);
+      console.log("DEBUG: Plugin: Consequence Guidance provided.", consequenceGuidance);
+    }
     const dndStyleGuidance = getDndNarrationGuidance(eventType);
     const consolidatedGuidance = `${consequenceGuidance}
 
 ${dndStyleGuidance}
 
 ${combatNarration}`;
-    console.log("Consolidated Guidance for Narration Prompt:", consolidatedGuidance);
     return [consolidatedGuidance];
   }
   /**
@@ -15096,7 +15125,7 @@ ${combatNarration}`;
   async handleConsequence(eventType, checkResultStatements, action) {
     var _a;
     if (!this.settings) {
-      console.error("Settings not available for handleConsequence.");
+      console.error("ERROR: Plugin: Settings not available for handleConsequence.");
       return;
     }
     const PCStats = this.settings;
@@ -15194,7 +15223,7 @@ Provide a JSON object with the following structure:
           // Placeholder HP for protagonist, to-do: need to map this to actual stats in settings
           status: "active",
           initiativeRoll: Math.floor(Math.random() * 20) + 1,
-          // Placeholder initiative
+          // Placeholder initiative and this needs to use actual dexterity modifier from stats with RPGDiceRoller
           isFriendly: true
         });
       }

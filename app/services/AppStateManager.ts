@@ -26,15 +26,15 @@ export class AppStateManager implements IAppStateManager {
     ) => void,
   ) {}
 
-  getGlobalState(): StoredState {
+  getGlobalState = (): StoredState => {
     return this.getGlobalStateFn();
-  }
+  };
 
-  async setGlobalState(updater: (state: WritableDraft<StoredState>) => Promise<void>): Promise<void> {
+  setGlobalState = async (updater: (state: WritableDraft<StoredState>) => Promise<void>): Promise<void> => {
     return this.setGlobalStateFn(updater);
-  }
+  };
 
-  setPluginSelected(pluginName: string, isSelected: boolean): void {
+  setPluginSelected = (pluginName: string, isSelected: boolean): void => {
     this.useStateStoreSetFn((state) => {
       const plugin = state.plugins.find((p: PluginWrapper) => p.name === pluginName);
       if (plugin) {
@@ -43,9 +43,9 @@ export class AppStateManager implements IAppStateManager {
         throw new Error(`Plugin with name ${pluginName} not found.`);
       }
     });
-  }
+  };
 
-  savePluginSettings(pluginName: string, settings: Record<string, unknown>): void {
+  savePluginSettings = (pluginName: string, settings: Record<string, unknown>): void => {
     this.useStateStoreSetFn((state) => {
       const plugin = state.plugins.find((p: PluginWrapper) => p.name === pluginName);
       if (plugin) {
@@ -54,5 +54,5 @@ export class AppStateManager implements IAppStateManager {
         throw new Error(`Plugin with name ${pluginName} not found.`);
       }
     });
-  }
+  };
 }

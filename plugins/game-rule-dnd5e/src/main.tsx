@@ -204,7 +204,7 @@ const DndStatsCharacterUIPage = ({
 
         {/* Backstory (outside the grid, full width) */}
         <injectedRadixThemes.Flex direction="column" gap="2" mb="3">
-          <injectedRadixThemes.Text size="3" weight="bold">Backstory:</injectedRadixThemes.Text>
+          <injectedRadixThemes.Text size="3" weight="bold">Backstory Guidance:</injectedRadixThemes.Text>
           <injectedRadixThemes.TextArea
             size="3"
             value={currentSettings.backstory || ""}
@@ -229,9 +229,18 @@ const DndStatsCharacterUIPage = ({
  * Main plugin class for D&D Character Stats.
  * Implements the Plugin interface to integrate with the Waidrin application.
  */
+import type { IAppLibs } from "@/app/services/AppLibs";
+import type { IAppBackend } from "@/app/services/AppBackend";
+import type { IAppStateManager } from "@/app/services/AppStateManager";
+import type { IAppUI } from "@/app/services/AppUI";
+
 export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
   private context: Context | undefined; // The plugin's context provided by the application
   private settings: DnDStats | undefined; // The plugin's settings
+  private appLibs: IAppLibs | undefined;
+  private appBackend: IAppBackend | undefined;
+  private appStateManager: IAppStateManager | undefined;
+  private appUI: IAppUI | undefined;
 
   /**
    * Initializes the plugin with its settings and context.
@@ -240,12 +249,14 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
    * @param settings - The settings object provided by the application.
    * @param context - The plugin context, providing access to application functionalities.
    */
-  async init(settings: Record<string, unknown>, context: Context): Promise<void> {
+  async init(settings: Record<string, unknown>, context: Context, appLibs: IAppLibs, appBackend: IAppBackend, appStateManager: IAppStateManager, appUI: IAppUI): Promise<void> {
     this.context = context;
-    //console.log("DndStatsPlugin - init settings parameter:", settings);
+    this.appLibs = appLibs;
+    this.appBackend = appBackend;
+    this.appStateManager = appStateManager;
+    this.appUI = appUI;
     // Parse and validate settings, applying defaults for missing properties
     this.settings = DnDStatsSchema.parse({ ...generateDefaultDnDStats(this.context.rpgDiceRoller), ...settings });
-    //console.log("DndStatsPlugin - this.settings (after parse):", this.settings);
 
     // Assign the main application's React instance to the module-level React variable.
     // This is critical for all JSX within this plugin to use the correct React instance.
@@ -271,13 +282,13 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
             const prompt = getBackstory(newSettings, pc); // Use newSettings for stats
 
             try {
-              const generatedBackstory = await this.context!.getBackend().getNarration(prompt, (token, count) => {
-                this.context!.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", count, true);
+              const generatedBackstory = await this.appBackend!.getNarration(prompt, (token, count) => {
+                this.appUI!.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", count, true);
               });
 
               finalSettings = { ...newSettings, backstory: generatedBackstory };
               this.context!.updateProgress("Backstory Generated", "Your character's history is ready!", -1, false);
-              console.log("DEBUG: getBackstory returned:", generatedBackstory);
+              console.log("DEBUG: Plugin: Backstory Generated.");
 
               } catch (error) {
                 // TODO: Handle error if not user abort, and display console.error("Error generating backstory:", error);
@@ -296,8 +307,8 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
     return this;
   }
 
-  getBiographyGuidance(): string { // No longer async, returns string directly
-    if (!this.settings) { // No need for context here
+  getBiographyGuidance(): string {
+    if (!this.settings) {
         return "";
     }
     return this.settings.backstory || ""; // Return saved backstory
@@ -328,7 +339,6 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
 
     const PCStats = this.settings as DnDStats;
     const checksPrompt = getChecksPrompt(action, PCStats.plotType);
-    //console.log("Generated checksPrompt:", checksPrompt);
 
     try {
       // Define a Zod schema for an array of CheckDefinition
@@ -339,7 +349,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
       });
       const CheckDefinitionsArraySchema = z.array(CheckDefinitionSchema);
 
-      let checks = await this.context.getBackend().getObject(checksPrompt, CheckDefinitionsArraySchema);
+      let checks = await this.appBackend!.getObject(checksPrompt, CheckDefinitionsArraySchema);
 
       // Filter out initiative checks if already in combat
       if (PCStats.plotType === "combat") {
@@ -401,11 +411,12 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
     const PCStats = this.settings as DnDStats;
 
     // Handle location change narration specifically
-    if (!action && (!checkResolutionResults || checkResolutionResults.length === 0)) {
+    if (!action && (!checkResolutionResults || checkResolutionResults.length === 0) && context.events.length > 0 && context.events[context.events.length - 1].type === "location_change") {
       let previousLocationName = `a location from protagonist's backstory: ${this.settings.backstory || ""}`;
       let newLocationName = "new plot line location";
       let newLocationDescription = "";
       let presentCharactersInfo = "";
+      console.log("DEBUG: Plugin: Handling location change narration...");
 
       // Find the most recent LocationChangeEvent
       for (let i = context.events.length - 1; i >= 0; i--) {
@@ -413,7 +424,8 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
         if (event.type === "location_change") {
           newLocationName = context.locations[event.locationIndex].name;
           newLocationDescription = context.locations[event.locationIndex].description;
-          
+          console.log("DEBUG: Plugin: found New Location Name:", newLocationName);
+
           // Try to find the previous location from the event history
           // This is a heuristic and might not always be accurate if events are reordered or missing
           if (i > 0) {
@@ -429,9 +441,11 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
               }
             }
           }
+          console.log("DEBUG: Plugin: found Previous Location Name:", previousLocationName);
 
           if (event.presentCharacterIndices && event.presentCharacterIndices.length > 0) {
             presentCharactersInfo = `Present characters: ${event.presentCharacterIndices.map(idx => context.characters[idx].name).join(", ")}.`;
+            console.log ("DEBUG: Plugin: Present Characters Info:", presentCharactersInfo);
           }
           break;
         }
@@ -445,18 +459,18 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
         Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.`,
       };
       const narration = await this.context.getBackend().getNarration(locationChangePrompt);
-      console.log ("Guidance for New Location Prompt:", locationChangePrompt);
+      console.log ("DEBUG: Plugin: Guidance for New Location Prompt:", locationChangePrompt);
       return [narration];
     }
 
     // Logic for other event types (user actions, combat, etc.)
-    let sceneNarration = ""; // This will be populated by the original logic below
-    // Find the most recent narration event
+    let sceneNarration = "";
+    // Find the most recent *completed* narration event
     for (let i = context.events.length - 1; i >= 0; i--) {
       const event = context.events[i];
-      if (event.type === "narration") {
+      if (event.type === "narration" && event.text !== "") {
         sceneNarration = event.text;
-        break; // Found, no need to continue
+        break;
       }
     }
 
@@ -467,16 +481,27 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
 
     // 1. Get consequence guidance from internal LLM call
     const checkResultStatements = checkResolutionResults?.map(cr => cr.resultStatement) || [];
-    const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements);
-    const consequenceGuidance = await this.context.getBackend().getNarration(internalGuidancePrompt);
+    let consequenceGuidance: string;
+
+    if (!action && checkResultStatements.length === 0) {
+      consequenceGuidance = "N/A. ";
+      console.log ("DEBUG: Plugin: Consequence Guidance not applicable.");
+    } else {
+      const internalGuidancePrompt = getConsequenceGuidancePrompt(sceneNarration, action || "", checkResultStatements);
+      consequenceGuidance = await this.appBackend!.getNarration(internalGuidancePrompt);
+      console.log ("DEBUG: Plugin: Consequence Guidance provided.", consequenceGuidance);
+      /* console.log ("DEBUG: Plugin: Scene for Narration:", sceneNarration);
+      console.log ("DEBUG: Plugin: Action for Narration:", action);
+      console.log ("DEBUG: Plugin: Check Results for Narration Prompt:", checkResultStatements); */
+    }
 
     // 2. Get general D&D style guidance
-    //To-Do: add rules for timing
+    //To-Do: add rules for timing ie combat round is 6 sec, day/night
     const dndStyleGuidance = getDndNarrationGuidance(eventType);
 
     // 3. Combine guidance into a string array
     const consolidatedGuidance = `${consequenceGuidance}\n\n${dndStyleGuidance}\n\n${combatNarration}`;
-    console.log ("Consolidated Guidance for Narration Prompt:", consolidatedGuidance);
+    //console.log ("DEBUG: Consolidated Guidance for Narration Prompt:", consolidatedGuidance);
 
     // Return the consolidated guidance as a string array
     return [consolidatedGuidance];
@@ -493,7 +518,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
    */
   async handleConsequence(eventType: string, checkResultStatements?: string[], action?: string): Promise<void> {
     if (!this.settings) {
-      console.error("Settings not available for handleConsequence.");
+      console.error("ERROR: Plugin: Settings not available for handleConsequence.");
       return;
     }
 
@@ -603,7 +628,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
           currentHp: 10, // Placeholder HP for protagonist, to-do: need to map this to actual stats in settings
           maxHp: 10, // Placeholder HP for protagonist, to-do: need to map this to actual stats in settings
           status: "active",
-          initiativeRoll: Math.floor(Math.random() * 20) + 1, // Placeholder initiative
+          initiativeRoll: Math.floor(Math.random() * 20) + 1, // Placeholder initiative and this needs to use actual dexterity modifier from stats with RPGDiceRoller
           isFriendly: true,
         });
       }

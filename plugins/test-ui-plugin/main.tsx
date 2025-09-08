@@ -188,7 +188,7 @@ export default class TestUIPlugin implements Plugin {
 
     // Assign the main application's React instance to the module-level React variable.
     // This is critical for all JSX within this plugin to use the correct React instance.
-    React = this.context.react;
+    React = this.context.appLibs!.react;
 
     // Register the plugin's UI component with the main application.
     // The PluginCharacterUIPage component is passed as a ReactNode, along with
@@ -198,13 +198,13 @@ export default class TestUIPlugin implements Plugin {
       <span>Test UI Tab</span>, // GameRuleTab: The ReactNode for the tab trigger.
       <PluginCharacterUIPage
         // Pass injected shared libraries as props to the UI component.
-        injectedReact={this.context.react}
-        injectedImmer={this.context.immer}
-        injectedRadixThemes={this.context.radixThemes}
-        injectedReactIconsGi={this.context.reactIconsGi}
-        injectedUseShallow={this.context.useShallow}
+        injectedReact={this.context.appLibs!.react}
+        injectedImmer={this.context.appLibs!.immer}
+        injectedRadixThemes={this.context.appLibs!.radixThemes}
+        injectedReactIconsGi={this.context.appLibs!.reactIconsGi}
+        injectedUseShallow={this.context.appLibs!.useShallow}
         // Pass global state access functions as props.
-        getGlobalState={this.context.getGlobalState}
+        getGlobalState={this.context!.appStateManager.getGlobalState}
         // Define the onSave callback for the UI component.
         // This callback is responsible for updating the plugin's settings in the global state.
         onSave={async (newValue) => {

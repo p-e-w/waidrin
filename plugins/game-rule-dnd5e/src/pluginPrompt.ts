@@ -328,6 +328,7 @@ ${coreSkillsAndDifficultyCheckContent}
     user: ` Given the situation/action: "${action}", does it require a skill check?
     if so which D&D 5e skill check(s) / saving throw is required? If multiple checks are appropriate, list them all.
     if you can not determine what specific check is needed, return an empty array.
+    Trivial actions like accepting a task/quest or acknowledge someone's point of view is auto success so all difficultyClass for these are set to 0
     Provide your answer as a JSON array of CheckDefinition objects.`, 
   };
 }
@@ -346,33 +347,49 @@ export function getConsequenceGuidancePrompt(sceneNarration: string, actionText:
     : "No specific checks were needed for this action.";
 
   return {
-    system: `You are an expert DM in Dungeons & Dragons 5th Edition in the narrative style of famous DM Matt Mercer. Your task is to interpret the outcome of an action based on the provided scene, action, and D&D 5e skill check results.
-    Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.
-    Based on your interpretation, provide concise narrative guidance for the consequences of the action like what was information gained/missed, 
-    item exchanged, key item lost, altering relationship, leads to combat, or disastrous outcome, etc...`,
+    system: `You are a helpful dungeon master trained to generate consequence statements using Dungeons & Dragons 5th Edition rules in simple sentences of 10 words or less. 
+    Your ONLY task is to use the provided scene, action, and D&D 5e skill check results to generate the outcome of the "Action Taken".
+     - Consider how close the roll was to the Difficulty Class (DC). A natural 1 on the roll is a critical failure, and a natural 20 is a critical success.
+     - Based on your interpretation, provide simple and concise narrative guidance for the consequences of the action like:
+       - what information gained/missed, 
+       - item exchanged, 
+       - key item lost, 
+       - altering relationship, 
+       - leads to combat, 
+       - or disastrous outcome, etc... 
+    Only use 10 words or less per guidance, they must be short, clear and concise of possible ideas based on the situation in one single sentence per check result if it is provided.
+    For example:
+    If the check results is "Stealth check (DC 15): Roll 18 (Success)", you should say "You successfully sneak past the guards unnoticed."
+    If multiple checks are provided, give a separate guidance for each check result.
+    If no checks were needed, provide a single concise guidance based on the action and scene like "You agree to join so and so in their quest. so and so are now your ally."
+    If the action is trivial (DC 0), it is considered an automatic success, so provide guidance accordingly like "You easily accomplish the task without any issues."
+    Do NOT mention the check results, DC, or roll numbers in your guidance.
+    Do NOT suggest new actions or next steps, only focus on the consequences of the action taken.
+    Do NOT make up new information not implied by the scene or action.
+    Do NOT repeat information already present in the scene or action text.`,
     
-    user: `Current scene:
+    user: `If no action is described after Action taken then you MUST ONLY return a single space " "! If action is provided then provide guidance in simple and concise sentence, focused on the action's outcome, limited to the following:
+    Base on the following scene and action, ONLY provide the guidance based on the action's outcome.
+    ***** Current scene:
     ${sceneNarration}
+    *****
 
-    Action taken:
+    ***** Action taken:
     ${actionText}
+    *****
 
+    ***** Check results (if any):
     ${allCheckResults}
-
-    Trivial actions like accepting a task/quest or acknowledge someone's point of view is auto success regardless of the DC check results 
-    (disregard the result text favoring the story progression), you may add flavor to the guidance but it should not impact the automatic nature of trivial tasks. 
-    Provide narrative guidance for the action's possible consequences based on these inputs. 
-    Focus on the immediate consequences of the action and how the story could unfold, 
-    including any twists or unexpected developments in bullet points.
-    The guidance should be concise and focused on the action's outcome, like:
-    - what was information gained/missed, 
-    - item exchanged, 
-    - key item gained/lost, 
-    - altering relationship, 
-    - leads to combat, 
-    - or disastrous outcome, etc... 
-    DO NOT narrate, or write story paragraphs, only provide clear and concise of possible ideas based on the situation in one single sentence for each check result.
-    Avoid repeating information already present in the scene or action text.`,
+    *****
+    
+    Base on these you will only provide objective ANSWERS, in single concise guidance statement of less than 10 words each.
+    - Is there any information gained/missed, what information?
+    - Is there any item exchanged, what item?
+    - Is there any key item lost, what item?
+    - Is there any relationship altered, who is affected and how?
+    - Is there any ally or enemy gained/lost, who?
+    - Does this lead to combat, chase, or negotiation?
+    - Is this consequence ends in a disastrous outcome, what is it?`,
   };
 }
 

@@ -148,7 +148,15 @@ export default function Home() {
               appStateManager,
               appUI,
             );
-            await plugin.init(pluginWrapper ? current(pluginWrapper.settings) : manifest.settings, context);
+            //20250904 - US_P1_S1_1 Inject Granular Services to plugin.init
+            await plugin.init(
+              pluginWrapper ? current(pluginWrapper.settings) : manifest.settings,
+              context,
+              appLibs,
+              appBackend,
+              appStateManager,
+              appUI
+            );
           }
 
           if (plugin.getBackends) {
@@ -172,7 +180,7 @@ export default function Home() {
       });
 
       setPluginsLoaded(true);
-      console.log("DEBUG: Plugins loaded. Current state.plugins:", useStateStore.getState().plugins);
+      //console.log("DEBUG: PAGE: Plugins loaded. Current state.plugins:", useStateStore.getState().plugins);
     } catch (error) {
       let message = error instanceof Error ? error.message : String(error);
       if (!message) {

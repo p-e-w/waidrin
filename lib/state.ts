@@ -7,7 +7,13 @@ import type * as z from "zod/v4";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+//20250904 - US_P1_S1_1 Inject Granular Services to plugin.init
 import type { Backend } from "./backend";
+import type { Context } from "@/app/plugins";
+import type { IAppLibs } from "@/app/services/AppLibs";
+import type { IAppBackend } from "@/app/services/AppBackend";
+import type { IAppStateManager } from "@/app/services/AppStateManager";
+import type { IAppUI } from "@/app/services/AppUI";
 import * as schemas from "./schemas";
 import { Prompt } from "./prompts";
 
@@ -279,13 +285,17 @@ export type Plugin = Partial<{
   /**
    * @method init
    * @description Initializes the plugin with provided settings and context.
-   * The context is determined by the environment in which the plugin runs,
+   * The context is determined by the environment in which the environment in which the plugin runs,
    * e.g. a frontend that provides methods for adding custom components.
    * @param {Record<string, unknown>} settings - The settings for the plugin.
-   * @param {unknown} context - The context object provided by the environment.
+   * @param {Context} context - The context object provided by the environment.
+   * @param {IAppLibs} appLibs - Instance of AppLibs for library access.
+   * @param {IAppBackend} appBackend - Instance of AppBackend for backend communication.
+   * @param {IAppStateManager} appStateManager - Instance of AppStateManager for state management.
+   * @param {IAppUI} appUI - Instance of AppUI for UI interactions.
    * @returns {Promise<void>}
    */
-  init(settings: Record<string, unknown>, context: unknown): Promise<void>;
+  init(settings: Record<string, unknown>, context: Context, appLibs: IAppLibs, appBackend: IAppBackend, appStateManager: IAppStateManager, appUI: IAppUI): Promise<void>;
 
   /**
    * @method getBackends
