@@ -62,7 +62,6 @@ var PluginCharacterUIPage = ({ injectedReact, injectedImmer, injectedRadixThemes
   );
 };
 var TestUIPlugin = class {
-  // Internal copy of plugin settings.
   /**
    * @method init
    * @description Initializes the plugin. This method is called by the main application
@@ -71,10 +70,13 @@ var TestUIPlugin = class {
    * @param {Context} context - The Context object providing access to main application functionalities.
    * @returns {Promise<void>}
    */
-  async init(settings, context) {
+  async init(settings, context, appLibs, appBackend, appStateManager, appUI) {
     this.context = context;
+    this.appBackend = appBackend;
+    this.appStateManager = appStateManager;
+    this.appUI = appUI;
     this.settings = settings;
-    React = this.context.appLibs.react;
+    React = appLibs.react;
     this.context.addCharacterUI(
       this.context.pluginName,
       // GameRuleName: Display name for the UI tab.
@@ -83,14 +85,14 @@ var TestUIPlugin = class {
       /* @__PURE__ */ React.createElement(
         PluginCharacterUIPage,
         {
-          injectedReact: this.context.appLibs.react,
-          injectedImmer: this.context.appLibs.immer,
-          injectedRadixThemes: this.context.appLibs.radixThemes,
-          injectedReactIconsGi: this.context.appLibs.reactIconsGi,
-          injectedUseShallow: this.context.appLibs.useShallow,
-          getGlobalState: this.context.appStateManager.getGlobalState,
+          injectedReact: appLibs.react,
+          injectedImmer: appLibs.immer,
+          injectedRadixThemes: appLibs.radixThemes,
+          injectedReactIconsGi: appLibs.reactIconsGi,
+          injectedUseShallow: appLibs.useShallow,
+          getGlobalState: this.appStateManager.getGlobalState,
           onSave: async (newValue) => {
-            this.context.appStateManager.savePluginSettings(this.context.pluginName, { customAttribute: newValue });
+            this.appStateManager.savePluginSettings(this.context.pluginName, { customAttribute: newValue });
             this.settings = __spreadProps(__spreadValues({}, this.settings), { customAttribute: newValue });
           }
         }

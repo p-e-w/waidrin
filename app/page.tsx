@@ -26,10 +26,7 @@ import { AppLibs } from "./services/AppLibs";
 import { AppBackend } from "./services/AppBackend";
 import { AppStateManager } from "./services/AppStateManager";
 import { AppUI } from "./services/AppUI";
-
-
 import * as Immer from 'immer';
-import * as Lodash from 'lodash';
 import * as RadixThemes from '@radix-ui/themes';
 import * as ReactIconsGi from 'react-icons/gi';
 import * as rpgDiceRoller from '@dice-roller/rpg-dice-roller';
@@ -126,29 +123,8 @@ export default function Home() {
 
           if (plugin.init) {
             const context = new Context(
-              manifest.name,
-              React,
-              //useStateStore.getState().setAsync,
-              useStateStore.getState,
-              Immer,
-              RadixThemes,
-              ReactIconsGi,
-              useShallow,
-              rpgDiceRoller,
-              getBackend,
-              (title, message, tokenCount, visible = true) => {
-                setOverlayVisible(visible);
-                setOverlayTitle(title);
-                setOverlayMessage(message);
-                setOverlayTokenCount(tokenCount);
-                setOnOverlayCancel(() => abort);
-              },
-              appLibs,
-              appBackend,
-              appStateManager,
-              appUI,
+              manifest.name,              
             );
-            //20250904 - US_P1_S1_1 Inject Granular Services to plugin.init
             await plugin.init(
               pluginWrapper ? current(pluginWrapper.settings) : manifest.settings,
               context,

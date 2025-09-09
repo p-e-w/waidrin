@@ -41,33 +41,8 @@ export default function CharacterSelect({ onNext, onBack, appLibs, appBackend, a
     })),
   );
 
-  // Instantiate Context to access setPluginSelected
-  const context = new Context(
-    "CharacterSelect", // A dummy pluginName, as this is not a plugin
-    null as any, // React instance is not needed here
-    //useStateStore.getState().setAsync,
-    useStateStore.getState,
-    null as any, // immer not needed
-    null as any, // radixThemes not needed
-    null as any, // reactIconsGi not needed
-    null as any, // useShallow not needed
-    null as any, // rpgDiceRoller not needed
-    getBackend,
-    (title, message, tokenCount) => {
-      // CharacterSelect does not have its own overlay state, so we'll use the global state
-      // This is a simplified approach for now. A more robust solution might involve
-      // passing a prop from page.tsx to CharacterSelect.tsx to manage overlay.
-      // For now, we'll just log it or use a dummy function.
-      console.log(`Overlay Update from CharacterSelect: ${title} - ${message} (${tokenCount} tokens)`);
-    },
-    appLibs,
-    appBackend,
-    appStateManager,
-    appUI,
-  );
-
   const handlePluginSelectionToggle = (pluginName: string, isSelected: boolean) => {
-    context.setPluginSelected(pluginName, isSelected);
+    appStateManager.setPluginSelected(pluginName, isSelected);
   };
   // Find all currently selected plugins' names for display
   const currentlySelectedPlugins = plugins.filter(p => p.selectedPlugin);

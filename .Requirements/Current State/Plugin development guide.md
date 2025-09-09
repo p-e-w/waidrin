@@ -62,10 +62,10 @@ To create a new plugin for the Waidrin application, you will need to set up a sp
 
 3.  **Main Plugin JavaScript File:** The JavaScript file specified in `manifest.json`'s `main` field (e.g., `plugins/my-new-plugin/index.js`). This file should export a default class that implements the `Plugin` interface. The `init` method of this class will receive the `Context` object, which provides access to core application functionalities.
 
-    Example `index.js` (illustrating `init` and `onLocationChange` for settings updates):
+    Example `index.js` (illustrating `init`, `onLocationChange`, and `getGameRuleLogic` for settings updates and custom game logic):
     ```javascript
     import type { Context } from "@/app/plugins";
-    import type { Plugin } from "@/lib/state";
+    import type { Plugin, IGameRuleLogic, CheckDefinition, Character, State, CheckResolutionResult } from "@/lib/state";
     import { WritableDraft } from "immer"; // Import WritableDraft for type safety
 
     class MyNewPlugin implements Plugin {
@@ -100,6 +100,37 @@ To create a new plugin for the Waidrin application, you will need to set up a sp
           thisPluginInDraft.settings.counter++; // Directly modify the draft
           console.log("MyNewPlugin: counter incremented to", thisPluginInDraft.settings.counter);
         }
+      }
+
+      getGameRuleLogic(): IGameRuleLogic {
+        return {
+          getBiographyGuidance: () => "This protagonist has a mysterious past.",
+          modifyProtagonistPrompt: (originalPrompt) => ({
+            ...originalPrompt,
+            user: originalPrompt.user + "
+
+Ensure the protagonist's background is suitable for a high-magic setting.",
+          }),
+          getActionChecks: async (action, context) => {
+            if (action.includes("attack")) {
+              return [{ type: "to-hit", difficultyClass: 15 }];
+            }
+            return [];
+          },
+          resolveCheck: async (check, characterStats, context, action) => {
+            // Simplified example: always succeed
+            return { resultStatement: `You successfully ${check.type} the check!`, consequenceLog: [] };
+          },
+          handleConsequence: (eventType, checkResultStatements, action) => {
+            console.log(`Handling consequence: ${eventType}`);
+          },
+          getActions: async () => {
+            return ["Attack", "Defend", "Cast Spell"];
+          },
+          getNarrativeGuidance: async (eventType, context, checkResolutionResults, action) => {
+            return ["The air crackles with magic.", "A new challenge awaits."];
+          },
+        };
       }
 
       // Other optional methods like getBackends() can be implemented here

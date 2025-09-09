@@ -28,6 +28,10 @@ import type * as RadixThemes from '@radix-ui/themes';
 import type * as ReactIconsGi from 'react-icons/gi';
 import type { ChangeEvent } from 'react';
 import type { useShallow } from 'zustand/shallow';
+import type { IAppLibs } from "@/app/services/AppLibs";
+import type { IAppBackend } from "@/app/services/AppBackend";
+import type { IAppStateManager } from "@/app/services/AppStateManager";
+import type { IAppUI } from "@/app/services/AppUI";
 
 // Declare a module-level React variable.
 // This variable will be assigned the main application's React instance during plugin initialization.
@@ -173,6 +177,10 @@ const PluginCharacterUIPage = ({ injectedReact, injectedImmer, injectedRadixThem
 export default class TestUIPlugin implements Plugin {
   private context: Context | undefined; // The Context object provided by the main application.
   private settings: Record<string, unknown> | undefined; // Internal copy of plugin settings.
+  private appLibs: IAppLibs | undefined;
+  private appBackend: IAppBackend | undefined;
+  private appStateManager: IAppStateManager | undefined;
+  private appUI: IAppUI | undefined;  
 
   /**
    * @method init
@@ -182,13 +190,16 @@ export default class TestUIPlugin implements Plugin {
    * @param {Context} context - The Context object providing access to main application functionalities.
    * @returns {Promise<void>}
    */
-  async init(settings: Record<string, unknown>, context: Context): Promise<void> {
+  async init(settings: Record<string, unknown>, context: Context, appLibs: IAppLibs, appBackend: IAppBackend, appStateManager: IAppStateManager, appUI: IAppUI): Promise<void> {
     this.context = context;
+    this.appBackend = appBackend;
+    this.appStateManager = appStateManager;
+    this.appUI = appUI;    
     this.settings = settings;
 
     // Assign the main application's React instance to the module-level React variable.
     // This is critical for all JSX within this plugin to use the correct React instance.
-    React = this.context.appLibs!.react;
+    React = appLibs.react;
 
     // Register the plugin's UI component with the main application.
     // The PluginCharacterUIPage component is passed as a ReactNode, along with
@@ -198,13 +209,13 @@ export default class TestUIPlugin implements Plugin {
       <span>Test UI Tab</span>, // GameRuleTab: The ReactNode for the tab trigger.
       <PluginCharacterUIPage
         // Pass injected shared libraries as props to the UI component.
-        injectedReact={this.context.appLibs!.react}
-        injectedImmer={this.context.appLibs!.immer}
-        injectedRadixThemes={this.context.appLibs!.radixThemes}
-        injectedReactIconsGi={this.context.appLibs!.reactIconsGi}
-        injectedUseShallow={this.context.appLibs!.useShallow}
+        injectedReact={appLibs.react}
+        injectedImmer={appLibs.immer}
+        injectedRadixThemes={appLibs.radixThemes}
+        injectedReactIconsGi={appLibs.reactIconsGi}
+        injectedUseShallow={appLibs.useShallow}
         // Pass global state access functions as props.
-        getGlobalState={this.context!.appStateManager.getGlobalState}
+        getGlobalState={this.appStateManager!.getGlobalState}
         // Define the onSave callback for the UI component.
         // This callback is responsible for updating the plugin's settings in the global state.
         onSave={async (newValue) => {
@@ -220,7 +231,7 @@ export default class TestUIPlugin implements Plugin {
            *
            * @param {WritableDraft<StoredState>} state - The Immer draft of the global state.
            */
-          this.context!.appStateManager.savePluginSettings(this.context!.pluginName, { customAttribute: newValue });
+          this.appStateManager!.savePluginSettings(this.context!.pluginName, { customAttribute: newValue });
           // Also update the plugin's internal settings for immediate consistency.
           this.settings = { ...this.settings, customAttribute: newValue };
         }}

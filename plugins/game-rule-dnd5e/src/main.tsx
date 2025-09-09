@@ -14,13 +14,12 @@ import type { WritableDraft } from "immer";
 import type { Plugin, PluginWrapper, StoredState, IGameRuleLogic, CheckDefinition } from "@/lib/state";
 import type { Context } from "@/app/plugins";
 import type { Prompt } from "@/lib/prompts";
-
 import type * as RadixThemes from '@radix-ui/themes';
 import type { useShallow } from 'zustand/shallow';
 import { DnDStats, generateDefaultDnDStats, DnDClassData, DnDStatsSchema, resolveCheck as getResolveCheck, Combatant } from "./pluginData";
 import { getBackstory, modifyProtagonistPromptForDnd, getChecksPrompt, getConsequenceGuidancePrompt, getDndNarrationGuidance } from "./pluginPrompt";
 import * as z from "zod/v4";
-import { narratePrompt } from "@/lib/prompts"; // Import narratePrompt
+
 import type { Character, State, CheckResolutionResult } from "@/lib/state"; // Import Character and State
 
 
@@ -256,29 +255,29 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
     this.appStateManager = appStateManager;
     this.appUI = appUI;
     // Parse and validate settings, applying defaults for missing properties
-    this.settings = DnDStatsSchema.parse({ ...generateDefaultDnDStats(this.context.rpgDiceRoller), ...settings });
+    this.settings = DnDStatsSchema.parse({ ...generateDefaultDnDStats(appLibs.rpgDiceRoller), ...settings });
 
     // Assign the main application's React instance to the module-level React variable.
     // This is critical for all JSX within this plugin to use the correct React instance.
-    React = this.context.react;
+    React = appLibs.react;
 
     // Register the D&D 5E tab in the CharacterSelect screen
     this.context.addCharacterUI(
-      this.context.pluginName, // Changed from "D&D 5E" to this.context.pluginName
+      this.context!.pluginName, // Changed from "D&D 5E" to this.context.pluginName
       <span>D&D 5E</span>, // GameRuleTab: The ReactNode for the tab trigger.
       <DndStatsCharacterUIPage
-        injectedReact={this.context.react}
-        injectedRadixThemes={this.context.radixThemes}
-        getGlobalState={this.context.getGlobalState}
-        injectedUseShallow={this.context.useShallow}
-        injectedRpgDiceRoller={this.context.rpgDiceRoller}
+        injectedReact={appLibs.react}
+        injectedRadixThemes={appLibs.radixThemes}
+        getGlobalState={this.appStateManager!.getGlobalState}
+        injectedUseShallow={appLibs.useShallow}
+        injectedRpgDiceRoller={appLibs.rpgDiceRoller}
         onSave={async (newSettings) => {
           let finalSettings = { ...newSettings }; // Start with a copy of newSettings
 
           // Check if backstory is empty or blank
           if (!newSettings.backstory || newSettings.backstory.trim() === "") {
             // Only generate if backstory is empty
-            const pc = this.context!.getGlobalState(); // Get current global state for prompt
+            const pc = this.appStateManager!.getGlobalState(); // Get current global state for prompt
             const prompt = getBackstory(newSettings, pc); // Use newSettings for stats
 
             try {
@@ -287,16 +286,16 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
               });
 
               finalSettings = { ...newSettings, backstory: generatedBackstory };
-              this.context!.updateProgress("Backstory Generated", "Your character's history is ready!", -1, false);
+              this.appUI!.updateProgress("Backstory Generated", "Your character's history is ready!", -1, false);
               console.log("DEBUG: Plugin: Backstory Generated.");
 
               } catch (error) {
                 // TODO: Handle error if not user abort, and display console.error("Error generating backstory:", error);
-                this.context!.updateProgress("Backstory Generation Aborted", "User aborted operation during generation.", -1, false);
+                this.appUI!.updateProgress("Backstory Generation Aborted", "User aborted operation during generation.", -1, false);
               }
           }
 
-          this.context!.appStateManager.savePluginSettings(this.context!.pluginName, finalSettings);
+          this.appStateManager!.savePluginSettings(this.context!.pluginName, finalSettings);
           this.settings = { ...this.settings, ...finalSettings }; // Update local copy
         }}
       />
@@ -332,7 +331,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
    * @returns {Promise<CheckDefinition[]>} A promise that resolves to an array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
    */
   async getActionChecks(action: string, context: WritableDraft<StoredState>): Promise<CheckDefinition[]> {
-    if (!this.context || !this.settings) {
+    if (!this.appBackend || !this.settings) {
       console.error("Context or settings not available for getActionChecks.");
       return [];
     }
@@ -372,12 +371,12 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
    *    *   (Note: The `Character` type is defined in `lib/schemas.ts` and includes properties like `name`, `gender`, `race`, `biography`, `locationIndex`.)
    *    * @returns {string} A statement describing the check's result and any consequences.
    */
-  async resolveCheck(check: CheckDefinition, characterData: Character, context: WritableDraft<State>, action?: string): Promise<CheckResolutionResult> {
-    if (!this.settings || !this.context) {
-      return { resultStatement: `Check for ${check.type} could not be resolved due to missing context or settings.`, consequenceLog: [] };
+    async resolveCheck(check: CheckDefinition, characterData: Character, context: WritableDraft<State>, action?: string): Promise<CheckResolutionResult> {
+    if (!this.settings || !this.context || !this.appLibs) {
+      return { resultStatement: `Check for ${check.type} could not be resolved due to missing context, settings, or appLibs.`, consequenceLog: [] };
     }
     const PCStats = this.settings as DnDStats;
-    const rpgDiceRoller = this.context.rpgDiceRoller;
+    const rpgDiceRoller = this.appLibs.rpgDiceRoller;
 
     let resultStatement = getResolveCheck(check, characterData, PCStats, rpgDiceRoller);
     let consequenceLog: string[] = [];
@@ -403,7 +402,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
    * @returns {Promise<string[]>} The generated narration prompt.
    */
   async getNarrativeGuidance(eventType: string, context: WritableDraft<State>, checkResolutionResults?: CheckResolutionResult[], action?: string): Promise<string[]> {
-    if (!this.context || !this.settings) {
+    if (!this.appBackend || !this.settings) {
       console.error("Context or settings not available for getNarrativeGuidance.");
       return [];
     }
@@ -458,7 +457,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
         Describe the new location and its immediate relevance to the protagonist's ongoing plot or implied goal in 250 words or less.
         Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.`,
       };
-      const narration = await this.context.getBackend().getNarration(locationChangePrompt);
+      const narration = await this.appBackend!.getBackend().getNarration(locationChangePrompt);
       console.log ("DEBUG: Plugin: Guidance for New Location Prompt:", locationChangePrompt);
       return [narration];
     }
@@ -538,7 +537,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
 
         const targetCombatant = PCStats.encounter.combatants.find(
           (c: Combatant) => {
-            const globalState = this.context?.getGlobalState();
+            const globalState = this.appStateManager?.getGlobalState();
             if (!globalState) return false;
 
             if (c.characterIndex === -1) { // Special case for protagonist
@@ -590,7 +589,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
 
       // Construct LLM prompt
       let sceneNarration = "";
-      const globalState = this.context?.getGlobalState();
+      const globalState = this.appStateManager?.getGlobalState();
       if (globalState) {
         for (let i = globalState.events.length - 1; i >= 0; i--) {
           const event = globalState.events[i];
@@ -617,7 +616,7 @@ export default class DndStatsPlugin implements Plugin, IGameRuleLogic {
       };
 
       // Make LLM call
-      const combatantsLLMResponse = await this.context!.getBackend().getObject(combatantsPrompt, CombatantsLLMSchema);
+      const combatantsLLMResponse = await this.appBackend!.getBackend().getObject(combatantsPrompt, CombatantsLLMSchema);
 
       const allCombatants: Combatant[] = [];
 

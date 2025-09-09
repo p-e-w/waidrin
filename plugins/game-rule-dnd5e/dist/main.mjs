@@ -14914,8 +14914,8 @@ var DndStatsPlugin = class {
     this.appBackend = appBackend;
     this.appStateManager = appStateManager;
     this.appUI = appUI;
-    this.settings = DnDStatsSchema.parse(__spreadValues(__spreadValues({}, generateDefaultDnDStats(this.context.rpgDiceRoller)), settings));
-    React = this.context.react;
+    this.settings = DnDStatsSchema.parse(__spreadValues(__spreadValues({}, generateDefaultDnDStats(appLibs.rpgDiceRoller)), settings));
+    React = appLibs.react;
     this.context.addCharacterUI(
       this.context.pluginName,
       // Changed from "D&D 5E" to this.context.pluginName
@@ -14924,28 +14924,28 @@ var DndStatsPlugin = class {
       /* @__PURE__ */ React.createElement(
         DndStatsCharacterUIPage,
         {
-          injectedReact: this.context.react,
-          injectedRadixThemes: this.context.radixThemes,
-          getGlobalState: this.context.getGlobalState,
-          injectedUseShallow: this.context.useShallow,
-          injectedRpgDiceRoller: this.context.rpgDiceRoller,
+          injectedReact: appLibs.react,
+          injectedRadixThemes: appLibs.radixThemes,
+          getGlobalState: this.appStateManager.getGlobalState,
+          injectedUseShallow: appLibs.useShallow,
+          injectedRpgDiceRoller: appLibs.rpgDiceRoller,
           onSave: async (newSettings) => {
             let finalSettings = __spreadValues({}, newSettings);
             if (!newSettings.backstory || newSettings.backstory.trim() === "") {
-              const pc = this.context.getGlobalState();
+              const pc = this.appStateManager.getGlobalState();
               const prompt = getBackstory(newSettings, pc);
               try {
                 const generatedBackstory = await this.appBackend.getNarration(prompt, (token, count) => {
                   this.appUI.updateProgress("Generating Backstory", "Please wait while your character is going through early life...", count, true);
                 });
                 finalSettings = __spreadProps(__spreadValues({}, newSettings), { backstory: generatedBackstory });
-                this.context.updateProgress("Backstory Generated", "Your character's history is ready!", -1, false);
+                this.appUI.updateProgress("Backstory Generated", "Your character's history is ready!", -1, false);
                 console.log("DEBUG: Plugin: Backstory Generated.");
               } catch (error39) {
-                this.context.updateProgress("Backstory Generation Aborted", "User aborted operation during generation.", -1, false);
+                this.appUI.updateProgress("Backstory Generation Aborted", "User aborted operation during generation.", -1, false);
               }
             }
-            this.context.appStateManager.savePluginSettings(this.context.pluginName, finalSettings);
+            this.appStateManager.savePluginSettings(this.context.pluginName, finalSettings);
             this.settings = __spreadValues(__spreadValues({}, this.settings), finalSettings);
           }
         }
@@ -14978,7 +14978,7 @@ var DndStatsPlugin = class {
    * @returns {Promise<CheckDefinition[]>} A promise that resolves to an array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
    */
   async getActionChecks(action, context) {
-    if (!this.context || !this.settings) {
+    if (!this.appBackend || !this.settings) {
       console.error("Context or settings not available for getActionChecks.");
       return [];
     }
@@ -15012,11 +15012,11 @@ var DndStatsPlugin = class {
    *    * @returns {string} A statement describing the check's result and any consequences.
    */
   async resolveCheck(check2, characterData, context, action) {
-    if (!this.settings || !this.context) {
-      return { resultStatement: `Check for ${check2.type} could not be resolved due to missing context or settings.`, consequenceLog: [] };
+    if (!this.settings || !this.context || !this.appLibs) {
+      return { resultStatement: `Check for ${check2.type} could not be resolved due to missing context, settings, or appLibs.`, consequenceLog: [] };
     }
     const PCStats = this.settings;
-    const rpgDiceRoller = this.context.rpgDiceRoller;
+    const rpgDiceRoller = this.appLibs.rpgDiceRoller;
     let resultStatement = resolveCheck(check2, characterData, PCStats, rpgDiceRoller);
     let consequenceLog = [];
     if (check2.type === "initiative") {
@@ -15035,7 +15035,7 @@ var DndStatsPlugin = class {
    * @returns {Promise<string[]>} The generated narration prompt.
    */
   async getNarrativeGuidance(eventType, context, checkResolutionResults, action) {
-    if (!this.context || !this.settings) {
+    if (!this.appBackend || !this.settings) {
       console.error("Context or settings not available for getNarrativeGuidance.");
       return [];
     }
@@ -15079,7 +15079,7 @@ var DndStatsPlugin = class {
         Describe the new location and its immediate relevance to the protagonist's ongoing plot or implied goal in 250 words or less.
         Ensure your narration aligns with D&D 5e fantasy themes, character abilities, and typical role-playing scenarios that the famous DM Matt Mercer would narrate.`
       };
-      const narration = await this.context.getBackend().getNarration(locationChangePrompt);
+      const narration = await this.appBackend.getBackend().getNarration(locationChangePrompt);
       console.log("DEBUG: Plugin: Guidance for New Location Prompt:", locationChangePrompt);
       return [narration];
     }
@@ -15138,7 +15138,7 @@ ${combatNarration}`;
         const targetCombatant = PCStats.encounter.combatants.find(
           (c) => {
             var _a2;
-            const globalState = (_a2 = this.context) == null ? void 0 : _a2.getGlobalState();
+            const globalState = (_a2 = this.appStateManager) == null ? void 0 : _a2.getGlobalState();
             if (!globalState) return false;
             if (c.characterIndex === -1) {
               return globalState.protagonist.name === targetName;
@@ -15180,7 +15180,7 @@ ${combatNarration}`;
         encounterDescription: string2().optional()
       });
       let sceneNarration = "";
-      const globalState = (_a = this.context) == null ? void 0 : _a.getGlobalState();
+      const globalState = (_a = this.appStateManager) == null ? void 0 : _a.getGlobalState();
       if (globalState) {
         for (let i = globalState.events.length - 1; i >= 0; i--) {
           const event = globalState.events[i];
@@ -15211,7 +15211,7 @@ Provide a JSON object with the following structure:
   "encounterDescription": "A brief description of the combat encounter."
 }`
       };
-      const combatantsLLMResponse = await this.context.getBackend().getObject(combatantsPrompt, CombatantsLLMSchema);
+      const combatantsLLMResponse = await this.appBackend.getBackend().getObject(combatantsPrompt, CombatantsLLMSchema);
       const allCombatants = [];
       if (globalState == null ? void 0 : globalState.protagonist) {
         allCombatants.push({

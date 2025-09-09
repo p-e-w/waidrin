@@ -12,10 +12,10 @@ The Waidrin application is structured into several key directories, each with a 
 
 Contains the core logic of the application.
 
-*   **`state.ts`**: Manages the global application state using Zustand, including game data (world, characters, events, locations), user settings, and loaded plugins. It defines the `Plugin` interface, outlining methods that plugins can implement (e.g., `init`, `getBackends`, `onLocationChange`). It also configures the `zustand/persist` middleware for automatic state persistence.
+*   **`state.ts`**: Manages the global application state using Zustand, including game data (world, characters, events, locations), user settings, and loaded plugins. It defines the `Plugin` interface, outlining methods that plugins can implement (e.g., `init`, `getBackends`, `onLocationChange`, `getGameRuleLogic`). It also defines the `IGameRuleLogic` interface for abstracting game rule logic and includes `selectedPlugin` in `PluginWrapper` for dynamic game rule selection. It configures the `zustand/persist` middleware for automatic state persistence.
 *   **`backend.ts`**: Defines the `Backend` interface and a `DefaultBackend` class for communicating with AI models (OpenAI-compatible APIs). It handles API requests, streaming responses, and JSON schema validation.
-*   **`engine.ts`**: Contains the game's state machine logic, orchestrating the flow of the game. It uses the `backend` to generate narration, characters, locations, and actions based on the current game state and user input. It also handles state transitions between different "views" of the application and manages plugin lifecycle hooks.
-*   **`prompts.ts`**: Defines the various prompts used to interact with the AI model, constructing the system and user messages based on the current game state.
+*   **`engine.ts`**: Contains the game's state machine logic, orchestrating the flow of the game. It uses the `backend` to generate narration, characters, locations, and actions based on the current game state and user input. It now leverages `getActiveGameRuleLogic()` to delegate game logic (such as protagonist generation, action resolution, and narration) to the active plugin, replacing the previous reliance on a global `isCombat` flag. It also handles state transitions between different "views" of the application and manages plugin lifecycle hooks.
+*   **`prompts.ts`**: Defines the various prompts used to interact with the AI model, constructing the system and user messages based on the current game state. It now also interacts with `IGameRuleLogic` to get dynamic content for prompts, such as protagonist biography guidance, modified protagonist prompts, and available actions.
 *   **`schemas.ts`**: Defines Zod schemas for validating data structures used throughout the application, ensuring data consistency and type safety.
 
 ### 2.2. `app` (Application Root & API Routes)
@@ -90,8 +90,101 @@ export type Plugin = Partial<{
   init(settings: Record<string, unknown>, context: Context): Promise<void>;
   getBackends(): Promise<Record<string, Backend>>;
   onLocationChange(newLocation: Location, state: WritableDraft<State>): Promise<void>;
+  getGameRuleLogic?(): IGameRuleLogic;
   // ... (Future methods for rule query service registration, etc.)
 }>;
+
+### 4.6.1. Game Rule Logic Integration (`lib/state.ts:IGameRuleLogic`)
+
+The `IGameRuleLogic` interface defines a set of optional methods that any game rule (either the default or a plugin-provided one) can implement to customize core game mechanics. Plugins can provide an implementation of this interface via their `getGameRuleLogic()` method.
+
+```typescript
+export interface IGameRuleLogic {
+  /**
+   * @method getBiographyGuidance
+   * @description Provides a statement that augments the default prompt in `generateProtagonistPrompt`, influencing the protagonist's background, personality, and appearance based on the plugin's internal interpretation of stats.
+   * @returns {string} A statement to augment the protagonist generation prompt.
+   */
+  getBiographyGuidance?(): string;
+
+  /**
+   * @method modifyProtagonistPrompt
+   * @description Alters the PC's background to better suit the game world (e.g., magic is very rare or this game world is mostly water).
+   * @param {Prompt} originalPrompt - The original prompt for protagonist generation is read from core application and used as the basis to construct a modified prompt.
+   * @returns {Prompt} The modified prompt.
+   */
+  modifyProtagonistPrompt?(originalPrompt: Prompt): Prompt;
+
+  /**
+   * @method getAvailableRaces
+   * @description Provides a list of available races for character creation, including lore for narration.
+   * This can impact the character's backstory and story plots due to different race dynamics and world setting.
+   * @returns {RaceDefinition[]} An array of race definitions.
+   */
+  getAvailableRaces?(): RaceDefinition[];
+
+  /**
+   * @method getAvailableClasses
+   * @description Provides a list of available classes for character creation, including lore for narration.
+   * This can influence the narration by providing game world flavor or attitude towards the PC's class (much like how people treat a doctor vs. a janitor).
+   * @returns {ClassDefinition[]} An array of class definitions.
+   */
+  getAvailableClasses?(): ClassDefinition[];
+
+  /**
+   * @method getActionChecks
+   * @description Specifies what checks are required for a given action, based on the action and current context.
+   * This method is triggered when an action is passed to `narratePrompt`.
+   * Its implementation will typically involve constructing an LLM prompt, making an API call, and parsing/validating the LLM's JSON response against the `CheckDefinition` schema.
+   * @param {string} action - The raw action string performed by the protagonist.
+   * @param {WritableDraft<State>} context - The current game state.
+   * @returns {Promise<CheckDefinition[]>} A promise that resolves to an array of check definitions. If the LLM response is invalid or unparseable, an empty array should be returned as a graceful fallback.
+   */
+  getActionChecks?(action: string, context: WritableDraft<State>): Promise<CheckDefinition[]>;
+
+  /**
+   * @method resolveCheck
+   * @description Resolves a game rule check, utilizing rpg-dice-roller, and returns the result as a statement.
+   * The plugin will use its internal rules to determine the character's appropriate stat and skill modifier.
+   * This statement will be incorporated into the `narratePrompt`'s output, typically after the action description.
+   * @param {CheckDefinition} check - The definition of the check to resolve.
+   * @param {Character} characterStats - The global `Character` object. The plugin will map this to its internal representation of the character's stats.
+   * @param {WritableDraft<State>} context - The current game state.
+   * @param {string} [action] - The action that triggered the check.
+   * @returns {Promise<CheckResolutionResult>} A promise that resolves to a `CheckResolutionResult` object.
+   */
+  resolveCheck?(check: CheckDefinition, characterStats: Character, context: WritableDraft<State>, action?: string): Promise<CheckResolutionResult>;
+
+  /**
+   * @method handleConsequence
+   * @description Applies state changes based on the outcome of a check or event.
+   * This method is called internally by `resolveCheck` and is solely responsible for modifying the plugin's internal state.
+   * @param {string} eventType - The type of event triggering the consequence (e.g., "damage_dealt", "status_effect_applied").
+   * @param {string[]} [checkResultStatements] - Optional: Statements describing results of checks that led to this consequence.
+   * @param {string} [action] - Optional: The action that triggered the consequence.
+   * @returns {void}
+   */
+  handleConsequence?(eventType: string, checkResultStatements?: string[], action?: string): void;
+
+  /**
+   * @method getActions
+   * @description Provides a list of available actions based on the current game state and plot type.
+   * @returns {Promise<string[]>} A promise that resolves to an array of action strings.
+   */
+  getActions?(): Promise<string[]>;
+
+  /**
+   * @method getNarrativeGuidance
+   * @description Generates a narration prompt, influenced by the outcome of performed checks and consequences (e.g., HP, item, relationship, story/plot branch changes).
+   * @param {string} eventType - The type of event triggering narration.
+   * @param {WritableDraft<State>} context - The current game state.
+   * @param {CheckResolutionResult[]} [checkResolutionResults] - Optional: Statements describing results of checks performed for the event, provided by `resolveCheck`.
+   * @param {string} [action] - Optional: The action that triggered the narration.
+   * @returns {Promise<string[]>} The generated narration prompt.
+   */
+  getNarrativeGuidance?(eventType: string, context: WritableDraft<State>, checkResolutionResults?: CheckResolutionResult[], action?: string): Promise<string[]>;
+}
+
 ```
 
 ### 4.7. Plugin Context (`app/plugins.ts:Context`)
